@@ -1,0 +1,49 @@
+﻿@page
+@model Authserver.Pages.Admin.UserAdministrationModel
+@{
+}
+
+<div class="container">
+    <div class="col-md-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Add a new user</h3>
+            </div>
+            <div class="panel-body">
+                <form asp-page-handler="Create" method="post">
+                    <div class="form-group">
+                        <label asp-for="Input.Username"></label>
+                        <input type="email" class="form-control" placeholder="Username" asp-for="Input.Username" autofocus>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary" name="create" value="create">Create</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <h4>@Model.Message</h4>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    Id
+                </th>
+                <th>
+                    Username
+                </th>
+            </tr>
+        </thead>
+    @foreach (var item in Model.Users) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Id)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.UserName)
+            </td>
+        </tr>
+    }
+    </table>
+</div>

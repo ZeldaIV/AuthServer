@@ -1,0 +1,65 @@
+@model Authserver.Pages.Admin.ClientAdministrationModel
+
+<table class="table">
+        <thead>
+            <tr>
+                <th>
+                    Client ID
+                </th>
+                <th>
+                    Client Name
+                </th>
+                <th>
+                    Allowed grant types
+                </th>
+                <th>
+                    Redirect Uri´s
+                </th>
+                <th>
+                    Post Logout Redirect
+                </th>
+                <th>
+                    Allowed scopes
+                </th>
+            </tr>
+        </thead>
+    @foreach (var item in Model.Clients) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.ClientId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ClientName)
+            </td>
+            <td>
+                <ul class="none" style="list-style-type: none;">
+                    @foreach (var grantTypes in item.AllowedGrantTypes) {
+                        <li>@Html.DisplayFor(modelItem => grantTypes)</li>
+                    }
+                </ul>
+            </td>
+            <td>
+                <ul class="none">
+                    @foreach (var redirectUri in item.RedirectUris) {
+                        <li>@Html.DisplayFor(modelItem => redirectUri)</li>
+                    }
+                </ul>
+            </td>
+            <td>
+                <ul class="none">
+                    @foreach (var postLogoutRedirectUri in item.PostLogoutRedirectUris) {
+                        <li>@Html.DisplayFor(modelItem => postLogoutRedirectUri)</li>
+                    }
+                </ul>
+            </td>
+            <td>
+                <ul class="none">
+                    @foreach (var allowedScope in item.AllowedScopes) {
+                        <li>@Html.DisplayFor(modelItem => allowedScope)</li>
+                    }
+                </ul>
+                
+            </td>
+        </tr>
+    }
+</table>
