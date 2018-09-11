@@ -37,9 +37,14 @@ namespace Authserver.Pages.Admin
                 } else {
                     var result = await _userManager.CreateAsync(user);
                     if (result.Succeeded) {
-                        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                        _logger.LogInformation($"User token: {token}");
-                        Message = $"User {user} sucessfully created, with token: {token}";
+                        string code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                        var callbackUrl = Url.Page("/Account/EmailConfirmation", "ConfirmEmail", new { userId = user.Id, code = code  }, protocol: "https");
+                        // var callbackUrl = Url.Action(
+                        //                         "ConfirmEmail", "Account", 
+                        //                         new { userId = user.Id, code = code  }, 
+                        //                         protocol: "https");
+                        _logger.LogInformation($"User token: {code}");
+                        Message = $"User {user} sucessfully created, with CallBackUrl: {callbackUrl}";
                     }
                 }
             }

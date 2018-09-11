@@ -43,6 +43,9 @@
             <td>
                 @Html.DisplayFor(modelItem => item.UserName)
             </td>
+            <td>
+                <a asp-page="DeleteUser" asp-route-id="@item.Id">Delete</a>
+            </td>
         </tr>
     }
     </table>

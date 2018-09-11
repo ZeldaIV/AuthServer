@@ -14,6 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace AuthServer
 {
@@ -35,11 +36,19 @@ namespace AuthServer
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
-            var connectionString = Configuration.GetConnectionString("DefaultConnection");
+            // var connectionString = Configuration.GetConnectionString("DefaultConnection");
+            var mysqlConnectionString = Configuration.GetConnectionString("MysqlConnectionString");
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlite(
-                    connectionString));
+            // services.AddDbContext<ApplicationDbContext>(options =>
+            //     options.UseSqlite(
+            //         connectionString));
+            services.AddDbContextPool<ApplicationDbContext>(
+                options => options.UseMySql(mysqlConnectionString,
+                    mysqlOptions =>
+                    {
+                        mysqlOptions.ServerVersion(new Version(10, 3, 8), ServerType.MySql); // replace with your Server Version and Type
+                    }
+            ));
             services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -56,12 +65,13 @@ namespace AuthServer
                     .AddSigningCredential(signingCertificate)
                     .AddConfigurationStore(options => {
                         options.ConfigureDbContext = builder => 
-                            builder.UseSqlite(connectionString,
+                            builder.UseMySql(mysqlConnectionString,
                             sql => sql.MigrationsAssembly(migrationsAssembly));
                     })
-                    .AddInMemoryClients(Config.GetClients())
-                    .AddInMemoryApiResources(Config.GetApiResources())
-                    .AddInMemoryIdentityResources(Config.GetIdentityResources());
+                    // .AddInMemoryClients(Config.GetClients())
+                    // .AddInMemoryApiResources(Config.GetApiResources())
+                    // .AddInMemoryIdentityResources(Config.GetIdentityResources())
+                    ;
 
             services.AddAuthentication();
             services.AddMvc()

@@ -58,7 +58,9 @@
                         <li>@Html.DisplayFor(modelItem => allowedScope)</li>
                     }
                 </ul>
-                
+            </td>
+            <td>
+                <a asp-page="DeleteClient" asp-route-id="@item.ClientId">Delete</a>
             </td>
         </tr>
     }
