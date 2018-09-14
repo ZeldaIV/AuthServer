@@ -1,0 +1,44 @@
+﻿@page
+@model Authserver.Pages.Admin.ClientSelectionModel
+@{
+    ViewData["Title"] = "Clients administration";
+}
+
+<div class="container">
+    <div class="card-deck mb-3 text-center">
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header">Web application client</div>
+            <div class="card-body">
+                <p>Choose this to add a web page as client</p>
+                <br>
+                <p>Typically a client not able to protect its secrets</p>
+            </div>
+            <div class="card-footer">
+                <button type="button" class="btn btn-primary btn-block">New web app</button>
+            </div>
+        </div>
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header">Server side client</div>
+            <div class="card-body">
+                <p>Choose this to add a server side client</p>
+                <br>
+                <p>Typically an api, which needs to authorize access</p>
+            </div>
+            <div class="card-footer">
+                <button type="button" class="btn btn-primary btn-block">New server side app</button>
+            </div>
+        </div>
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header">Machine client</div>
+            <div class="card-body">
+                <p>Choose this when adding a pure machine to machine client</p>
+                <br>
+                <p>Strictly machine to machine communication</p>
+            </div>
+            <div class="card-footer">
+                <button type="button" class="btn btn-primary btn-block">New machine side app</button>
+            </div>
+        </div>
+    </div>
+</div>
+
