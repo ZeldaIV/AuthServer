@@ -1,0 +1,28 @@
+version: '3.7'
+
+services:
+
+  db:
+    image: mariadb
+    restart: always
+    volumes: 
+      - "~/.mysql:/var/lib/mysql"
+    env_file:
+      - db.env
+  
+  web:
+    build: .
+    ports:
+      - "8000:80"
+    depends_on:
+      - "db"
+    command: ["./wait-for-it.sh", "db:3306", "--", "dotnet", "AuthServer.dll"]
+    volumes: 
+      - "./Certificates:/certificates"
+
+
+networks:
+  frontend:
+    name: custom_frontend
+  backend:
+    name: custom_backend

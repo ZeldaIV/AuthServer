@@ -36,12 +36,10 @@ namespace AuthServer
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
-            // var connectionString = Configuration.GetConnectionString("DefaultConnection");
+            
             var mysqlConnectionString = Configuration.GetConnectionString("MysqlConnectionString");
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
-            // services.AddDbContext<ApplicationDbContext>(options =>
-            //     options.UseSqlite(
-            //         connectionString));
+            
             services.AddDbContextPool<ApplicationDbContext>(
                 options => options.UseMySql(mysqlConnectionString,
                     mysqlOptions =>
@@ -53,7 +51,7 @@ namespace AuthServer
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-            var signingCertificate = new X509Certificate2("./certificates/SigningCertificate.pfx", "ValidatedKey");
+            var signingCertificate = new X509Certificate2("/certificates/SigningCertificate.pfx", "ValidatedKey");
             services.AddIdentityServer(options =>
                 {
                     options.Events.RaiseErrorEvents = true;

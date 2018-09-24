@@ -1,0 +1,11 @@
+# directories
+**/bin/
+**/obj/
+**/out/
+**/Properties/
+**/.vscode/
+
+# files
+Dockerfile*
+**/*.trx
+**/*.md
