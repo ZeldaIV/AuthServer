@@ -285,3 +285,4 @@ __pycache__/
 Certificates/*
 Config.cs
 app.db
+environments/*

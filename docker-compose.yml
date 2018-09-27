@@ -3,8 +3,10 @@ version: '3.7'
 services:
 
   db:
-    image: mariadb
+    image: mariadb:10.3.9
     restart: always
+    ports:
+      - "3306"
     volumes: 
       - "~/.mysql:/var/lib/mysql"
     env_file:
@@ -13,12 +15,14 @@ services:
   web:
     build: .
     ports:
-      - "8000:80"
+      - "8001:443"
     depends_on:
       - "db"
-    command: ["./wait-for-it.sh", "db:3306", "--", "dotnet", "AuthServer.dll"]
     volumes: 
       - "./Certificates:/certificates"
+      - "${HOME}/.aspnet/https:/https/"
+    env_file:
+      - web.env
 
 
 networks:

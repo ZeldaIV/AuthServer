@@ -18,18 +18,30 @@ namespace AuthServer
         public static void Main(string[] args)
         {
             var host = CreateWebHostBuilder(args).Build();
-            using (var scope = host.Services.CreateScope()) {
+            using (var scope = host.Services.CreateScope())
+            {
                 var services = scope.ServiceProvider;
-                try
+                var logger = services.GetRequiredService<ILogger<Program>>();
+                Task.Run(async () =>
                 {
                     var appDbContext = services.GetRequiredService<ApplicationDbContext>();
-                    DbInitializer.Initialize(appDbContext);
+                    var appDbSuccess = await DbInitializer.Initialize(appDbContext);
+                    if (appDbSuccess)
+                    {
+                        logger.LogInformation("Db app migrations initialized");
+                    } else {
+                        logger.LogError("Could not initialize app db after 5 attempts.");
+                    }
                     var identityDbContext = services.GetRequiredService<ConfigurationDbContext>();
-                    DbInitializer.Initialize(identityDbContext);
-                } catch (Exception ex) {
-                    var logger = services.GetRequiredService<ILogger<Program>>();
-                    logger.LogError(ex, "An error occurred creating the DB.");
-                }
+                    var identityDbSuccess = await DbInitializer.Initialize(identityDbContext);
+                    if (identityDbSuccess)
+                    {
+                        logger.LogInformation("Db identity migrations initialized");
+                    } else {
+                        logger.LogError("Could not initialize identity db after 5 attempts.");
+                    }
+                }).GetAwaiter().GetResult();
+
             }
             host.Run();
         }

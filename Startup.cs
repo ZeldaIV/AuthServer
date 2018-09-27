@@ -15,6 +15,8 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using System.Data;
+using IdentityServer4.EntityFramework.DbContexts;
 
 namespace AuthServer
 {
@@ -24,6 +26,7 @@ namespace AuthServer
         {
             Configuration = configuration;
         }
+
 
         public IConfiguration Configuration { get; }
 
@@ -44,7 +47,8 @@ namespace AuthServer
                 options => options.UseMySql(mysqlConnectionString,
                     mysqlOptions =>
                     {
-                        mysqlOptions.ServerVersion(new Version(10, 3, 8), ServerType.MySql); // replace with your Server Version and Type
+                        mysqlOptions.ServerVersion(new Version(10, 3, 9), ServerType.MariaDb); // replace with your Server Version and Type
+                        mysqlOptions.EnableRetryOnFailure(5, new TimeSpan(0,0,10), new List<int> {1,2,3,4});
                     }
             ));
             services.AddIdentity<IdentityUser, IdentityRole>()
@@ -64,7 +68,10 @@ namespace AuthServer
                     .AddConfigurationStore(options => {
                         options.ConfigureDbContext = builder => 
                             builder.UseMySql(mysqlConnectionString,
-                            sql => sql.MigrationsAssembly(migrationsAssembly));
+                            sql => {
+                                sql.MigrationsAssembly(migrationsAssembly);
+                                sql.EnableRetryOnFailure(5, new TimeSpan(0,0,10), new List<int> {1,2,3,4});
+                                });
                     })
                     // .AddInMemoryClients(Config.GetClients())
                     // .AddInMemoryApiResources(Config.GetApiResources())
@@ -92,6 +99,7 @@ namespace AuthServer
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            
             // app.UseCookiePolicy();
             
             // app.UseAuthentication();
@@ -99,5 +107,7 @@ namespace AuthServer
 
             app.UseMvc();
         }
+
+        
     }
 }
