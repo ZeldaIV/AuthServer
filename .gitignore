@@ -286,3 +286,4 @@ Certificates/*
 Config.cs
 app.db
 environments/*
+secret*
