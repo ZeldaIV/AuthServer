@@ -5,19 +5,17 @@ services:
   db:
     image: mariadb:10.3.9
     restart: always
-    ports:
+    expose:
       - "3306"
     volumes:
       - "auth-server-db:/var/lib/mysql"
     networks:
       - auth-server-backend
-    env_file:
-      - db.env
 
   web:
     build: ../
-    ports:
-      - "8001:443"
+    expose:
+      - "443"
     depends_on:
       - "db"
     volumes:
@@ -26,8 +24,6 @@ services:
     networks:
       - auth-server-backend
       - auth-server-frontend
-    env_file:
-      - web.env
 
 volumes:
   auth-server-db:
