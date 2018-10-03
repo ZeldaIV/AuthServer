@@ -7,26 +7,31 @@ services:
     restart: always
     ports:
       - "3306"
-    volumes: 
-      - "~/.mysql:/var/lib/mysql"
+    volumes:
+      - "auth-server-db:/var/lib/mysql"
+    networks:
+      - auth-server-backend
     env_file:
       - db.env
-  
+
   web:
-    build: .
+    build: ../
     ports:
       - "8001:443"
     depends_on:
       - "db"
-    volumes: 
-      - "./Certificates:/certificates"
-      - "${HOME}/.aspnet/https:/https/"
+    volumes:
+      - "./OpenSsl:/certificates"
+      - "./OpenSsl:/https/"
+    networks:
+      - auth-server-backend
+      - auth-server-frontend
     env_file:
       - web.env
 
+volumes:
+  auth-server-db:
 
 networks:
-  frontend:
-    name: custom_frontend
-  backend:
-    name: custom_backend
+  auth-server-frontend:
+  auth-server-backend:
