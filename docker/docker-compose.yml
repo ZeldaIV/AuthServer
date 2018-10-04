@@ -19,8 +19,8 @@ services:
     depends_on:
       - "db"
     volumes:
-      - "./OpenSsl:/certificates"
-      - "./OpenSsl:/https/"
+      - "../Certificates:/certificates"
+      - "../Certificates:/https/"
     networks:
       - auth-server-backend
       - auth-server-frontend

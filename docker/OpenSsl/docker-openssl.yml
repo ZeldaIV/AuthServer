@@ -5,4 +5,4 @@ services:
   openssl:
     build: .
     volumes: 
-      - ".:/export/"
+      - "../../Certificates:/export/"
