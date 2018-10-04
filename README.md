@@ -28,7 +28,7 @@ You will also have to create a certificate or get a certificate from a third par
 and create a signing certificate for the tokens and update the location of your
 certificates.
 
-To generate such certificates have a look in the <code> docker/OpenSsl <code> folder. These commands
+To generate such certificates have a look in the <code> docker/OpenSsl </code> folder. These commands
 will generate the necessary certificates and put them in the Certificates folder in the root dir.
 
 This will work out of the box for testing locally
