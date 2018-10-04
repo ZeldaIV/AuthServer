@@ -22,13 +22,28 @@ inside the docker folder copy the *web.env* file to *secret.web.env* and set you
 In docker/secret.web.env:
 * `ASPNETCORE_Kestrel__Certificates__Default__Password=[your pfx password]`
 
+### Creating Self-Signed certificates for testing
+
 You will also have to create a certificate or get a certificate from a third party for https, 
 and create a signing certificate for the tokens and update the location of your
-certificate in
+certificates.
+
+To generate such certificates have a look in the <code> docker/OpenSsl <code> folder. These commands
+will generate the necessary certificates and put them in the Certificates folder in the root dir.
+
+This will work out of the box for testing locally
 ```
 volumes: 
-   - "./Certificates:/certificates"
-   - "${HOME}/.aspnet/https:/https/"
+   - "../Certificates:/certificates"
+   - "../Certificates:/https"
+```
+
+If you allready have other certificates or you are in you production environment you might want 
+to use a differnt certificate location like:
+```
+volumes:
+   - "${HOME}/.aspnet/https:/certificates"
+   - "${HOME}/.aspnet/https:/https"
 ```
 
 To start the app run <code> docker-compose up </code> 
