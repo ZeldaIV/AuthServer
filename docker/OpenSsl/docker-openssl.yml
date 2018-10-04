@@ -3,6 +3,6 @@ version: '3.7'
 services:
   
   openssl:
-    build: ./OpenSsl
+    build: .
     volumes: 
-      - "./OpenSSl:/export/"
+      - ".:/export/"
