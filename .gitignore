@@ -199,6 +199,8 @@ ClientBin/
 *.dbproj.schemaview
 *.jfm
 *.pfx
+*.pem
+*.cert
 *.publishsettings
 node_modules/
 orleans.codegen.cs
@@ -286,3 +288,4 @@ Certificates/*
 Config.cs
 app.db
 environments/*
+secret*

@@ -1,0 +1,15 @@
+version: '3.7'
+
+services:
+
+  db:
+    ports:
+      - "3306"
+    env_file:
+      - secret.db.env
+
+  web:
+    ports:
+      - "8001:443"
+    env_file:
+      - secret.web.env
