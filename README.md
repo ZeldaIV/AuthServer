@@ -9,12 +9,17 @@ Hopefully it should be fairly quickly to get it running using docker-compose in 
 **I do hope to improve on this in the future**
 
 There are a few things you need to configure for development:
-In db.env
+
+inside the docker folder copy the *db.env* file to *secret.db.env* and set your credentials inside
+
+In docker/secret.db.env
 * `MYSQL_ROOT_PASSWORD=[YOUR_DB_ROOT_PASSWORD]`
 * `MYSQL_USER=[YOUR_DB_USER]`
 * `MYSQL_PASSWORD=[YOUR_DB_USER_PASSWORD]`
 
-In web.env:
+inside the docker folder copy the *web.env* file to *secret.web.env* and set your credentials inside
+
+In docker/secret.web.env:
 * `ASPNETCORE_Kestrel__Certificates__Default__Password=[your pfx password]`
 
 You will also have to create a certificate or get a certificate from a third party for https, 
@@ -23,7 +28,7 @@ certificate in
 ```
 volumes: 
    - "./Certificates:/certificates"
-   - "${HOME}/.aspnet/https:/https/"docker-compose:
+   - "${HOME}/.aspnet/https:/https/"
 ```
 
 To start the app run <code> docker-compose up </code> 
