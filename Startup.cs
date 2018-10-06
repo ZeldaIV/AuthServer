@@ -17,6 +17,10 @@ using System.Security.Cryptography.X509Certificates;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using System.Data;
 using IdentityServer4.EntityFramework.DbContexts;
+using AuthServer.Configuration;
+using AuthServer.Authorization;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 
 namespace AuthServer
 {
@@ -39,48 +43,70 @@ namespace AuthServer
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
-            
+
             var mysqlConnectionString = Configuration.GetConnectionString("MysqlConnectionString");
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
-            
+
             services.AddDbContextPool<ApplicationDbContext>(
                 options => options.UseMySql(mysqlConnectionString,
                     mysqlOptions =>
                     {
                         mysqlOptions.ServerVersion(new Version(10, 3, 9), ServerType.MariaDb); // replace with your Server Version and Type
-                        mysqlOptions.EnableRetryOnFailure(5, new TimeSpan(0,0,10), new List<int> {1,2,3,4});
+                        mysqlOptions.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> { 1, 2, 3, 4 });
                     }
             ));
             services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-            var signingCertificate = new X509Certificate2("/certificates/SigningCertificate.pfx", "ValidatedKey");
+            var tokenSigning = Configuration.Get<TokenSigningConfiguration>();
+            var signingCertificate = new X509Certificate2(tokenSigning.AuthServerSigningCertificatePath, tokenSigning.AuthServerSigningCertificatePassword);
             services.AddIdentityServer(options =>
                 {
                     options.Events.RaiseErrorEvents = true;
                     options.Events.RaiseInformationEvents = true;
                     options.Events.RaiseFailureEvents = true;
                     options.Events.RaiseSuccessEvents = true;
+                    // options.IssuerUri = "https://authserver.com";
                 })
                     .AddAspNetIdentity<IdentityUser>()
                     .AddSigningCredential(signingCertificate)
-                    .AddConfigurationStore(options => {
-                        options.ConfigureDbContext = builder => 
+                    .AddConfigurationStore(options =>
+                    {
+                        options.ConfigureDbContext = builder =>
+                            builder.UseMySql(mysqlConnectionString,
+                            sql =>
+                            {
+                                sql.MigrationsAssembly(migrationsAssembly);
+                                sql.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> { 1, 2, 3, 4 });
+                            });
+                    }).AddOperationalStore(options => {
+                        options.ConfigureDbContext = builder => {
                             builder.UseMySql(mysqlConnectionString,
                             sql => {
                                 sql.MigrationsAssembly(migrationsAssembly);
-                                sql.EnableRetryOnFailure(5, new TimeSpan(0,0,10), new List<int> {1,2,3,4});
-                                });
-                    })
-                    // .AddInMemoryClients(Config.GetClients())
-                    // .AddInMemoryApiResources(Config.GetApiResources())
-                    // .AddInMemoryIdentityResources(Config.GetIdentityResources())
-                    ;
+                                sql.EnableRetryOnFailure(5, new TimeSpan(0,0,10), new List<int> { 1, 2, 3, 4 });
+                            });
+                        };
+                    });
 
+            services.AddSingleton<IAuthorizationHandler, AdministratorHandler>();
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("Administrator", policy =>
+                {
+                    policy.Requirements.Add(new AdministratorRequirement());
+                });
+            });
             services.AddAuthentication();
-            services.AddMvc()
+            services.AddMvc(config => {
+                var policy = new AuthorizationPolicyBuilder()
+                                    .RequireAuthenticatedUser()
+                                    .Build();
+                config.Filters.Add(new AuthorizeFilter(policy));
+            })
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -99,15 +125,15 @@ namespace AuthServer
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-            
+
             // app.UseCookiePolicy();
-            
+
             // app.UseAuthentication();
             app.UseIdentityServer();
 
             app.UseMvc();
         }
 
-        
+
     }
 }

@@ -32,14 +32,15 @@ namespace AuthServer
                     } else {
                         logger.LogError("Could not initialize app db after 5 attempts.");
                     }
-                    var identityDbContext = services.GetRequiredService<ConfigurationDbContext>();
-                    var identityDbSuccess = await DbInitializer.Initialize(identityDbContext);
+                    var configurationDbContext = services.GetRequiredService<ConfigurationDbContext>();
+                    var identityDbSuccess = await DbInitializer.Initialize(configurationDbContext);
                     if (identityDbSuccess)
                     {
                         logger.LogInformation("Db identity migrations initialized");
                     } else {
                         logger.LogError("Could not initialize identity db after 5 attempts.");
                     }
+                    SeedData.EnsureSeedData(services);
                 }).GetAwaiter().GetResult();
 
             }

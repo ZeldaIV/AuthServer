@@ -47,7 +47,7 @@ namespace Authserver.Pages.Account
                 _logger.LogInformation("Password could not be set");
             }
             
-            return Redirect("Error");
+            return Redirect("/");
         }
         
         [BindProperty]

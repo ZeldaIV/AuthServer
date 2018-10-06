@@ -8,7 +8,7 @@ Hopefully it should be fairly quickly to get it running using docker-compose in 
 
 **I do hope to improve on this in the future**
 
-There are a few things you need to configure for development:
+There are a few things you need to configure before running:
 
 inside the docker folder copy the *db.env* file to *secret.db.env* and set your credentials inside
 
@@ -21,6 +21,12 @@ inside the docker folder copy the *web.env* file to *secret.web.env* and set you
 
 In docker/secret.web.env:
 * `ASPNETCORE_Kestrel__Certificates__Default__Password=[your pfx password]`
+* `AuthServerAdministrator=[YOUR_ADMIN_USER]`
+* `AuthServerAdministratorPassword=[YOUR_ADMIN_PASSWORD]`
+* `AuthServerSigningCertificatePath=/https/SigningCertificate.pfx`
+* `AuthServerSigningCertificatePassword=[YOUR SIGNING CERTIFICATE PASSWORD]`
+
+This will add the administrator to the database, and you can use that as login to add other users, clients and resources.
 
 ### Creating Self-Signed certificates for testing
 

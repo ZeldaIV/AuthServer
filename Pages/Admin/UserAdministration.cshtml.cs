@@ -44,7 +44,8 @@ namespace Authserver.Pages.Admin
                         //                         new { userId = user.Id, code = code  }, 
                         //                         protocol: "https");
                         _logger.LogInformation($"User token: {code}");
-                        Message = $"User {user} sucessfully created, with CallBackUrl: {callbackUrl}";
+                        Message = $"User {user} sucessfully created, click the link to set a password";
+                        CallBackLink = callbackUrl;
                     }
                 }
             }
@@ -59,6 +60,7 @@ namespace Authserver.Pages.Admin
         [BindProperty]
         public InputModel Input { get; set; }
         public string Message { get; set; }
+        public string CallBackLink { get; set; }
         
         public class InputModel {
             [Required]
