@@ -13,7 +13,9 @@ services:
       - auth-server-backend
 
   web:
-    build: ../
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
     expose:
       - "443"
     depends_on:
