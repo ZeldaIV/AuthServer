@@ -4,20 +4,16 @@ A server to offer OAuth2.0 using openid connect with administration pages
 AuthServer is meant to provide a web user interface for adding users, clients and resources
 to provide authorization and authentication for any app, api or other client.
 
-Hopefully it should be fairly quickly to get it running using docker-compose in the end.
-
-**I do hope to improve on this in the future**
-
 There are a few things you need to configure before running:
 
-inside the docker folder copy the *db.env* file to *secret.db.env* and set your credentials inside
+Inside the docker folder copy the *db.env* file to *secret.db.env* and set your credentials inside
 
 In docker/secret.db.env
 * `MYSQL_ROOT_PASSWORD=[YOUR_DB_ROOT_PASSWORD]`
 * `MYSQL_USER=[YOUR_DB_USER]`
 * `MYSQL_PASSWORD=[YOUR_DB_USER_PASSWORD]`
 
-inside the docker folder copy the *web.env* file to *secret.web.env* and set your credentials inside
+Inside the docker folder copy the *web.env* file to *secret.web.env* and set your credentials inside
 
 In docker/secret.web.env:
 * `ASPNETCORE_Kestrel__Certificates__Default__Password=[your pfx password]`
@@ -25,6 +21,17 @@ In docker/secret.web.env:
 * `AuthServerAdministratorPassword=[YOUR_ADMIN_PASSWORD]`
 * `AuthServerSigningCertificatePath=/https/SigningCertificate.pfx`
 * `AuthServerSigningCertificatePassword=[YOUR SIGNING CERTIFICATE PASSWORD]`
+
+Inside the docker folder copy the *duck.env* file to *secret.duck.env* and set your credentials inside
+
+In docker/secret.duck.env:
+* `# DuckDNS`
+* `SUBDOMAINS=SUBDOMAINS=<subdomains>`
+* `TOKEN=<token>` 
+* `TZ=<timezone>`
+
+Inside the docker/nginx folder copy the *nginx.conf* file to *secret.nginx.conf*. Then you can store your secret domains and certificates if needed without commiting it to the repository.
+The basic file will work whn following the example setup.
 
 This will add the administrator to the database, and you can use that as login to add other users, clients and resources.
 
