@@ -2,30 +2,52 @@ version: '3.7'
 
 services:
 
+  # Nginx image
+  nginx:
+    image: nginx:stable-alpine
+    volumes:
+      #- /etc/letsencrypt:/etc/letsencrypt:ro
+      - ../Certificates:/etc/ssl/certs
+      - ./nginx/secret.nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/proxy.conf:/etc/nginx/proxy.conf:ro
+    expose:
+      - 80
+      - 443
+    networks:
+      - auth-server-frontend
+    restart: unless-stopped
+
   db:
     image: mariadb:10.3.9
     restart: always
     expose:
-      - "3306"
+      - 3306
     volumes:
-      - "auth-server-db:/var/lib/mysql"
+      - auth-server-db:/var/lib/mysql
     networks:
       - auth-server-backend
+    restart: unless-stopped
 
   web:
     build:
       context: ../
       dockerfile: docker/Dockerfile
-    expose:
-      - "443"
     depends_on:
-      - "db"
+      - db
+    expose:
+      - 443
     volumes:
-      - "../Certificates:/certificates"
-      - "../Certificates:/https/"
+      - ../Certificates:/certificates:ro
+      - ../Certificates:/https:ro
     networks:
       - auth-server-backend
       - auth-server-frontend
+    restart: unless-stopped
+
+  # DuckDNS image
+  # duckdns:
+  #  image: linuxserver/duckdns
+  #  restart: unless-stopped
 
 volumes:
   auth-server-db:
