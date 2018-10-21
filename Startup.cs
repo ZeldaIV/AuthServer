@@ -21,6 +21,7 @@ using AuthServer.Configuration;
 using AuthServer.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace AuthServer
 {
@@ -122,6 +123,10 @@ namespace AuthServer
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();
             }
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
