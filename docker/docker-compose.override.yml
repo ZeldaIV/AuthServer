@@ -4,8 +4,8 @@ services:
 
   nginx:
     ports:
-      - 8000:80
-      - 4433:443
+      - 80:80
+      - 443:443
 
   db:
     ports:
