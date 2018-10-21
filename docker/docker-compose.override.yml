@@ -2,6 +2,11 @@ version: '3.7'
 
 services:
 
+  nginx:
+    ports:
+      - 80:80
+      - 443:443
+
   db:
     ports:
       - "3306"
@@ -9,7 +14,9 @@ services:
       - secret.db.env
 
   web:
-    ports:
-      - "8001:443"
     env_file:
       - secret.web.env
+
+  #duckdns:
+  #  env_file:
+  #    - secret.duck.env

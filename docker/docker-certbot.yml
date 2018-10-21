@@ -1,0 +1,10 @@
+version: '3.7'
+
+services:
+
+  # Certbot
+  cert:
+    image: certbot/certbot
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+    network_mode: "host"
