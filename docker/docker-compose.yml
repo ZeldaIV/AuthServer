@@ -35,10 +35,9 @@ services:
     depends_on:
       - db
     expose:
-      - 443
+      - 5001
     volumes:
       - ../Certificates:/certificates:ro
-      - ../Certificates:/https:ro
     networks:
       - auth-server-backend
       - auth-server-frontend
