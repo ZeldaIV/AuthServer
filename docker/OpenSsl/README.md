@@ -19,4 +19,4 @@ Password: *ValidatedKey*
 Country Name: *NO*
 (You can put in anything else you might want)
 
-	$ docker-compose -f docker-openssl.yml run --rm openssl dhparam -out /export/dhparam.pem 4096
+	$ docker-compose -f docker-openssl.yml run --rm openssl dhparam -out /export/dhparam.pem 512
