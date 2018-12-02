@@ -47,7 +47,7 @@ namespace AuthServer
 
             var mysqlConnectionString = Configuration.GetConnectionString("MysqlConnectionString");
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
-
+            
             services.AddDbContextPool<ApplicationDbContext>(
                 options => options.UseMySql(mysqlConnectionString,
                     mysqlOptions =>
@@ -100,6 +100,7 @@ namespace AuthServer
                 });
             });
             services.AddAuthentication();
+            services.AddCors();
             services.AddMvc(config => {
                 var policy = new AuthorizationPolicyBuilder()
                                     .RequireAuthenticatedUser()
@@ -127,7 +128,7 @@ namespace AuthServer
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
             });
-
+            app.UseCors();
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 

@@ -2,7 +2,9 @@
 
 
 using System.ComponentModel.DataAnnotations;
+using System.Security;
 using System.Threading.Tasks;
+using AuthServer.Configuration;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -11,6 +13,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 
 namespace AuthServer.Pages.Account {
+    [SecurityHeaders]
     [AllowAnonymous]
     public class LoginModel : PageModel {
 
