@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using IdentityServer4.EntityFramework.DbContexts;
@@ -14,12 +12,12 @@ namespace Authserver.Pages.Admin
 {
     public class DeleteClientModel : PageModel
     {
-        private readonly ILogger<DeleteClientModel> _logger;
         private readonly IClientStore _clientStore;
         private readonly ConfigurationDbContext _context;
+        private readonly ILogger<DeleteClientModel> _logger;
 
         public DeleteClientModel(
-            ILogger<DeleteClientModel> logger, 
+            ILogger<DeleteClientModel> logger,
             IClientStore clientStore,
             ConfigurationDbContext context)
         {
@@ -28,26 +26,22 @@ namespace Authserver.Pages.Admin
             _context = context;
         }
 
+        [BindProperty] public Client CurrentClient { get; set; }
+
         public async Task OnGetAsync(string id)
         {
-            if (String.IsNullOrEmpty(id)) {
-                ModelState.AddModelError("", "Emtpy ID.");
-            }
+            if (string.IsNullOrEmpty(id)) ModelState.AddModelError("", "Emtpy ID.");
             CurrentClient = await _clientStore.FindClientByIdAsync(id);
-            if (CurrentClient == null) {
-                ModelState.AddModelError("", "Could not find the requested client");
-            }
+            if (CurrentClient == null) ModelState.AddModelError("", "Could not find the requested client");
         }
 
-        public async Task<IActionResult> OnPostDelete(string id) {
+        public async Task<IActionResult> OnPostDelete(string id)
+        {
             var thingy = _context.Clients.First(c => c.ClientId.Equals(id));
             CurrentClient = thingy.ToModel();
             _context.Remove(thingy);
             await _context.SaveChangesAsync();
             return RedirectToPage("ClientAdministration");
         }
-
-        [BindProperty]
-        public Client CurrentClient { get; set; }
     }
 }

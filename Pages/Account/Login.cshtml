@@ -13,7 +13,7 @@
         <div class="panel-body">
 
             <form asp-route="Login">
-                <input type="hidden" asp-for="ReturnUrl" />
+                <input type="hidden" asp-for="ReturnUrl"/>
 
                 <fieldset>
                     <div class="form-group">
@@ -25,12 +25,12 @@
                         <input type="password" class="form-control" placeholder="Password" asp-for="Input.Password" autocomplete="off">
                     </div>
                     <div class="form-group login-remember">
-                            <label asp-for="Input.RememberLogin">
-                                <input asp-for="Input.RememberLogin">
-                                <strong>Remember My Login</strong>
-                            </label>
-                        </div>
-                    
+                        <label asp-for="Input.RememberLogin">
+                            <input asp-for="Input.RememberLogin">
+                            <strong>Remember My Login</strong>
+                        </label>
+                    </div>
+
                     <div class="form-group">
                         <button class="btn btn-primary" name="login" value="login">Login</button>
                         <button class="btn btn-default" name="cancel" value="cancel">Cancel</button>

@@ -19,7 +19,6 @@ services:
 
   db:
     image: mariadb:10.3.9
-    restart: always
     expose:
       - 3306
     volumes:

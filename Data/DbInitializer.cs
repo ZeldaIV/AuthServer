@@ -1,49 +1,44 @@
-using System;
-using System.Data;
 using System.Data.Common;
-using System.Threading;
 using System.Threading.Tasks;
 using IdentityServer4.EntityFramework.DbContexts;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 
-namespace AuthServer.Data {
-    public static class DbInitializer {
-        public static async Task<bool> Initialize(ApplicationDbContext context) {
+namespace AuthServer.Data
+{
+    public static class DbInitializer
+    {
+        public static async Task<bool> Initialize(ApplicationDbContext context)
+        {
             var connection = context.Database.GetDbConnection();
             var result = await InitilizeDb(connection);
-            if (result) {
-                await context.Database.MigrateAsync();
-            }
+            if (result) await context.Database.MigrateAsync();
             return result;
         }
 
-        public static async Task<bool> Initialize(ConfigurationDbContext context) {
+        public static async Task<bool> Initialize(ConfigurationDbContext context)
+        {
             var connection = context.Database.GetDbConnection();
             var result = await InitilizeDb(connection);
-            if (result) {
-                await context.Database.MigrateAsync();
-            }
+            if (result) await context.Database.MigrateAsync();
             return result;
         }
 
-        public static async Task<bool> InitilizeDb(DbConnection connection) {
+        public static async Task<bool> InitilizeDb(DbConnection connection)
+        {
             var attempts = 5;
             var attempt = 0;
-            while (true) {
-                if (attempt > 0) {
-                    await Task.Delay(15000);
-
-                }
-                try {
+            while (true)
+            {
+                if (attempt > 0) await Task.Delay(15000);
+                try
+                {
                     connection.Open();
                     return true;
-                } catch {
+                }
+                catch
+                {
                     attempt++;
-                    if (attempt >= attempts) {
-                        return false;
-                    }
-                    
+                    if (attempt >= attempts) return false;
                 }
             }
         }

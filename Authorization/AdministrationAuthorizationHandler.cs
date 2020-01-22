@@ -1,6 +1,3 @@
-
-
-using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -12,10 +9,14 @@ namespace AuthServer.Authorization
     public class AdministratorHandler : AuthorizationHandler<AdministratorRequirement>
     {
         private readonly ILogger<AdministratorHandler> _logger;
-        public AdministratorHandler(ILogger<AdministratorHandler> logger) {
+
+        public AdministratorHandler(ILogger<AdministratorHandler> logger)
+        {
             _logger = logger;
         }
-        protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, AdministratorRequirement requirement)
+
+        protected override Task HandleRequirementAsync(AuthorizationHandlerContext context,
+            AdministratorRequirement requirement)
         {
             var pendingRequirements = context.PendingRequirements.ToList();
             // && c.Issuer == "https://authserver.com"
@@ -24,6 +25,7 @@ namespace AuthServer.Authorization
                 _logger.LogInformation("Claim Role not found");
                 return Task.CompletedTask;
             }
+
             var roleValue = context.User.FindFirst(c => c.Type == ClaimTypes.Role).Value;
 
             if (roleValue == requirement.Role)
@@ -31,6 +33,7 @@ namespace AuthServer.Authorization
                 _logger.LogInformation("Claim found. Allowing");
                 context.Succeed(requirement);
             }
+
             return Task.CompletedTask;
         }
     }

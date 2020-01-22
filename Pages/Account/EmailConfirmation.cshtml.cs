@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,29 +12,30 @@ namespace Authserver.Pages.Account
         private readonly UserManager<IdentityUser> _userManager;
 
         public EmailConfirmationModel(
-            ILogger<EmailConfirmationModel> logger, 
-            UserManager<IdentityUser> userManager) {
-            this._logger = logger;
-            this._userManager = userManager;
+            ILogger<EmailConfirmationModel> logger,
+            UserManager<IdentityUser> userManager)
+        {
+            _logger = logger;
+            _userManager = userManager;
         }
-        
+
 
         public void OnGet()
         {
         }
 
-        public async Task<IActionResult> OnGetConfirmEmailAsync(string userId, string code) {
+        public async Task<IActionResult> OnGetConfirmEmailAsync(string userId, string code)
+        {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) {
-                return Redirect("Error");
-            }
+            if (user == null) return Redirect("Error");
             var result = await _userManager.ConfirmEmailAsync(user, code);
-            
-            if (result.Succeeded) {
+
+            if (result.Succeeded)
+            {
                 var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
-                return RedirectToPage("/Account/PasswordSetter", "SetPassword", new { userId=userId, token = resetToken});
+                return RedirectToPage("/Account/PasswordSetter", "SetPassword", new {userId, token = resetToken});
             }
-            
+
             return Redirect("");
         }
     }

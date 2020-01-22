@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.EntityFramework.Options;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -19,27 +18,26 @@ namespace AuthServer.Data
             : base(options)
         {
         }
-
-        
     }
 
     public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
     {
         public ApplicationDbContext CreateDbContext(string[] args)
         {
-            IConfigurationRoot configuration = new ConfigurationBuilder()
+            var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
                 .Build();
- 
- 
+
+
             var connectionString = configuration.GetConnectionString("MysqlConnectionString");
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
             optionsBuilder.UseMySql(connectionString, mysqlOptions =>
-                    {
-                        mysqlOptions.ServerVersion(new Version(10, 3, 9), ServerType.MariaDb); // replace with your Server Version and Type
-                        mysqlOptions.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> { 1, 2, 3, 4 });
-                    });
+            {
+                mysqlOptions.ServerVersion(new Version(10, 3, 9),
+                    ServerType.MariaDb); // replace with your Server Version and Type
+                mysqlOptions.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> {1, 2, 3, 4});
+            });
             return new ApplicationDbContext(optionsBuilder.Options);
         }
     }
@@ -48,20 +46,21 @@ namespace AuthServer.Data
     {
         public ConfigurationDbContext CreateDbContext(string[] args)
         {
-            IConfigurationRoot configuration = new ConfigurationBuilder()
+            var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
                 .Build();
- 
+
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
             var connectionString = configuration.GetConnectionString("MysqlConnectionString");
             var optionsBuilder = new DbContextOptionsBuilder<ConfigurationDbContext>();
             optionsBuilder.UseMySql(connectionString, mysqlOptions =>
-                    {
-                        mysqlOptions.ServerVersion(new Version(10, 3, 9), ServerType.MariaDb); // replace with your Server Version and Type
-                        mysqlOptions.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> { 1, 2, 3, 4 });
-                        mysqlOptions.MigrationsAssembly(migrationsAssembly);
-                    });
+            {
+                mysqlOptions.ServerVersion(new Version(10, 3, 9),
+                    ServerType.MariaDb); // replace with your Server Version and Type
+                mysqlOptions.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> {1, 2, 3, 4});
+                mysqlOptions.MigrationsAssembly(migrationsAssembly);
+            });
             return new ConfigurationDbContext(optionsBuilder.Options, new ConfigurationStoreOptions());
         }
     }

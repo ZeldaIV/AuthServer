@@ -9,21 +9,22 @@
 
 @if (!SignInManager.IsSignedIn(User))
 {
-  <div class="container">
-    <div class="jumbotron">
-      <h1>Auth server</h1> 
-      <p>A server to manage users, clients and resources</p>
-      <div class="center">
-          <button class="btn btn-large" onClick="location.href='@Url.Page("/Admin/UserAdministration", new { area = "" })'">Click here to login</button>
-      </div>
+    <div class="container">
+        <div class="jumbotron">
+            <h1>Auth server</h1>
+            <p>A server to manage users, clients and resources</p>
+            <div class="center">
+                <button class="btn btn-large" onClick="location.href='@Url.Page("/Admin/UserAdministration", new {area = ""})'">Click here to login</button>
+            </div>
+        </div>
     </div>
-  </div>
-} 
-else {
-<div class="container">
-    <div class="jumbotron">
-      <h1>Auth server</h1> 
-      <p>Select an administration option in the menu bar to configure the server</p>
+}
+else
+{
+    <div class="container">
+        <div class="jumbotron">
+            <h1>Auth server</h1>
+            <p>Select an administration option in the menu bar to configure the server</p>
+        </div>
     </div>
-  </div>
 }

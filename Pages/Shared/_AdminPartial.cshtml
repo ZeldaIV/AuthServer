@@ -1,21 +1,19 @@
-@using Microsoft.AspNetCore.Identity
-@using System.Security.Claims;
-
+@using System.Security.Claims
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
 @if (SignInManager.IsSignedIn(User) && User.HasClaim(c => c.Type == ClaimTypes.Role) && User.FindFirst(c => c.Type == ClaimTypes.Role).Value == "Administrator")
 {
-<ul class="nav navbar-nav mr-lg-0">
-    <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            Administration
-        </a>
-        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-            <a class="dropdown-item" asp-page="/Admin/UserAdministration">Users management</a>
-            <a class="dropdown-item" asp-page="/Admin/ClientAdministration">Application management</a>
-            <a class="dropdown-item" href="#">Grants management</a>
-        </div>
-    </li>
-</ul>
+    <ul class="nav navbar-nav mr-lg-0">
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Administration
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                <a class="dropdown-item" asp-page="/Admin/UserAdministration">Users management</a>
+                <a class="dropdown-item" asp-page="/Admin/ClientAdministration">Application management</a>
+                <a class="dropdown-item" href="#">Grants management</a>
+            </div>
+        </li>
+    </ul>
 }

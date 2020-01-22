@@ -9,33 +9,33 @@ namespace AuthServer.Data.Migrations.IdentityServer
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<DateTime>(
-                name: "Created",
-                table: "IdentityResources",
+                "Created",
+                "IdentityResources",
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
 
             migrationBuilder.AddColumn<bool>(
-                name: "NonEditable",
-                table: "IdentityResources",
+                "NonEditable",
+                "IdentityResources",
                 nullable: false,
                 defaultValue: false);
 
             migrationBuilder.AddColumn<DateTime>(
-                name: "Updated",
-                table: "IdentityResources",
+                "Updated",
+                "IdentityResources",
                 nullable: true);
 
             migrationBuilder.AlterColumn<string>(
-                name: "Value",
-                table: "ClientSecrets",
+                "Value",
+                "ClientSecrets",
                 maxLength: 4000,
                 nullable: false,
                 oldClrType: typeof(string),
                 oldMaxLength: 2000);
 
             migrationBuilder.AlterColumn<string>(
-                name: "Type",
-                table: "ClientSecrets",
+                "Type",
+                "ClientSecrets",
                 maxLength: 250,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -43,53 +43,53 @@ namespace AuthServer.Data.Migrations.IdentityServer
                 oldNullable: true);
 
             migrationBuilder.AddColumn<DateTime>(
-                name: "Created",
-                table: "ClientSecrets",
+                "Created",
+                "ClientSecrets",
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
 
             migrationBuilder.AddColumn<DateTime>(
-                name: "Created",
-                table: "Clients",
+                "Created",
+                "Clients",
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
 
             migrationBuilder.AddColumn<int>(
-                name: "DeviceCodeLifetime",
-                table: "Clients",
+                "DeviceCodeLifetime",
+                "Clients",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<DateTime>(
-                name: "LastAccessed",
-                table: "Clients",
+                "LastAccessed",
+                "Clients",
                 nullable: true);
 
             migrationBuilder.AddColumn<bool>(
-                name: "NonEditable",
-                table: "Clients",
+                "NonEditable",
+                "Clients",
                 nullable: false,
                 defaultValue: false);
 
             migrationBuilder.AddColumn<DateTime>(
-                name: "Updated",
-                table: "Clients",
+                "Updated",
+                "Clients",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
-                name: "UserCodeType",
-                table: "Clients",
+                "UserCodeType",
+                "Clients",
                 maxLength: 100,
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
-                name: "UserSsoLifetime",
-                table: "Clients",
+                "UserSsoLifetime",
+                "Clients",
                 nullable: true);
 
             migrationBuilder.AlterColumn<string>(
-                name: "Value",
-                table: "ApiSecrets",
+                "Value",
+                "ApiSecrets",
                 maxLength: 4000,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -97,8 +97,8 @@ namespace AuthServer.Data.Migrations.IdentityServer
                 oldNullable: true);
 
             migrationBuilder.AlterColumn<string>(
-                name: "Type",
-                table: "ApiSecrets",
+                "Type",
+                "ApiSecrets",
                 maxLength: 250,
                 nullable: false,
                 oldClrType: typeof(string),
@@ -106,185 +106,185 @@ namespace AuthServer.Data.Migrations.IdentityServer
                 oldNullable: true);
 
             migrationBuilder.AddColumn<DateTime>(
-                name: "Created",
-                table: "ApiSecrets",
+                "Created",
+                "ApiSecrets",
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
 
             migrationBuilder.AddColumn<DateTime>(
-                name: "Created",
-                table: "ApiResources",
+                "Created",
+                "ApiResources",
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
 
             migrationBuilder.AddColumn<DateTime>(
-                name: "LastAccessed",
-                table: "ApiResources",
+                "LastAccessed",
+                "ApiResources",
                 nullable: true);
 
             migrationBuilder.AddColumn<bool>(
-                name: "NonEditable",
-                table: "ApiResources",
+                "NonEditable",
+                "ApiResources",
                 nullable: false,
                 defaultValue: false);
 
             migrationBuilder.AddColumn<DateTime>(
-                name: "Updated",
-                table: "ApiResources",
+                "Updated",
+                "ApiResources",
                 nullable: true);
 
             migrationBuilder.CreateTable(
-                name: "ApiProperties",
-                columns: table => new
+                "ApiProperties",
+                table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    Id = table.Column<int>()
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Key = table.Column<string>(maxLength: 250, nullable: false),
-                    Value = table.Column<string>(maxLength: 2000, nullable: false),
-                    ApiResourceId = table.Column<int>(nullable: false)
+                    Key = table.Column<string>(maxLength: 250),
+                    Value = table.Column<string>(maxLength: 2000),
+                    ApiResourceId = table.Column<int>()
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ApiProperties", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ApiProperties_ApiResources_ApiResourceId",
-                        column: x => x.ApiResourceId,
-                        principalTable: "ApiResources",
-                        principalColumn: "Id",
+                        "FK_ApiProperties_ApiResources_ApiResourceId",
+                        x => x.ApiResourceId,
+                        "ApiResources",
+                        "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "IdentityProperties",
-                columns: table => new
+                "IdentityProperties",
+                table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    Id = table.Column<int>()
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Key = table.Column<string>(maxLength: 250, nullable: false),
-                    Value = table.Column<string>(maxLength: 2000, nullable: false),
-                    IdentityResourceId = table.Column<int>(nullable: false)
+                    Key = table.Column<string>(maxLength: 250),
+                    Value = table.Column<string>(maxLength: 2000),
+                    IdentityResourceId = table.Column<int>()
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_IdentityProperties", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_IdentityProperties_IdentityResources_IdentityResourceId",
-                        column: x => x.IdentityResourceId,
-                        principalTable: "IdentityResources",
-                        principalColumn: "Id",
+                        "FK_IdentityProperties_IdentityResources_IdentityResourceId",
+                        x => x.IdentityResourceId,
+                        "IdentityResources",
+                        "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_ApiProperties_ApiResourceId",
-                table: "ApiProperties",
-                column: "ApiResourceId");
+                "IX_ApiProperties_ApiResourceId",
+                "ApiProperties",
+                "ApiResourceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_IdentityProperties_IdentityResourceId",
-                table: "IdentityProperties",
-                column: "IdentityResourceId");
+                "IX_IdentityProperties_IdentityResourceId",
+                "IdentityProperties",
+                "IdentityResourceId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "ApiProperties");
+                "ApiProperties");
 
             migrationBuilder.DropTable(
-                name: "IdentityProperties");
+                "IdentityProperties");
 
             migrationBuilder.DropColumn(
-                name: "Created",
-                table: "IdentityResources");
+                "Created",
+                "IdentityResources");
 
             migrationBuilder.DropColumn(
-                name: "NonEditable",
-                table: "IdentityResources");
+                "NonEditable",
+                "IdentityResources");
 
             migrationBuilder.DropColumn(
-                name: "Updated",
-                table: "IdentityResources");
+                "Updated",
+                "IdentityResources");
 
             migrationBuilder.DropColumn(
-                name: "Created",
-                table: "ClientSecrets");
+                "Created",
+                "ClientSecrets");
 
             migrationBuilder.DropColumn(
-                name: "Created",
-                table: "Clients");
+                "Created",
+                "Clients");
 
             migrationBuilder.DropColumn(
-                name: "DeviceCodeLifetime",
-                table: "Clients");
+                "DeviceCodeLifetime",
+                "Clients");
 
             migrationBuilder.DropColumn(
-                name: "LastAccessed",
-                table: "Clients");
+                "LastAccessed",
+                "Clients");
 
             migrationBuilder.DropColumn(
-                name: "NonEditable",
-                table: "Clients");
+                "NonEditable",
+                "Clients");
 
             migrationBuilder.DropColumn(
-                name: "Updated",
-                table: "Clients");
+                "Updated",
+                "Clients");
 
             migrationBuilder.DropColumn(
-                name: "UserCodeType",
-                table: "Clients");
+                "UserCodeType",
+                "Clients");
 
             migrationBuilder.DropColumn(
-                name: "UserSsoLifetime",
-                table: "Clients");
+                "UserSsoLifetime",
+                "Clients");
 
             migrationBuilder.DropColumn(
-                name: "Created",
-                table: "ApiSecrets");
+                "Created",
+                "ApiSecrets");
 
             migrationBuilder.DropColumn(
-                name: "Created",
-                table: "ApiResources");
+                "Created",
+                "ApiResources");
 
             migrationBuilder.DropColumn(
-                name: "LastAccessed",
-                table: "ApiResources");
+                "LastAccessed",
+                "ApiResources");
 
             migrationBuilder.DropColumn(
-                name: "NonEditable",
-                table: "ApiResources");
+                "NonEditable",
+                "ApiResources");
 
             migrationBuilder.DropColumn(
-                name: "Updated",
-                table: "ApiResources");
+                "Updated",
+                "ApiResources");
 
             migrationBuilder.AlterColumn<string>(
-                name: "Value",
-                table: "ClientSecrets",
+                "Value",
+                "ClientSecrets",
                 maxLength: 2000,
                 nullable: false,
                 oldClrType: typeof(string),
                 oldMaxLength: 4000);
 
             migrationBuilder.AlterColumn<string>(
-                name: "Type",
-                table: "ClientSecrets",
+                "Type",
+                "ClientSecrets",
                 maxLength: 250,
                 nullable: true,
                 oldClrType: typeof(string),
                 oldMaxLength: 250);
 
             migrationBuilder.AlterColumn<string>(
-                name: "Value",
-                table: "ApiSecrets",
+                "Value",
+                "ApiSecrets",
                 maxLength: 2000,
                 nullable: true,
                 oldClrType: typeof(string),
                 oldMaxLength: 4000);
 
             migrationBuilder.AlterColumn<string>(
-                name: "Type",
-                table: "ApiSecrets",
+                "Type",
+                "ApiSecrets",
                 maxLength: 250,
                 nullable: true,
                 oldClrType: typeof(string),

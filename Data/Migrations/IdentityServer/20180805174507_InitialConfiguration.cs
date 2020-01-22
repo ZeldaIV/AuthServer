@@ -9,526 +9,517 @@ namespace AuthServer.Data.Migrations.IdentityServer
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "ApiResources",
-                columns: table => new
+                "ApiResources",
+                table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    Id = table.Column<int>()
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Enabled = table.Column<bool>(nullable: false),
-                    Name = table.Column<string>(maxLength: 200, nullable: false),
+                    Enabled = table.Column<bool>(),
+                    Name = table.Column<string>(maxLength: 200),
                     DisplayName = table.Column<string>(maxLength: 200, nullable: true),
                     Description = table.Column<string>(maxLength: 1000, nullable: true)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ApiResources", x => x.Id);
-                });
+                constraints: table => { table.PrimaryKey("PK_ApiResources", x => x.Id); });
 
             migrationBuilder.CreateTable(
-                name: "Clients",
-                columns: table => new
+                "Clients",
+                table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    Id = table.Column<int>()
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Enabled = table.Column<bool>(nullable: false),
-                    ClientId = table.Column<string>(maxLength: 200, nullable: false),
-                    ProtocolType = table.Column<string>(maxLength: 200, nullable: false),
-                    RequireClientSecret = table.Column<bool>(nullable: false),
+                    Enabled = table.Column<bool>(),
+                    ClientId = table.Column<string>(maxLength: 200),
+                    ProtocolType = table.Column<string>(maxLength: 200),
+                    RequireClientSecret = table.Column<bool>(),
                     ClientName = table.Column<string>(maxLength: 200, nullable: true),
                     Description = table.Column<string>(maxLength: 1000, nullable: true),
                     ClientUri = table.Column<string>(maxLength: 2000, nullable: true),
                     LogoUri = table.Column<string>(maxLength: 2000, nullable: true),
-                    RequireConsent = table.Column<bool>(nullable: false),
-                    AllowRememberConsent = table.Column<bool>(nullable: false),
-                    AlwaysIncludeUserClaimsInIdToken = table.Column<bool>(nullable: false),
-                    RequirePkce = table.Column<bool>(nullable: false),
-                    AllowPlainTextPkce = table.Column<bool>(nullable: false),
-                    AllowAccessTokensViaBrowser = table.Column<bool>(nullable: false),
+                    RequireConsent = table.Column<bool>(),
+                    AllowRememberConsent = table.Column<bool>(),
+                    AlwaysIncludeUserClaimsInIdToken = table.Column<bool>(),
+                    RequirePkce = table.Column<bool>(),
+                    AllowPlainTextPkce = table.Column<bool>(),
+                    AllowAccessTokensViaBrowser = table.Column<bool>(),
                     FrontChannelLogoutUri = table.Column<string>(maxLength: 2000, nullable: true),
-                    FrontChannelLogoutSessionRequired = table.Column<bool>(nullable: false),
+                    FrontChannelLogoutSessionRequired = table.Column<bool>(),
                     BackChannelLogoutUri = table.Column<string>(maxLength: 2000, nullable: true),
-                    BackChannelLogoutSessionRequired = table.Column<bool>(nullable: false),
-                    AllowOfflineAccess = table.Column<bool>(nullable: false),
-                    IdentityTokenLifetime = table.Column<int>(nullable: false),
-                    AccessTokenLifetime = table.Column<int>(nullable: false),
-                    AuthorizationCodeLifetime = table.Column<int>(nullable: false),
+                    BackChannelLogoutSessionRequired = table.Column<bool>(),
+                    AllowOfflineAccess = table.Column<bool>(),
+                    IdentityTokenLifetime = table.Column<int>(),
+                    AccessTokenLifetime = table.Column<int>(),
+                    AuthorizationCodeLifetime = table.Column<int>(),
                     ConsentLifetime = table.Column<int>(nullable: true),
-                    AbsoluteRefreshTokenLifetime = table.Column<int>(nullable: false),
-                    SlidingRefreshTokenLifetime = table.Column<int>(nullable: false),
-                    RefreshTokenUsage = table.Column<int>(nullable: false),
-                    UpdateAccessTokenClaimsOnRefresh = table.Column<bool>(nullable: false),
-                    RefreshTokenExpiration = table.Column<int>(nullable: false),
-                    AccessTokenType = table.Column<int>(nullable: false),
-                    EnableLocalLogin = table.Column<bool>(nullable: false),
-                    IncludeJwtId = table.Column<bool>(nullable: false),
-                    AlwaysSendClientClaims = table.Column<bool>(nullable: false),
+                    AbsoluteRefreshTokenLifetime = table.Column<int>(),
+                    SlidingRefreshTokenLifetime = table.Column<int>(),
+                    RefreshTokenUsage = table.Column<int>(),
+                    UpdateAccessTokenClaimsOnRefresh = table.Column<bool>(),
+                    RefreshTokenExpiration = table.Column<int>(),
+                    AccessTokenType = table.Column<int>(),
+                    EnableLocalLogin = table.Column<bool>(),
+                    IncludeJwtId = table.Column<bool>(),
+                    AlwaysSendClientClaims = table.Column<bool>(),
                     ClientClaimsPrefix = table.Column<string>(maxLength: 200, nullable: true),
                     PairWiseSubjectSalt = table.Column<string>(maxLength: 200, nullable: true)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Clients", x => x.Id);
-                });
+                constraints: table => { table.PrimaryKey("PK_Clients", x => x.Id); });
 
             migrationBuilder.CreateTable(
-                name: "IdentityResources",
-                columns: table => new
+                "IdentityResources",
+                table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    Id = table.Column<int>()
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Enabled = table.Column<bool>(nullable: false),
-                    Name = table.Column<string>(maxLength: 200, nullable: false),
+                    Enabled = table.Column<bool>(),
+                    Name = table.Column<string>(maxLength: 200),
                     DisplayName = table.Column<string>(maxLength: 200, nullable: true),
                     Description = table.Column<string>(maxLength: 1000, nullable: true),
-                    Required = table.Column<bool>(nullable: false),
-                    Emphasize = table.Column<bool>(nullable: false),
-                    ShowInDiscoveryDocument = table.Column<bool>(nullable: false)
+                    Required = table.Column<bool>(),
+                    Emphasize = table.Column<bool>(),
+                    ShowInDiscoveryDocument = table.Column<bool>()
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_IdentityResources", x => x.Id);
-                });
+                constraints: table => { table.PrimaryKey("PK_IdentityResources", x => x.Id); });
 
             migrationBuilder.CreateTable(
-                name: "ApiClaims",
-                columns: table => new
+                "ApiClaims",
+                table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    Id = table.Column<int>()
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Type = table.Column<string>(maxLength: 200, nullable: false),
-                    ApiResourceId = table.Column<int>(nullable: false)
+                    Type = table.Column<string>(maxLength: 200),
+                    ApiResourceId = table.Column<int>()
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ApiClaims", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ApiClaims_ApiResources_ApiResourceId",
-                        column: x => x.ApiResourceId,
-                        principalTable: "ApiResources",
-                        principalColumn: "Id",
+                        "FK_ApiClaims_ApiResources_ApiResourceId",
+                        x => x.ApiResourceId,
+                        "ApiResources",
+                        "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "ApiScopes",
-                columns: table => new
+                "ApiScopes",
+                table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    Id = table.Column<int>()
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Name = table.Column<string>(maxLength: 200, nullable: false),
+                    Name = table.Column<string>(maxLength: 200),
                     DisplayName = table.Column<string>(maxLength: 200, nullable: true),
                     Description = table.Column<string>(maxLength: 1000, nullable: true),
-                    Required = table.Column<bool>(nullable: false),
-                    Emphasize = table.Column<bool>(nullable: false),
-                    ShowInDiscoveryDocument = table.Column<bool>(nullable: false),
-                    ApiResourceId = table.Column<int>(nullable: false)
+                    Required = table.Column<bool>(),
+                    Emphasize = table.Column<bool>(),
+                    ShowInDiscoveryDocument = table.Column<bool>(),
+                    ApiResourceId = table.Column<int>()
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ApiScopes", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ApiScopes_ApiResources_ApiResourceId",
-                        column: x => x.ApiResourceId,
-                        principalTable: "ApiResources",
-                        principalColumn: "Id",
+                        "FK_ApiScopes_ApiResources_ApiResourceId",
+                        x => x.ApiResourceId,
+                        "ApiResources",
+                        "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "ApiSecrets",
-                columns: table => new
+                "ApiSecrets",
+                table => new
                 {
                     Expiration = table.Column<DateTime>(nullable: true),
-                    Id = table.Column<int>(nullable: false)
+                    Id = table.Column<int>()
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Description = table.Column<string>(maxLength: 1000, nullable: true),
                     Value = table.Column<string>(maxLength: 2000, nullable: true),
                     Type = table.Column<string>(maxLength: 250, nullable: true),
-                    ApiResourceId = table.Column<int>(nullable: false)
+                    ApiResourceId = table.Column<int>()
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ApiSecrets", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ApiSecrets_ApiResources_ApiResourceId",
-                        column: x => x.ApiResourceId,
-                        principalTable: "ApiResources",
-                        principalColumn: "Id",
+                        "FK_ApiSecrets_ApiResources_ApiResourceId",
+                        x => x.ApiResourceId,
+                        "ApiResources",
+                        "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "ClientClaims",
-                columns: table => new
+                "ClientClaims",
+                table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    Id = table.Column<int>()
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Type = table.Column<string>(maxLength: 250, nullable: false),
-                    Value = table.Column<string>(maxLength: 250, nullable: false),
-                    ClientId = table.Column<int>(nullable: false)
+                    Type = table.Column<string>(maxLength: 250),
+                    Value = table.Column<string>(maxLength: 250),
+                    ClientId = table.Column<int>()
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ClientClaims", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ClientClaims_Clients_ClientId",
-                        column: x => x.ClientId,
-                        principalTable: "Clients",
-                        principalColumn: "Id",
+                        "FK_ClientClaims_Clients_ClientId",
+                        x => x.ClientId,
+                        "Clients",
+                        "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "ClientCorsOrigins",
-                columns: table => new
+                "ClientCorsOrigins",
+                table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    Id = table.Column<int>()
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Origin = table.Column<string>(maxLength: 150, nullable: false),
-                    ClientId = table.Column<int>(nullable: false)
+                    Origin = table.Column<string>(maxLength: 150),
+                    ClientId = table.Column<int>()
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ClientCorsOrigins", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ClientCorsOrigins_Clients_ClientId",
-                        column: x => x.ClientId,
-                        principalTable: "Clients",
-                        principalColumn: "Id",
+                        "FK_ClientCorsOrigins_Clients_ClientId",
+                        x => x.ClientId,
+                        "Clients",
+                        "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "ClientGrantTypes",
-                columns: table => new
+                "ClientGrantTypes",
+                table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    Id = table.Column<int>()
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    GrantType = table.Column<string>(maxLength: 250, nullable: false),
-                    ClientId = table.Column<int>(nullable: false)
+                    GrantType = table.Column<string>(maxLength: 250),
+                    ClientId = table.Column<int>()
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ClientGrantTypes", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ClientGrantTypes_Clients_ClientId",
-                        column: x => x.ClientId,
-                        principalTable: "Clients",
-                        principalColumn: "Id",
+                        "FK_ClientGrantTypes_Clients_ClientId",
+                        x => x.ClientId,
+                        "Clients",
+                        "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "ClientIdPRestrictions",
-                columns: table => new
+                "ClientIdPRestrictions",
+                table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    Id = table.Column<int>()
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Provider = table.Column<string>(maxLength: 200, nullable: false),
-                    ClientId = table.Column<int>(nullable: false)
+                    Provider = table.Column<string>(maxLength: 200),
+                    ClientId = table.Column<int>()
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ClientIdPRestrictions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ClientIdPRestrictions_Clients_ClientId",
-                        column: x => x.ClientId,
-                        principalTable: "Clients",
-                        principalColumn: "Id",
+                        "FK_ClientIdPRestrictions_Clients_ClientId",
+                        x => x.ClientId,
+                        "Clients",
+                        "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "ClientPostLogoutRedirectUris",
-                columns: table => new
+                "ClientPostLogoutRedirectUris",
+                table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    Id = table.Column<int>()
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    PostLogoutRedirectUri = table.Column<string>(maxLength: 2000, nullable: false),
-                    ClientId = table.Column<int>(nullable: false)
+                    PostLogoutRedirectUri = table.Column<string>(maxLength: 2000),
+                    ClientId = table.Column<int>()
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ClientPostLogoutRedirectUris", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ClientPostLogoutRedirectUris_Clients_ClientId",
-                        column: x => x.ClientId,
-                        principalTable: "Clients",
-                        principalColumn: "Id",
+                        "FK_ClientPostLogoutRedirectUris_Clients_ClientId",
+                        x => x.ClientId,
+                        "Clients",
+                        "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "ClientProperties",
-                columns: table => new
+                "ClientProperties",
+                table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    Id = table.Column<int>()
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Key = table.Column<string>(maxLength: 250, nullable: false),
-                    Value = table.Column<string>(maxLength: 2000, nullable: false),
-                    ClientId = table.Column<int>(nullable: false)
+                    Key = table.Column<string>(maxLength: 250),
+                    Value = table.Column<string>(maxLength: 2000),
+                    ClientId = table.Column<int>()
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ClientProperties", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ClientProperties_Clients_ClientId",
-                        column: x => x.ClientId,
-                        principalTable: "Clients",
-                        principalColumn: "Id",
+                        "FK_ClientProperties_Clients_ClientId",
+                        x => x.ClientId,
+                        "Clients",
+                        "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "ClientRedirectUris",
-                columns: table => new
+                "ClientRedirectUris",
+                table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    Id = table.Column<int>()
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    RedirectUri = table.Column<string>(maxLength: 2000, nullable: false),
-                    ClientId = table.Column<int>(nullable: false)
+                    RedirectUri = table.Column<string>(maxLength: 2000),
+                    ClientId = table.Column<int>()
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ClientRedirectUris", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ClientRedirectUris_Clients_ClientId",
-                        column: x => x.ClientId,
-                        principalTable: "Clients",
-                        principalColumn: "Id",
+                        "FK_ClientRedirectUris_Clients_ClientId",
+                        x => x.ClientId,
+                        "Clients",
+                        "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "ClientScopes",
-                columns: table => new
+                "ClientScopes",
+                table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    Id = table.Column<int>()
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Scope = table.Column<string>(maxLength: 200, nullable: false),
-                    ClientId = table.Column<int>(nullable: false)
+                    Scope = table.Column<string>(maxLength: 200),
+                    ClientId = table.Column<int>()
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ClientScopes", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ClientScopes_Clients_ClientId",
-                        column: x => x.ClientId,
-                        principalTable: "Clients",
-                        principalColumn: "Id",
+                        "FK_ClientScopes_Clients_ClientId",
+                        x => x.ClientId,
+                        "Clients",
+                        "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "ClientSecrets",
-                columns: table => new
+                "ClientSecrets",
+                table => new
                 {
                     Expiration = table.Column<DateTime>(nullable: true),
-                    Id = table.Column<int>(nullable: false)
+                    Id = table.Column<int>()
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Description = table.Column<string>(maxLength: 2000, nullable: true),
-                    Value = table.Column<string>(maxLength: 2000, nullable: false),
+                    Value = table.Column<string>(maxLength: 2000),
                     Type = table.Column<string>(maxLength: 250, nullable: true),
-                    ClientId = table.Column<int>(nullable: false)
+                    ClientId = table.Column<int>()
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ClientSecrets", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ClientSecrets_Clients_ClientId",
-                        column: x => x.ClientId,
-                        principalTable: "Clients",
-                        principalColumn: "Id",
+                        "FK_ClientSecrets_Clients_ClientId",
+                        x => x.ClientId,
+                        "Clients",
+                        "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "IdentityClaims",
-                columns: table => new
+                "IdentityClaims",
+                table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    Id = table.Column<int>()
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Type = table.Column<string>(maxLength: 200, nullable: false),
-                    IdentityResourceId = table.Column<int>(nullable: false)
+                    Type = table.Column<string>(maxLength: 200),
+                    IdentityResourceId = table.Column<int>()
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_IdentityClaims", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_IdentityClaims_IdentityResources_IdentityResourceId",
-                        column: x => x.IdentityResourceId,
-                        principalTable: "IdentityResources",
-                        principalColumn: "Id",
+                        "FK_IdentityClaims_IdentityResources_IdentityResourceId",
+                        x => x.IdentityResourceId,
+                        "IdentityResources",
+                        "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "ApiScopeClaims",
-                columns: table => new
+                "ApiScopeClaims",
+                table => new
                 {
-                    Id = table.Column<int>(nullable: false)
+                    Id = table.Column<int>()
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Type = table.Column<string>(maxLength: 200, nullable: false),
-                    ApiScopeId = table.Column<int>(nullable: false)
+                    Type = table.Column<string>(maxLength: 200),
+                    ApiScopeId = table.Column<int>()
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ApiScopeClaims", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ApiScopeClaims_ApiScopes_ApiScopeId",
-                        column: x => x.ApiScopeId,
-                        principalTable: "ApiScopes",
-                        principalColumn: "Id",
+                        "FK_ApiScopeClaims_ApiScopes_ApiScopeId",
+                        x => x.ApiScopeId,
+                        "ApiScopes",
+                        "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_ApiClaims_ApiResourceId",
-                table: "ApiClaims",
-                column: "ApiResourceId");
+                "IX_ApiClaims_ApiResourceId",
+                "ApiClaims",
+                "ApiResourceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ApiResources_Name",
-                table: "ApiResources",
-                column: "Name",
+                "IX_ApiResources_Name",
+                "ApiResources",
+                "Name",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_ApiScopeClaims_ApiScopeId",
-                table: "ApiScopeClaims",
-                column: "ApiScopeId");
+                "IX_ApiScopeClaims_ApiScopeId",
+                "ApiScopeClaims",
+                "ApiScopeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ApiScopes_ApiResourceId",
-                table: "ApiScopes",
-                column: "ApiResourceId");
+                "IX_ApiScopes_ApiResourceId",
+                "ApiScopes",
+                "ApiResourceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ApiScopes_Name",
-                table: "ApiScopes",
-                column: "Name",
+                "IX_ApiScopes_Name",
+                "ApiScopes",
+                "Name",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_ApiSecrets_ApiResourceId",
-                table: "ApiSecrets",
-                column: "ApiResourceId");
+                "IX_ApiSecrets_ApiResourceId",
+                "ApiSecrets",
+                "ApiResourceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ClientClaims_ClientId",
-                table: "ClientClaims",
-                column: "ClientId");
+                "IX_ClientClaims_ClientId",
+                "ClientClaims",
+                "ClientId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ClientCorsOrigins_ClientId",
-                table: "ClientCorsOrigins",
-                column: "ClientId");
+                "IX_ClientCorsOrigins_ClientId",
+                "ClientCorsOrigins",
+                "ClientId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ClientGrantTypes_ClientId",
-                table: "ClientGrantTypes",
-                column: "ClientId");
+                "IX_ClientGrantTypes_ClientId",
+                "ClientGrantTypes",
+                "ClientId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ClientIdPRestrictions_ClientId",
-                table: "ClientIdPRestrictions",
-                column: "ClientId");
+                "IX_ClientIdPRestrictions_ClientId",
+                "ClientIdPRestrictions",
+                "ClientId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ClientPostLogoutRedirectUris_ClientId",
-                table: "ClientPostLogoutRedirectUris",
-                column: "ClientId");
+                "IX_ClientPostLogoutRedirectUris_ClientId",
+                "ClientPostLogoutRedirectUris",
+                "ClientId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ClientProperties_ClientId",
-                table: "ClientProperties",
-                column: "ClientId");
+                "IX_ClientProperties_ClientId",
+                "ClientProperties",
+                "ClientId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ClientRedirectUris_ClientId",
-                table: "ClientRedirectUris",
-                column: "ClientId");
+                "IX_ClientRedirectUris_ClientId",
+                "ClientRedirectUris",
+                "ClientId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Clients_ClientId",
-                table: "Clients",
-                column: "ClientId",
+                "IX_Clients_ClientId",
+                "Clients",
+                "ClientId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_ClientScopes_ClientId",
-                table: "ClientScopes",
-                column: "ClientId");
+                "IX_ClientScopes_ClientId",
+                "ClientScopes",
+                "ClientId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ClientSecrets_ClientId",
-                table: "ClientSecrets",
-                column: "ClientId");
+                "IX_ClientSecrets_ClientId",
+                "ClientSecrets",
+                "ClientId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_IdentityClaims_IdentityResourceId",
-                table: "IdentityClaims",
-                column: "IdentityResourceId");
+                "IX_IdentityClaims_IdentityResourceId",
+                "IdentityClaims",
+                "IdentityResourceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_IdentityResources_Name",
-                table: "IdentityResources",
-                column: "Name",
+                "IX_IdentityResources_Name",
+                "IdentityResources",
+                "Name",
                 unique: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "ApiClaims");
+                "ApiClaims");
 
             migrationBuilder.DropTable(
-                name: "ApiScopeClaims");
+                "ApiScopeClaims");
 
             migrationBuilder.DropTable(
-                name: "ApiSecrets");
+                "ApiSecrets");
 
             migrationBuilder.DropTable(
-                name: "ClientClaims");
+                "ClientClaims");
 
             migrationBuilder.DropTable(
-                name: "ClientCorsOrigins");
+                "ClientCorsOrigins");
 
             migrationBuilder.DropTable(
-                name: "ClientGrantTypes");
+                "ClientGrantTypes");
 
             migrationBuilder.DropTable(
-                name: "ClientIdPRestrictions");
+                "ClientIdPRestrictions");
 
             migrationBuilder.DropTable(
-                name: "ClientPostLogoutRedirectUris");
+                "ClientPostLogoutRedirectUris");
 
             migrationBuilder.DropTable(
-                name: "ClientProperties");
+                "ClientProperties");
 
             migrationBuilder.DropTable(
-                name: "ClientRedirectUris");
+                "ClientRedirectUris");
 
             migrationBuilder.DropTable(
-                name: "ClientScopes");
+                "ClientScopes");
 
             migrationBuilder.DropTable(
-                name: "ClientSecrets");
+                "ClientSecrets");
 
             migrationBuilder.DropTable(
-                name: "IdentityClaims");
+                "IdentityClaims");
 
             migrationBuilder.DropTable(
-                name: "ApiScopes");
+                "ApiScopes");
 
             migrationBuilder.DropTable(
-                name: "Clients");
+                "Clients");
 
             migrationBuilder.DropTable(
-                name: "IdentityResources");
+                "IdentityResources");
 
             migrationBuilder.DropTable(
-                name: "ApiResources");
+                "ApiResources");
         }
     }
 }

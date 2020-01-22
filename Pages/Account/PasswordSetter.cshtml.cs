@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Security;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -17,49 +13,54 @@ namespace Authserver.Pages.Account
         private readonly UserManager<IdentityUser> _userManager;
 
         public PasswordSetterModel(
-            ILogger<PasswordSetterModel> logger, 
-            UserManager<IdentityUser> userManager) {
-            this._logger = logger;
-            this._userManager = userManager;
+            ILogger<PasswordSetterModel> logger,
+            UserManager<IdentityUser> userManager)
+        {
+            _logger = logger;
+            _userManager = userManager;
         }
 
-        public async Task OnGetAsync(string userId, string token) {
+        [BindProperty] public InputModel Input { get; set; }
+
+        [TempData] public string Token { get; set; }
+
+        [TempData] public string Username { get; set; }
+
+        public async Task OnGetAsync(string userId, string token)
+        {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user != null) {
+            if (user != null)
+            {
                 Username = user.UserName;
                 Token = token;
                 // Input.Username = user.UserName;
                 // Input.Token = token;
                 _logger.LogInformation($"User: {user} has been confirmed, allow to set Password");
-            } else {
+            }
+            else
+            {
                 ModelState.AddModelError("", "An unknown error occured");
             }
-            
         }
 
         public async Task<IActionResult> OnPostSetPasswordAsync()
         {
             var user = await _userManager.FindByNameAsync(Username);
             var result = await _userManager.ResetPasswordAsync(user, Token, Input.Password);
-            if (result.Succeeded) {
+            if (result.Succeeded)
                 _logger.LogInformation("Password successfully set");
-            } else {
+            else
                 _logger.LogInformation("Password could not be set");
-            }
-            
+
             return Redirect("/");
         }
-        
-        [BindProperty]
-        public InputModel Input { get; set; }
-        [TempData]
-        public string Token { get; set; }
-        [TempData]
-        public string Username { get; set; }
-        public class InputModel {
+
+        public class InputModel
+        {
             [Required]
             [DataType(DataType.Password)]
             public string Password { get; set; }
+
             [DataType(DataType.Password)]
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
