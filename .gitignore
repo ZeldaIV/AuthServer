@@ -289,3 +289,10 @@ Config.cs
 app.db
 environments/*
 secret*
+
+# elm
+elm-stuff
+node_modules
+package-lock.json
+bin/
+_site
