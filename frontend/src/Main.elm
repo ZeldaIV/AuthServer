@@ -14,45 +14,8 @@ import Html exposing (Html, button, div, text)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import Login exposing (State, UserInfo, login)
+import Pages.Root as Root
 import Url
-
-
-type State
-    = Failure
-    | Loading
-    | Success
-
-
-stateToString : State -> String
-stateToString state =
-    case state of
-        Failure ->
-            "Failure"
-
-        Loading ->
-            "Loading"
-
-        Success ->
-            "Success"
-
-
-type alias UserInfo =
-    { userName : String, password : String }
-
-
-login : UserInfo -> State
-login u =
-    if u.password == "thingy" then
-        Success
-
-    else if u.password == "fail" then
-        Failure
-
-    else if u.password == "load" then
-        Loading
-
-    else
-        Failure
 
 
 
@@ -69,12 +32,12 @@ main =
 
 
 type alias Model =
-    { username : String, password : String, key : Nav.Key, url : Url.Url }
+    { key : Nav.Key, url : Url.Url }
 
 
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
-    ( { username = "", password = "", key = key, url = url }, Cmd.none )
+    ( { key = key, url = url }, Cmd.none )
 
 
 
@@ -82,41 +45,13 @@ init flags url key =
 
 
 type Msg
-    = Username String
-    | Password String
-    | Submit
-    | LinkClicked Browser.UrlRequest
+    = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Username name ->
-            ( { model | username = name }, Cmd.none )
-
-        Password password ->
-            ( { model | password = password }, Cmd.none )
-
-        Submit ->
-            let
-                r =
-                    login { userName = model.username, password = model.password }
-            in
-            --Debug.log ("submit was pressed: " ++ stateToString r)
-            case r of
-                Failure ->
-                    Debug.log ("submit was pressed: " ++ stateToString r)
-                        ( model, Cmd.none )
-
-                Success ->
-                    Debug.log ("submit was pressed: " ++ stateToString r)
-                        ( model, Cmd.none )
-
-                Loading ->
-                    Debug.log ("submit was pressed: " ++ stateToString r)
-                        ( model, Cmd.none )
-
         --case state of
         --    Failure -> Debug.log "Failed "
         --        ( model, Cmd.none )
@@ -153,29 +88,6 @@ view : Model -> Browser.Document Msg
 view model =
     { title = "Something"
     , body =
-        [ Grid.container []
-            [ CDN.stylesheet -- creates an inline style node with the Bootstrap CSS
-            , Grid.row []
-                [ Grid.col []
-                    [ Card.config [ Card.outlinePrimary ]
-                        |> Card.headerH4 [] [ text "Log In" ]
-                        |> Card.block []
-                            [ Block.text [] [ text model.username ]
-                            , Block.custom <|
-                                Form.form
-                                    []
-                                    [ Form.group []
-                                        [ Form.label [ for "myemail" ] [ text "Email address" ]
-                                        , Input.email [ Input.id "myemail", Input.value model.username, Input.onInput Username ]
-                                        , Input.password [ Input.id "myPass", Input.value model.password, Input.onInput Password ]
-                                        , Form.help [] [ text "We'll never share your email with anyone else." ]
-                                        , Button.button [ Button.primary, Button.onClick Submit ] [ text "Submit" ]
-                                        ]
-                                    ]
-                            ]
-                        |> Card.view
-                    ]
-                ]
-            ]
+        [ Root.root model.key
         ]
     }
