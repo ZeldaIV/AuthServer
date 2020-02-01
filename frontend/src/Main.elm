@@ -84,7 +84,7 @@ init flags url key =
 type Msg
     = Username String
     | Password String
-    | Submit State
+    | Submit
     | LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
 
@@ -98,9 +98,24 @@ update msg model =
         Password password ->
             ( { model | password = password }, Cmd.none )
 
-        Submit state ->
-            Debug.log ("submit was pressed: " ++ stateToString state)
-                ( model, Cmd.none )
+        Submit ->
+            let
+                r =
+                    login { userName = model.username, password = model.password }
+            in
+            --Debug.log ("submit was pressed: " ++ stateToString r)
+            case r of
+                Failure ->
+                    Debug.log ("submit was pressed: " ++ stateToString r)
+                        ( model, Cmd.none )
+
+                Success ->
+                    Debug.log ("submit was pressed: " ++ stateToString r)
+                        ( model, Cmd.none )
+
+                Loading ->
+                    Debug.log ("submit was pressed: " ++ stateToString r)
+                        ( model, Cmd.none )
 
         --case state of
         --    Failure -> Debug.log "Failed "
@@ -154,7 +169,7 @@ view model =
                                         , Input.email [ Input.id "myemail", Input.value model.username, Input.onInput Username ]
                                         , Input.password [ Input.id "myPass", Input.value model.password, Input.onInput Password ]
                                         , Form.help [] [ text "We'll never share your email with anyone else." ]
-                                        , Button.button [ Button.primary, Button.onClick (Submit (login { userName = model.username, password = model.password })) ] [ text "Submit" ]
+                                        , Button.button [ Button.primary, Button.onClick Submit ] [ text "Submit" ]
                                         ]
                                     ]
                             ]
