@@ -1,10 +1,11 @@
-﻿@page
+﻿@page 
 @model Authserver.Pages.Admin.ClientAdministrationModel
 @{
     ViewData["Title"] = "Clients administration";
 }
 
 <div class="card w-50 mx-auto my-sm-5">
+    <label>@Model.FormResult</label>
     <div class="card-body">
         <h5 class="card-title">Add a new client</h5>
         <form asp-page-handler="CreateClient" method="post">
@@ -36,6 +37,13 @@
                 </fieldset>
             </div>
         </form>
+        @if (Model.FormResult != null)
+        {
+            <div class="container-fluid">
+                <h2>This is your apps secret, it will only be visible once, so store it in a safe place:</h2>
+                <h3>@Model.FormResult</h3>
+            </div>    
+        }
     </div>
 </div>
 
