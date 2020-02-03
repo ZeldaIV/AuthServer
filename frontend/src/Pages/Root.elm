@@ -1,4 +1,4 @@
-module Pages.Root exposing (root)
+module Pages.Root exposing (Msg, init, update, view, Model)
 
 import Bootstrap.Button as Button
 import Bootstrap.CDN as CDN
@@ -10,25 +10,23 @@ import Bootstrap.Grid as Grid
 import Browser.Navigation as Nav
 import Html exposing (Html, text)
 import Html.Attributes exposing (..)
-import Route as Route
+import Skeleton
 
 
-init : Nav.Key -> Model
+init : Nav.Key -> ( Model, Cmd msg )
 init key =
-    { userName = "", password = "", key = key }
+    ( Model "" "" key
+    , Cmd.none
+    )
 
 
 type State
     = Failure
     | Loading
     | Success
+    
 
-
-type alias UserInfo =
-    { userName : String, password : String }
-
-
-login : UserInfo -> State
+login : Model -> State
 login u =
     if u.password == "thingy" then
         Success
@@ -57,7 +55,9 @@ stateToString state =
 
 
 type alias Model =
-    { username : String, password : String, key : Nav.Key }
+     {username: String, password: String, key: Nav.Key}
+
+-- UPDATE
 
 
 type Msg
@@ -70,17 +70,16 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Username name ->
-            ( { model | username = name }, Cmd.none )
+            updateForm {model | username = name}
 
         Password password ->
-            ( { model | password = password }, Cmd.none )
+            updateForm {model | password = password}
 
         Submit ->
             let
                 r =
-                    login { userName = model.username, password = model.password }
+                    login { username = model.username, password = model.password, key= model.key }
             in
-            --Debug.log ("submit was pressed: " ++ stateToString r)
             case r of
                 Failure ->
                     Debug.log ("submit was pressed: " ++ stateToString r)
@@ -88,36 +87,64 @@ update msg model =
 
                 Success ->
                     Debug.log ("submit was pressed: " ++ stateToString r)
-                        ( model, Route.replaceUrl model.key Route.Home )
+                        ( model, Cmd.none )
 
                 Loading ->
                     Debug.log ("submit was pressed: " ++ stateToString r)
                         ( model, Cmd.none )
 
 
-root : Model -> Html Msg
-root model =
+{-| Helper function for `update`. Updates the form and returns Cmd.none.
+Useful for recording form fields!
+-}
+updateForm : Model -> ( Model, Cmd Msg )
+updateForm  model =
+    (model , Cmd.none )
+
+
+
+-- VIEW
+
+
+view : Model -> Skeleton.Details Msg
+view model =
+    { title = "Login"
+    , header =" yoyoy"
+    , attrs = []
+    , kids = [
+        viewRoot model
+            ]
+    }
+
+viewRoot : Model -> Html Msg
+viewRoot model =
     Grid.container []
-        [ CDN.stylesheet -- creates an inline style node with the Bootstrap CSS
-        , Grid.row []
-            [ Grid.col []
-                [ Card.config [ Card.outlinePrimary ]
-                    |> Card.headerH4 [] [ text "Log In" ]
-                    |> Card.block []
-                        [ Block.text [] [ text model.username ]
-                        , Block.custom <|
-                            Form.form
-                                []
-                                [ Form.group []
-                                    [ Form.label [ for "myemail" ] [ text "Email address" ]
-                                    , Input.email [ Input.id "myemail", Input.value model.username, Input.onInput Username ]
-                                    , Input.password [ Input.id "myPass", Input.value model.password, Input.onInput Password ]
-                                    , Form.help [] [ text "We'll never share your email with anyone else." ]
-                                    , Button.button [ Button.primary, Button.onClick Submit ] [ text "Submit" ]
-                                    ]
+                [ CDN.stylesheet -- creates an inline style node with the Bootstrap CSS
+                , Grid.row []
+                    [ Grid.col []
+                        [ Card.config [ Card.outlinePrimary ]
+                            |> Card.headerH4 [] [ text "Log In" ]
+                            |> Card.block []
+                                [ Block.text [] [ text model.username ]
+                                , Block.custom <|
+                                    viewForm model
                                 ]
+                            |> Card.view
                         ]
-                    |> Card.view
+                    ]
                 ]
+     
+
+
+viewForm : Model -> Html Msg
+viewForm form =
+    Form.form
+        []
+        [ Form.group []
+            [ Form.label [ for "myemail" ] [ text "Email address" ]
+            , Input.email [ Input.id "myemail", Input.value form.username, Input.onInput Username ]
+            , Input.password [ Input.id "myPass", Input.value form.password, Input.onInput Password ]
+            , Form.help [] [ text "We'll never share your email with anyone else." ]
+            , Button.button [ Button.primary, Button.onClick Submit ] [ text "Submit" ]
             ]
         ]

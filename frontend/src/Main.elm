@@ -1,22 +1,14 @@
 module Main exposing (main)
 
-import Bootstrap.Button as Button
-import Bootstrap.CDN as CDN
-import Bootstrap.Card as Card
-import Bootstrap.Card.Block as Block
-import Bootstrap.Form as Form
-import Bootstrap.Form.Input as Input
-import Bootstrap.Form.InputGroup as InputGroup
-import Bootstrap.Grid as Grid
 import Browser
 import Browser.Navigation as Nav
-import Html exposing (Html, button, div, text)
-import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, onInput)
-import Login exposing (State, UserInfo, login)
+import Pages.Clients as Clients
+import Pages.NotFound as NotFound
 import Pages.Root as Root
+import Pages.Users as Users
+import Route exposing (Route)
+import Skeleton
 import Url
-
 
 
 -- MAIN
@@ -24,22 +16,26 @@ import Url
 
 main : Program () Model Msg
 main =
-    Browser.application { init = init, view = view, update = update, subscriptions = subscriptions, onUrlChange = UrlChanged, onUrlRequest = LinkClicked }
+    Browser.application { init = init, 
+    view = view,
+     update = update,
+      subscriptions = subscriptions, onUrlChange = UrlChanged, onUrlRequest = LinkClicked }
 
+
+init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
+init _ url key =
+  changeRouteTo (Route.fromUrl url)
+        (Login {username="", password="", key=key} )
 
 
 -- MODEL
 
-
-type alias Model =
-    { key : Nav.Key, url : Url.Url }
-
-
-init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
-init flags url key =
-    ( { key = key, url = url }, Cmd.none )
-
-
+type Model 
+    = NotFound Nav.Key
+    | Users Users.Model
+    | Clients Clients.Model
+    | Login Root.Model
+    
 
 -- UPDATE
 
@@ -47,30 +43,88 @@ init flags url key =
 type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
+    | NoMessage NotFound.Msg
+    | GotLoginMsg Root.Msg
+    | GotUsersMsg Users.Msg
+    | GotClientsMsg Clients.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        --case state of
-        --    Failure -> Debug.log "Failed "
-        --        ( model, Cmd.none )
-        --    Success ->Debug.log "success "
-        --        ( model, Cmd.none )
-        --    Loading -> Debug.log "loading: "
-        LinkClicked urlRequest ->
-            case urlRequest of
+    case (msg, model) of
+        (LinkClicked urlRequest, _) ->
+              case urlRequest of
                 Browser.Internal url ->
-                    ( model, Nav.pushUrl model.key (Url.toString url) )
+                  ( model
+                  , Nav.pushUrl (toKey model) (Url.toString url)
+                  )
 
                 Browser.External href ->
-                    ( model, Nav.load href )
+                  ( model
+                  , Nav.load href
+                  )
 
-        UrlChanged url ->
-            Debug.log (Url.toString url)
-                ( { model | url = url }, Cmd.none )
+        (UrlChanged url, _) ->
+              changeRouteTo (Route.fromUrl url) model
+
+        (GotLoginMsg subMsg, Login login) ->
+            Root.update subMsg login |>
+                updateWith Login GotLoginMsg model
+
+        (GotClientsMsg subMsg, Clients clients) ->
+            Clients.update subMsg clients |>
+                            updateWith Clients GotClientsMsg model
+
+        (GotUsersMsg subMsg, Users users) ->
+            Users.update subMsg users |>
+                            updateWith Users GotUsersMsg model
+                
+        (_, _) ->
+            -- Disregard messages that arrived for the wrong page.
+            ( model, Cmd.none )
+                
+
+changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
+changeRouteTo maybeRoute model =
+    let 
+        key = 
+            toKey model
+    in
+    case maybeRoute of
+        Nothing ->
+            Debug.log "Whaaat?"
+            ( NotFound key, Cmd.none )
+
+        Just Route.Login ->
+            Root.init key |>
+                updateWith Login GotLoginMsg model
+        
+        Just Route.Clients ->
+            Clients.init key |>
+                updateWith Clients GotClientsMsg model
+
+        Just Route.Users ->
+            Users.init key |>
+                updateWith Users GotUsersMsg model
+
+updateWith : (subModel -> Model) -> (subMsg -> Msg) -> Model -> ( subModel, Cmd subMsg ) -> ( Model, Cmd Msg )
+updateWith toModel toMsg model ( subModel, subCmd ) =
+    ( toModel subModel
+    , Cmd.map toMsg subCmd
+    )
 
 
+toKey: Model -> Nav.Key
+toKey model =
+    case model of
+        NotFound m->
+            m
+        Login l ->
+            l.key
+        Users u ->
+            u.key
+        Clients c ->
+            c.key
 
 -- Subscriptions
 
@@ -79,15 +133,21 @@ subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.none
 
-
-
 -- VIEW
 
 
 view : Model -> Browser.Document Msg
 view model =
-    { title = "Something"
-    , body =
-        [ Root.root model.key
-        ]
-    }
+    case model of
+       NotFound _ ->
+          Skeleton.view NoMessage NotFound.view
+            
+       Login root -> 
+            Skeleton.view GotLoginMsg (Root.view root)
+           
+       Users users ->
+            Skeleton.view GotUsersMsg (Users.view users)
+            
+       Clients clients ->
+            Skeleton.view GotClientsMsg (Clients.view clients)
+

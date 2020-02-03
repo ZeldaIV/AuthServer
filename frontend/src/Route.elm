@@ -1,28 +1,26 @@
-module Route exposing (..)
+module Route exposing (Route(..), replaceUrl, fromUrl, href)
 
 import Browser.Navigation as Nav
 import Html exposing (Attribute)
 import Html.Attributes as Attr
 import Url exposing (Url)
-import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, string)
-
-
-type Route
-    = Root
-    | Home
-
+import Url.Parser as Parser exposing ((</>), Parser, oneOf, s)
+    
+type Route 
+    = Users
+    | Clients
+    | Login
+    
 
 parser : Parser (Route -> a) a
 parser =
     oneOf
-        [ Parser.map Root Parser.top
-        , Parser.map Home (s "home")
+        [ Parser.map Login Parser.top
+        , Parser.map Users (s "users")
+        , Parser.map Clients (s "clients")
         ]
 
-
-
 -- PUBLIC HELPERS
-
 
 href : Route -> Attribute msg
 href targetRoute =
@@ -55,8 +53,9 @@ routeToString page =
 routeToPieces : Route -> List String
 routeToPieces page =
     case page of
-        Home ->
-            [ "home" ]
-
-        Root ->
-            []
+        Login ->
+            [ "login" ]
+        Users ->
+            [ "users"]
+        Clients ->
+            [ "clients"]
