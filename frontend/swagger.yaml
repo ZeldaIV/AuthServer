@@ -1,0 +1,80 @@
+openapi: 3.0.1
+info:
+  title: AuthServer API
+  version: v1
+paths:
+  /Account:
+    post:
+      tags:
+        - Account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Success
+  /Account/logout:
+    post:
+      tags:
+        - Account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutInputModel'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/LogoutInputModel'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/LogoutInputModel'
+      responses:
+        '200':
+          description: Success
+  /Account/user:
+    get:
+      tags:
+        - Account
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: string
+            text/json:
+              schema:
+                type: string
+components:
+  schemas:
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          nullable: true
+        password:
+          type: string
+          nullable: true
+        returnUrl:
+          type: string
+          nullable: true
+      additionalProperties: false
+    LogoutInputModel:
+      type: object
+      properties:
+        logoutId:
+          type: string
+          nullable: true
+      additionalProperties: false
