@@ -52,16 +52,18 @@ namespace AuthServer
             
             var mysqlConnectionString = Configuration.GetConnectionString("MysqlConnectionString");
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
-
+            var dbServerVersion = new MariaDbServerVersion(new Version(10, 3, 9));
+            
             services.AddDbContextPool<ApplicationDbContext>(
-                options => options.UseMySql(mysqlConnectionString,
-                    mysqlOptions =>
-                    {
-                        mysqlOptions.ServerVersion(new Version(10, 3, 9),
-                            ServerType.MariaDb); // replace with your Server Version and Type
-                        mysqlOptions.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> {1, 2, 3, 4});
-                    }
-                ));
+                options =>
+                {
+                    options.UseMySql(mysqlConnectionString, dbServerVersion,
+                        mysqlOptions =>
+                        {
+                            mysqlOptions.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> {1, 2, 3, 4});
+                        }
+                    );
+                });
             services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -84,7 +86,7 @@ namespace AuthServer
                     .AddConfigurationStore(options =>
                     {
                         options.ConfigureDbContext = builder =>
-                            builder.UseMySql(mysqlConnectionString,
+                            builder.UseMySql(mysqlConnectionString, dbServerVersion,
                                 sql =>
                                 {
                                     sql.MigrationsAssembly(migrationsAssembly);
@@ -94,7 +96,7 @@ namespace AuthServer
                     {
                         options.ConfigureDbContext = builder =>
                         {
-                            builder.UseMySql(mysqlConnectionString,
+                            builder.UseMySql(mysqlConnectionString, dbServerVersion,
                                 sql =>
                                 {
                                     sql.MigrationsAssembly(migrationsAssembly);

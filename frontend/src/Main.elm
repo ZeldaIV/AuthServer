@@ -53,17 +53,26 @@ initializeModel json  =
         Ok ml ->
             toModel ml
         Err error ->
-            Model "" "" "" (toString error) "" True LoginPage |> Debug.log "Oh no an error occured, well it does not matter"
+            Model (Login "" "")  (UserState "" "" False "" LoginPage) (toString error) |> Debug.log "Oh no an error occured, well it does not matter"
              
-            
-type alias Model =
-    { username : String
-    , password: String
-    , token: String
-    , errorMsg: String
+
+type alias Login = 
+    { userName : String
+    , password : String
+    }
+
+type alias UserState = 
+    { userName: String
     , userId: String
     , loggedIn: Bool
+    , url: String
     , page: Page
+    }
+            
+type alias Model =
+    { login: Login
+    , userState: UserState
+    , errorMsg: String
     , navBarState: Navbar.State
     , url: Url.Url
     , key: Nav.Key
@@ -89,21 +98,15 @@ send toMsg request =
 encodeModel: Model -> Encode.Value
 encodeModel model =
     Encode.object [
-        ("username", Encode.string model.username),
-        ("userId", Encode.string model.userId),
+        ("username", Encode.string model.userState.userName),
+        ("userId", Encode.string model.userState.userId),
         ("url", Encode.string model.url.path),
-        ("page", Encode.string (pageToString model.page))
+        ("page", Encode.string (pageToString model.userState.page))
     ]
 
-type alias UserInfo =
-    { username: String
-    , userId: String
-    , url: String
-    , page: Page}
-
-toModel: UserInfo -> Navbar.State -> Url.Url -> Nav.Key -> Model
+toModel: UserState -> Navbar.State -> Url.Url -> Nav.Key -> Model
 toModel ui =
-    Model ui.username "" "" "" ui.userId False ui.page   
+    Model (Login "" "") (UserState ui.userName ui.userId False "" ui.page) ""   
 
 
 pageToString: Page -> String
@@ -128,11 +131,12 @@ stringToPage page =
         _ ->
             Decode.succeed LoginPage
     
-modelDecoder: Decoder UserInfo
+modelDecoder: Decoder UserState
 modelDecoder =
-    (Decode.map4 UserInfo
+    (Decode.map5 UserState
         (field "username" Decode.string)
         (field "userId" Decode.string)
+        (field "loggedIn" Decode.bool)
         (field "url" Decode.string)
         (field "page" Decode.string |> andThen stringToPage))
         
@@ -141,9 +145,6 @@ modelDecoder =
 setStorageHelper : Model -> ( Model, Cmd Msg )
 setStorageHelper model =
     ( model, encodeModel model |> setStorage)
-    
-
-    
     
 performLogin: Maybe Api.Data.LoginRequest -> Api.Request ()
 performLogin login =
@@ -161,16 +162,30 @@ loginCompleted : Model -> Result Http.Error () -> ( Model, Cmd Msg )
 loginCompleted model result =
     case result of
         Ok _ ->
-            ({ model | password = "", errorMsg = "", loggedIn = True } |> Debug.log "User logged in", getUser)
+            let
+                login = model.login
+                newLogin = { login | password = "", userName = "" }
+                userState = model.userState
+                newState = { userState | loggedIn = True}
+            in
+             ({ model | userState = newState, login = newLogin, errorMsg = "" } |> Debug.log "User logged in", getUser)
             
         Err error ->
-            ( { model | errorMsg = (toString error), loggedIn = False } |> Debug.log "Could not login", Cmd.none )
+            let 
+                userState = model.userState
+                newState = { userState | loggedIn = False}
+            in
+                ( { model | userState = newState, errorMsg = (toString error) } |> Debug.log "Could not login", Cmd.none )
             
 getUserCompleted : Model -> Result Http.Error String -> (Model, Cmd Msg)
 getUserCompleted model result = 
     case result of
-        Ok usrId ->
-            setStorageHelper ({ model | userId = usrId} |> Debug.log "User is ")
+        Ok userId ->
+            let
+                userState = model.userState
+                newState = { userState | userId = userId}
+            in
+                setStorageHelper ({ model | userState = newState} |> Debug.log "User is ")
         
         Err error ->
             ({ model | errorMsg = (toString error)} |> Debug.log "Error getting user: ", Cmd.none)
@@ -180,7 +195,7 @@ getUserCompleted model result =
 type Msg
     = SetUsername String
     | SetPassword String
-    | OnLogin 
+    | OnLogin Login
     | LoginCompleted (Result Http.Error ())
     | GetUserCompleted (Result Http.Error String)
     | SaveToCache Model
@@ -207,13 +222,21 @@ update msg model =
             urlUpdate url model
 
         SetUsername username ->
-            ({model | username = username}, Cmd.none)
+            let
+                login = model.login
+                newState = { login | userName = username}
+            in
+            ({model | login = newState}, Cmd.none)
 
         SetPassword password ->
-            ({model | password = password}, Cmd.none)
+            let
+                login = model.login
+                newState = { login | password = password}
+            in
+            ({model | login = newState}, Cmd.none)
 
-        OnLogin ->
-            (model, loginUser <| mapModelToLoginRequest model)
+        OnLogin login ->
+            (model |> Debug.log "Hello: ", loginUser <| mapModelToLoginRequest login)
 
         LoginCompleted result ->
             loginCompleted model result
@@ -234,10 +257,18 @@ urlUpdate: Url -> Model -> (Model, Cmd Msg)
 urlUpdate url model =
     case decode url of
             Nothing ->
-                ( { model | page = LoginPage }, Cmd.none )
+                let
+                    userState = model.userState
+                    newUserState = { userState | page = LoginPage}
+                in
+                    ({ model | userState = newUserState }, Cmd.none )
     
             Just route ->
-                ( { model | page = route }, Cmd.none )
+                let
+                    userState = model.userState
+                    newUserState = { userState | page = route}
+                in
+                    ({ model | userState = newUserState }, Cmd.none )
         
 decode: Url -> Maybe Page
 decode url =
@@ -253,10 +284,10 @@ routeParser =
         ]
 
 
-mapModelToLoginRequest: Model -> LoginRequest
-mapModelToLoginRequest model =
-    { username= (Just model.username)
-    , password= (Just model.password)
+mapModelToLoginRequest: Login -> LoginRequest
+mapModelToLoginRequest login =
+    { username= (Just login.userName)
+    , password= (Just login.password)
     , returnUrl= (Just "")
     }
 
@@ -280,10 +311,10 @@ view model =
                 -- Greet a logged in user by username
                 greeting : String
                 greeting =
-                    "Hello, " ++ model.username ++ "!"
+                    "Hello, " ++ model.userState.userName ++ "!"
                   
             in
-                if model.loggedIn then
+                if model.userState.loggedIn then
                     [menu model,
                     mainContent model]
                 else
@@ -294,7 +325,7 @@ view model =
                                     |> Card.headerH4 [] [ text "Log In" ]
                                     |> Card.block []
                                         [ Block.custom <|
-                                            loginForm model
+                                            loginForm model.login
                                         ]
                                     |> Card.view
                                 ]
@@ -321,9 +352,9 @@ menu model =
 mainContent: Model -> Html Msg
 mainContent model = 
     Grid.container [] <|
-        case model.page of
+        case model.userState.page of
             LoginPage ->
-                [loginForm model]
+                [loginForm model.login]
 
             ClientsPage ->
                 clientsView model
@@ -418,15 +449,16 @@ pageUsers _ =
        ]
      ]
 
-loginForm : Model -> Html Msg
+
+loginForm : Login -> Html Msg
 loginForm form =
     Form.form []
         [ Form.group []
             [ Form.label [ for "myemail" ] [ text "Email address" ]
-            , Input.email [ Input.id "myemail", Input.value form.username, Input.onInput SetUsername ]
+            , Input.email [ Input.id "myemail", Input.value form.userName, Input.onInput SetUsername ]
             , Input.password [ Input.id "myPass", Input.value form.password, Input.onInput SetPassword ]
             , Form.help [] [ text "We'll never share your email with anyone else." ]
-            , Button.button [ Button.primary, Button.onClick OnLogin ] [ text "Submit" ]
+            , Button.button [ Button.primary, Button.onClick (OnLogin <| Login form.userName form.password)  ] [ text "Submit" ]
             ]
         ]       
         

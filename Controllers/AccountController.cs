@@ -91,7 +91,7 @@ namespace AuthServer.Controllers
             {
                 _logger.LogInformation($"===> Successfull login");
                 var user = await _userManager.FindByNameAsync(model.Username);
-                await _events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName, clientId: context?.ClientId));
+                await _events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName, clientId: context?.Client.ClientId));
 
                 if (context != null)
                 {
@@ -124,7 +124,7 @@ namespace AuthServer.Controllers
                 
             }
 
-            await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials", clientId:context?.ClientId));
+            await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials", clientId:context?.Client.ClientId));
             // ModelState.AddModelError(string.Empty, AccountOptions.InvalidCredentialsErrorMessage);
 
             
