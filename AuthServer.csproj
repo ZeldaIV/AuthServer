@@ -1,17 +1,58 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>netcoreapp5.0</TargetFramework>
     <UserSecretsId>aspnet-AuthServer-8EF46753-CFA6-4E31-AB61-6B8A5EFDE748</UserSecretsId>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <LangVersion>Latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="IdentityServer4.AspNetIdentity" Version="3.1.0" />
-    <PackageReference Include="IdentityServer4.EntityFramework" Version="3.1.0" />
+    <PackageReference Include="IdentityServer4.AspNetIdentity" Version="4.1.1" />
+    <PackageReference Include="IdentityServer4.EntityFramework" Version="4.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="2.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="5.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.0" PrivateAssets="All" />
-    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="3.1.0" />
+<!--    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.4" />-->
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.0-alpha.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="5.6.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.0" />
   </ItemGroup>
+  
+
+  <ItemGroup>
+    <Compile Remove="frontend/**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="frontend/**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="frontend/**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="attempt2/**" />
+    <Content Remove="frontend/**" />
+    <Content Remove="attempt2/elm.json" />
+    <Content Remove="attempt2/package.json" />
+    <Content Include="frontend\README.md" />
+    <_ContentIncludedByDefault Remove="frontend/elm.json" />
+    <_ContentIncludedByDefault Remove="frontend/package.json" />
+    <Content Remove="Properties\launchSettings.json" />
+    <_ContentIncludedByDefault Remove="attempt2\src\Api\elm.json" />
+    <_ContentIncludedByDefault Remove="attempt2\generated\elm.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot" />
+  </ItemGroup>
+
+  <Target Name="SwaggerToFile" AfterTargets="AfterBuild" Condition=" '$(ASPNETCORE_ENVIRONMENT)' == 'SwaggerGen' ">
+    <Exec Command="dotnet swagger tofile --output ./frontend/swagger.yaml --yaml $(OutputPath)$(AssemblyName).dll v1" />
+  </Target>
+  
 </Project>

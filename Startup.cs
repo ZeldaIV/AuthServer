@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using AuthServer.Authorization;
@@ -7,29 +8,36 @@ using AuthServer.Configuration;
 using AuthServer.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.StaticFiles.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace AuthServer
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        private readonly IHostEnvironment _env;
+        private const string Cors = "local";
+
+        public Startup(IConfiguration configuration, IHostEnvironment env)
         {
+            _env = env;
             Configuration = configuration;
         }
 
 
         public IConfiguration Configuration { get; }
+
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -41,56 +49,63 @@ namespace AuthServer
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            
             var mysqlConnectionString = Configuration.GetConnectionString("MysqlConnectionString");
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
-
+            var dbServerVersion = new MariaDbServerVersion(new Version(10, 3, 9));
+            
             services.AddDbContextPool<ApplicationDbContext>(
-                options => options.UseMySql(mysqlConnectionString,
-                    mysqlOptions =>
-                    {
-                        mysqlOptions.ServerVersion(new Version(10, 3, 9),
-                            ServerType.MariaDb); // replace with your Server Version and Type
-                        mysqlOptions.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> {1, 2, 3, 4});
-                    }
-                ));
+                options =>
+                {
+                    options.UseMySql(mysqlConnectionString, dbServerVersion,
+                        mysqlOptions =>
+                        {
+                            mysqlOptions.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> {1, 2, 3, 4});
+                        }
+                    );
+                });
             services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-            var tokenSigning = Configuration.Get<TokenSigningConfiguration>();
-            var signingCertificate = new X509Certificate2(tokenSigning.AuthServerSigningCertificatePath,
-                tokenSigning.AuthServerSigningCertificatePassword);
-            services.AddIdentityServer(options =>
-                {
-                    options.Events.RaiseErrorEvents = true;
-                    options.Events.RaiseInformationEvents = true;
-                    options.Events.RaiseFailureEvents = true;
-                    options.Events.RaiseSuccessEvents = true;
-                    // options.IssuerUri = "https://authserver.com";
-                })
-                .AddAspNetIdentity<IdentityUser>()
-                .AddSigningCredential(signingCertificate)
-                .AddConfigurationStore(options =>
-                {
-                    options.ConfigureDbContext = builder =>
-                        builder.UseMySql(mysqlConnectionString,
-                            sql =>
-                            {
-                                sql.MigrationsAssembly(migrationsAssembly);
-                                sql.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> {1, 2, 3, 4});
-                            });
-                }).AddOperationalStore(options =>
-                {
-                    options.ConfigureDbContext = builder =>
+            if (!_env.IsEnvironment("SwaggerGen"))
+            {
+                var tokenSigning = Configuration.Get<TokenSigningConfiguration>();
+                var signingCertificate = new X509Certificate2(tokenSigning.AuthServerSigningCertificatePath,
+                    tokenSigning.AuthServerSigningCertificatePassword);
+                services.AddIdentityServer(options =>
                     {
-                        builder.UseMySql(mysqlConnectionString,
-                            sql =>
-                            {
-                                sql.MigrationsAssembly(migrationsAssembly);
-                                sql.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> {1, 2, 3, 4});
-                            });
-                    };
-                });
+                        options.Events.RaiseErrorEvents = true;
+                        options.Events.RaiseInformationEvents = true;
+                        options.Events.RaiseFailureEvents = true;
+                        options.Events.RaiseSuccessEvents = true;
+                        // options.IssuerUri = "https://authserver.com";
+                    })
+                    .AddAspNetIdentity<IdentityUser>()
+                    .AddSigningCredential(signingCertificate)
+                    .AddConfigurationStore(options =>
+                    {
+                        options.ConfigureDbContext = builder =>
+                            builder.UseMySql(mysqlConnectionString, dbServerVersion,
+                                sql =>
+                                {
+                                    sql.MigrationsAssembly(migrationsAssembly);
+                                    sql.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> {1, 2, 3, 4});
+                                });
+                    }).AddOperationalStore(options =>
+                    {
+                        options.ConfigureDbContext = builder =>
+                        {
+                            builder.UseMySql(mysqlConnectionString, dbServerVersion,
+                                sql =>
+                                {
+                                    sql.MigrationsAssembly(migrationsAssembly);
+                                    sql.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> {1, 2, 3, 4});
+                                });
+                        };
+                    });
+            }
+            
 
             services.AddSingleton<IAuthorizationHandler, AdministratorHandler>();
             services.AddAuthorization(options =>
@@ -99,7 +114,29 @@ namespace AuthServer
                     policy => { policy.Requirements.Add(new AdministratorRequirement()); });
             });
             services.AddAuthentication();
-            services.AddCors();
+            services.AddCors(o =>
+            {
+                o.AddPolicy(Cors, builder => { builder.WithOrigins("http://localhost", "https://localhost"); });
+            });
+            // services.AddControllers(config =>
+            // {
+            //     var policy = new AuthorizationPolicyBuilder()
+            //         .RequireAuthenticatedUser()
+            //         .Build();
+            //     config.Filters.Add(new AuthorizeFilter(policy));
+            //     config.EnableEndpointRouting = false;
+            // });
+            
+            services.AddSpaStaticFiles(configuration =>
+            {
+                configuration.RootPath = "wwwroot";
+            });
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "AuthServer API", Version = "v1" });
+            });
+
             services.AddMvc(config =>
                 {
                     var policy = new AuthorizationPolicyBuilder()
@@ -107,14 +144,13 @@ namespace AuthServer
                         .Build();
                     config.Filters.Add(new AuthorizeFilter(policy));
                     config.EnableEndpointRouting = false;
-                })
-                .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, ILogger<Startup> logger)
         {
-            if (env.IsDevelopment())
+            if (_env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
                 //app.UseDatabaseErrorPage();
@@ -125,19 +161,54 @@ namespace AuthServer
                 app.UseHsts();
             }
 
+            
+
             app.UseForwardedHeaders(new ForwardedHeadersOptions
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
             });
-            app.UseCors();
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
+            
+            //app.UseHttpsRedirection();
+            
 
-            // app.UseCookiePolicy();
-
-            // app.UseAuthentication();
+            app.UseCookiePolicy();
+            
+            
             app.UseIdentityServer();
+            app.UseRouting();
+            app.UseAuthorization();
+            app.UseCors(Cors);
+            
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllerRoute(
+                    name: "default",
+                    pattern: "api/{controller}/{action=Index}/{id?}");
+            });
+            
 
+            var appSubPath = "wwwroot";
+            var distFolder = Path.Combine(Directory.GetCurrentDirectory(), appSubPath);
+            if (!Directory.Exists(distFolder))
+            {
+                logger.LogError($"Unable to host spa app in: {distFolder}, folder not found");
+                return;
+            }
+
+            logger.LogInformation($"Hosting '{appSubPath}' static files from folder: {distFolder}");
+            var staticFileOptions = new StaticFileOptions(new SharedOptions
+            {
+                FileProvider = new PhysicalFileProvider(distFolder)
+            });
+            app.UseStaticFiles(staticFileOptions);
+            app.UseSpaStaticFiles(staticFileOptions);
+            app.UseSpa(spa =>
+            {
+                spa.Options.SourcePath = "wwwroot";
+                spa.Options.DefaultPageStaticFileOptions = staticFileOptions;
+            });
+
+            app.UseSwagger();
             app.UseMvc();
         }
     }

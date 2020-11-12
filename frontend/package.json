@@ -1,0 +1,21 @@
+{
+  "name": "Authserver",
+  "version": "1.0.0",
+  "author": "Trond Bordewich",
+  "description": "Authorization server",
+  "scripts": {
+    "dev": "gulp",
+    "build": "gulp build",
+    "buildAll": "yarn generateApi && yarn build",
+    "genSwagger": "ASPNETCORE_ENVIRONMENT=SwaggerGen dotnet build ../",
+    "genElmApiCode": "docker run --rm -v \"${PWD}:/local\" openapitools/openapi-generator-cli generate -i local/swagger.yaml -g elm",
+    "generateApi": "yarn genSwagger && yarn genElmApiCode"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "gulp": "^4.0.2",
+    "gulp-elm": "^0.8.2",
+    "gulp-plumber": "^1.2.1",
+    "gulp-server-io": "^1.5.1"
+  }
+}

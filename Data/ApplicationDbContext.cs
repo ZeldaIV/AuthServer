@@ -32,10 +32,8 @@ namespace AuthServer.Data
 
             var connectionString = configuration.GetConnectionString("MysqlConnectionString");
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            optionsBuilder.UseMySql(connectionString, mysqlOptions =>
+            optionsBuilder.UseMySql(connectionString, new MariaDbServerVersion(new Version(10, 3, 9)), mysqlOptions =>
             {
-                mysqlOptions.ServerVersion(new Version(10, 3, 9),
-                    ServerType.MariaDb); // replace with your Server Version and Type
                 mysqlOptions.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> {1, 2, 3, 4});
             });
             return new ApplicationDbContext(optionsBuilder.Options);
@@ -54,10 +52,8 @@ namespace AuthServer.Data
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
             var connectionString = configuration.GetConnectionString("MysqlConnectionString");
             var optionsBuilder = new DbContextOptionsBuilder<ConfigurationDbContext>();
-            optionsBuilder.UseMySql(connectionString, mysqlOptions =>
+            optionsBuilder.UseMySql(connectionString, new MariaDbServerVersion(new Version(10, 3, 9)), mysqlOptions =>
             {
-                mysqlOptions.ServerVersion(new Version(10, 3, 9),
-                    ServerType.MariaDb); // replace with your Server Version and Type
                 mysqlOptions.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> {1, 2, 3, 4});
                 mysqlOptions.MigrationsAssembly(migrationsAssembly);
             });
