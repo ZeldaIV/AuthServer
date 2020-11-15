@@ -26,9 +26,9 @@ gulp.task('static', function() {
 });
 
 // Watch for changes and compile
-gulp.task('watch', function() {
-    gulp.watch(paths.elm, ['elm']);
-    gulp.watch(paths.static, ['static']);
+gulp.task('watch:all', function() {
+    gulp.watch(paths.elm, gulp.series('build'))
+    gulp.watch(paths.static, gulp.series('static'))
 });
 
 gulp.task('serve', () => {
@@ -46,3 +46,4 @@ gulp.task('serve', () => {
 // Main gulp tasks
 gulp.task('build', gulp.series('elm', 'static'));
 gulp.task('default', gulp.series('build', 'serve'));
+gulp.task('watch', gulp.parallel('serve', 'watch:all'))

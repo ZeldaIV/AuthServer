@@ -9,22 +9,24 @@ import Bootstrap.Card.Block as Block
 import Bootstrap.Form as Form
 import Bootstrap.Form.Input as Input
 import Bootstrap.Grid as Grid
+import Bootstrap.Grid.Row as Row
+import Bootstrap.Grid.Col as Col
 import Bootstrap.Navbar as Navbar
 import Bootstrap.ButtonGroup as ButtonGroup
 import Bootstrap.ListGroup as ListGroup
 import Bootstrap.Table as Table
+import Bootstrap.Text as Text
 import Browser
 import Browser.Navigation as Nav
 import Debug exposing (toString)
-import Html exposing (Attribute, Html, a, div, h1, h2, h3, p, s, text)
-import Html.Attributes exposing (class, for, href, id)
+import Html exposing (Attribute, Html, h1, text)
+import Html.Attributes exposing (for, href, style)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Decode exposing (..)
 import Json.Encode as Encode exposing (..)
 import Url exposing (Url)
-import Url.Parser as Parser exposing ((</>), Parser, oneOf)
-
+import Url.Parser as Parser exposing ((</>), Parser)
     
 main : Program (Decode.Value) Model Msg
 main =
@@ -81,6 +83,7 @@ type alias Model =
 type Page 
     = LoginPage
     | ClientsPage
+    | ClientSelectionPage
     | UsersPage
 
    
@@ -116,6 +119,8 @@ pageToString page =
             "LoginPage"
         ClientsPage ->
             "ClientsPage"
+        ClientSelectionPage ->
+            "ClientSelectionPage"
         UsersPage ->
             "UsersPage"
 
@@ -126,6 +131,8 @@ stringToPage page =
             Decode.succeed LoginPage
         "ClientsPage" ->
             Decode.succeed ClientsPage
+        "ClientSelectionPage" ->
+            Decode.succeed ClientSelectionPage
         "UsersPage" ->
             Decode.succeed UsersPage
         _ ->
@@ -222,18 +229,12 @@ update msg model =
             urlUpdate url model
 
         SetUsername username ->
-            let
-                login = model.login
-                newState = { login | userName = username}
-            in
-            ({model | login = newState}, Cmd.none)
+            let login = model.login
+            in ({model | login = { login | userName = username} }, Cmd.none)
 
         SetPassword password ->
-            let
-                login = model.login
-                newState = { login | password = password}
-            in
-            ({model | login = newState}, Cmd.none)
+            let login = model.login
+            in ({model | login = { login | password = password}}, Cmd.none)
 
         OnLogin login ->
             (model |> Debug.log "Hello: ", loginUser <| mapModelToLoginRequest login)
@@ -259,27 +260,28 @@ urlUpdate url model =
             Nothing ->
                 let
                     userState = model.userState
-                    newUserState = { userState | page = LoginPage}
                 in
-                    ({ model | userState = newUserState }, Cmd.none )
+                    ({ model | userState = { userState | page = LoginPage} }, Cmd.none )
     
             Just route ->
                 let
                     userState = model.userState
-                    newUserState = { userState | page = route}
                 in
-                    ({ model | userState = newUserState }, Cmd.none )
+                    ({ model | userState = { userState | page = route} }, Cmd.none )
         
 decode: Url -> Maybe Page
-decode url =
-    { url | path = Maybe.withDefault "" url.fragment, fragment = Nothing }
-        |> Parser.parse routeParser
+decode url = 
+        Parser.parse routeParser url
+        --{ url | path = Maybe.withDefault "" url.fragment }
+        --    |> 
+        
         
 routeParser : Parser (Page -> a) a
 routeParser =
     Parser.oneOf
         [ Parser.map LoginPage (Parser.s "login")
         , Parser.map ClientsPage (Parser.s "clients")
+        , Parser.map ClientSelectionPage (Parser.s "clients" </> Parser.s "clientSelection")
         , Parser.map UsersPage (Parser.s "users")
         ]
 
@@ -344,8 +346,8 @@ menu model =
         |> Navbar.container
         |> Navbar.brand [] [ text "Auth server" ]
         |> Navbar.items
-            [ Navbar.itemLink [ href "#clients" ] [ text "Clients" ]
-            , Navbar.itemLink [ href "#users" ] [ text "Users" ]
+            [ Navbar.itemLink [ href "/clients" ] [ text "Clients" ]
+            , Navbar.itemLink [ href "/users" ] [ text "Users" ]
             ]
         |> Navbar.view model.navBarState
 
@@ -358,6 +360,9 @@ mainContent model =
 
             ClientsPage ->
                 clientsView model
+                
+            ClientSelectionPage ->
+                clientSelectionView model
 
             UsersPage ->
                 usersView model
@@ -366,7 +371,7 @@ mainContent model =
 clientsView: Model -> List (Html Msg)
 clientsView model =
     [ Grid.container []
-        [ h1 [] [ text "Registered clients" ]
+        [ Button.linkButton [ Button.primary, Button.block, Button.large, Button.attrs [href "/clients/clientSelection"] ] [ text "Add new"] , h1 [] [ text "Registered clients" ]
         , Table.table 
             { options = [ Table.striped, Table.hover ]
             , thead = Table.simpleThead 
@@ -389,6 +394,45 @@ clientsView model =
             } 
         ]
     ] 
+    
+clientSelectionView: Model -> List (Html Msg)
+clientSelectionView model =
+    [ h1 [] [ text "Add a new client"] 
+    , Grid.container []
+        [Grid.row [ Row.centerLg ]
+            [ Grid.col [Col.xs, Col.mdAuto] [ addApiResourceView model ] 
+            , Grid.col [Col.xs12, Col.mdAuto] []
+            , Grid.col [Col.xs, Col.mdAuto] [ addApiConsumerView model ]
+            ]
+            
+        ]
+    ]
+    
+addApiResourceView: Model -> Html Msg
+addApiResourceView _ =
+    Card.config [Card.attrs [ style "width" "20rem" ]]
+         |> Card.headerH3 [] [ text "Add Resource"]
+         |> Card.block []
+             [ Block.titleH3 [] [ text "Add an API resource" ]
+             , Block.text [] [ text "Choose this if you want to add a resource, such as an API for consumption" ]]
+         |> Card.block [Block.align Text.alignXsRight] 
+            [Block.custom <|
+                 Button.button [ Button.primary ] [ text "Select" ]
+             ]
+         |> Card.view
+         
+addApiConsumerView: Model -> Html Msg
+addApiConsumerView _ =
+    Card.config [Card.attrs [ style "width" "20rem" ]]
+         |> Card.headerH3 [] [ text "Add Consumer"]
+         |> Card.block []
+             [ Block.titleH3 [] [ text "Add an API consumer" ]
+             , Block.text [] [ text "Choose this if you want to add a consumer of an API" ]]
+         |> Card.block [Block.align Text.alignXsRight] 
+            [Block.custom <|
+                 Button.button [ Button.primary ] [ text "Select" ]
+             ]
+         |> Card.view
         
 clientView: Model -> List (Html Msg)
 clientView _ =
