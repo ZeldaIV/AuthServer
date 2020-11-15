@@ -14,7 +14,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="5.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.0" PrivateAssets="All" />
-<!--    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.4" />-->
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.0-alpha.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="5.6.3" />
@@ -35,16 +34,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Remove="attempt2/**" />
     <Content Remove="frontend/**" />
-    <Content Remove="attempt2/elm.json" />
-    <Content Remove="attempt2/package.json" />
     <Content Include="frontend\README.md" />
     <_ContentIncludedByDefault Remove="frontend/elm.json" />
     <_ContentIncludedByDefault Remove="frontend/package.json" />
     <Content Remove="Properties\launchSettings.json" />
-    <_ContentIncludedByDefault Remove="attempt2\src\Api\elm.json" />
-    <_ContentIncludedByDefault Remove="attempt2\generated\elm.json" />
   </ItemGroup>
 
   <ItemGroup>
