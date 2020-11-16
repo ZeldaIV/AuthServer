@@ -8,7 +8,7 @@
     "build": "gulp build",
     "buildAll": "yarn generateApi && yarn build",
     "genSwagger": "ASPNETCORE_ENVIRONMENT=SwaggerGen dotnet build ../",
-    "genElmApiCode": "docker run --rm -v \"${PWD}:/local\" openapitools/openapi-generator-cli generate -i local/swagger.yaml -g elm",
+    "genElmApiCode": "docker run --rm -v \"${PWD}:/local\" openapitools/openapi-generator-cli generate -i local/swagger.yaml -g elm -o /local",
     "generateApi": "yarn genSwagger && yarn genElmApiCode"
   },
   "dependencies": {},

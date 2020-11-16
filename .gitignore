@@ -2,7 +2,7 @@
 # Created by https://www.gitignore.io/api/aspnetcore,visualstudiocode
 
 
-/.DS_Store
+.DS_Store
 
 ### ASPNETCore ###
 ## Ignore Visual Studio temporary files, build results, and

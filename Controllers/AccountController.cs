@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using IdentityServer4.Events;
 using IdentityServer4.Extensions;
+using IdentityServer4.Models;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
@@ -57,6 +58,7 @@ namespace AuthServer.Controllers
         // [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login([FromBody]LoginRequest model)
         {
+            var t = new IdentityResource();
             var context = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
             _logger.LogInformation($"===> Found context: {context}");
             // the user clicked the "cancel" button

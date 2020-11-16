@@ -50,12 +50,12 @@ init json url key =
             
             
 initializeModel: Decode.Value -> Navbar.State -> Url.Url -> Nav.Key -> Model
-initializeModel json  =
+initializeModel json state url key =
     case Decode.decodeValue modelDecoder json of
         Ok ml ->
-            toModel ml
+            toModel ml state url key
         Err error ->
-            Model (Login "" "")  (UserState "" "" False "" LoginPage) (toString error) |> Debug.log "Oh no an error occured, well it does not matter"
+            Model (Login "" "")  (UserState "" "" True "" LoginPage) None (toString error) state url key |> Debug.log "Oh no an error occured, well it does not matter"
              
 
 type alias Login = 
@@ -74,6 +74,7 @@ type alias UserState =
 type alias Model =
     { login: Login
     , userState: UserState
+    , client: ClientMode
     , errorMsg: String
     , navBarState: Navbar.State
     , url: Url.Url
@@ -85,6 +86,11 @@ type Page
     | ClientsPage
     | ClientSelectionPage
     | UsersPage
+    
+type ClientMode
+    = None
+    | ApiResource
+    | Client
 
    
 port setStorage : Encode.Value -> Cmd msg
@@ -108,8 +114,8 @@ encodeModel model =
     ]
 
 toModel: UserState -> Navbar.State -> Url.Url -> Nav.Key -> Model
-toModel ui =
-    Model (Login "" "") (UserState ui.userName ui.userId False "" ui.page) ""   
+toModel ui navState url key =
+    Model (Login "" "") (UserState ui.userName ui.userId False "" ui.page) None "" navState url key
 
 
 pageToString: Page -> String
@@ -209,6 +215,7 @@ type Msg
     | LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
     | NavMsg Navbar.State
+    | AddClientMode ClientMode
     | ClickMe
     
     
@@ -220,7 +227,7 @@ update msg model =
         LinkClicked urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
-                    ( model |> Debug.log "Internal: ", Nav.pushUrl model.key <| Url.toString url )
+                    ( model |> Debug.log "Internal: ", Nav.replaceUrl model.key <| Url.toString url )
         
                 Browser.External href ->
                     ( model |> Debug.log "External: ", Nav.load href )
@@ -253,6 +260,11 @@ update msg model =
         
         ClickMe ->
             ( model |> Debug.log "Hello", Cmd.none)
+
+        AddClientMode client ->
+            ( {model | client = client} , Cmd.none )
+            
+            
 
 urlUpdate: Url -> Model -> (Model, Cmd Msg)
 urlUpdate url model =
@@ -397,8 +409,63 @@ clientsView model =
     
 clientSelectionView: Model -> List (Html Msg)
 clientSelectionView model =
-    [ h1 [] [ text "Add a new client"] 
-    , Grid.container []
+    let
+        clientMode = model.client
+    in
+    case clientMode of
+        None ->
+            [ h1 [] [ text "Add a new client"] 
+                , chooseClientView model 
+                ]                    
+        ApiResource ->
+            [ h1 [] [ text "Fill out api"]
+             , apiResourceView model
+             ]
+    
+        Client ->
+            [ h1 [] [ text "Fill out client"] ]
+
+apiResourceView: Model -> Html Msg
+apiResourceView _ =
+    Grid.container []
+    [ Grid.row []
+        [ Grid.col []
+            [ Form.form [] 
+                [ Form.group [] [
+                    Form.label [for "Name"] [ text "Name"]
+                    , Input.text [ Input.id "Name" ]]
+                  
+                  , Form.group [] [
+                    Form.label [ for "DisplayName"] [text "Display name"]
+                    , Input.text [ Input.id "DisplayName" ]
+                    , Form.help [] [ text "Will be displayed on a Consent screen, otherwise Name will be used"] 
+                  ]
+                  
+                  , Form.group [] [
+                    Form.label [ for "Description"] [text "Description"]
+                    , Input.text [ Input.id "Description" ]
+                    , Form.help [] [ text "Will be displayed on a Consent screen"]
+                  ]
+                  , Grid.container [] 
+                    [ Grid.row [] 
+                        [ Grid.col [] [ Button.button [ Button.danger, Button.onClick (AddClientMode None) ] [ text "Cancel"] ]
+                        , Grid.col [Col.xs2, Col.mdAuto] []
+                        , Grid.col [] [ Button.button [ Button.primary ] [ text "Add"] ]
+                        ]
+                    ]
+                ]
+            ]
+        , Grid.col [] []
+        ]
+        
+        
+    ]
+    
+    
+    
+chooseClientView: Model -> Html Msg
+chooseClientView model =
+    Grid.container []
         [Grid.row [ Row.centerLg ]
             [ Grid.col [Col.xs, Col.mdAuto] [ addApiResourceView model ] 
             , Grid.col [Col.xs12, Col.mdAuto] []
@@ -406,7 +473,7 @@ clientSelectionView model =
             ]
             
         ]
-    ]
+            
     
 addApiResourceView: Model -> Html Msg
 addApiResourceView _ =
@@ -417,7 +484,7 @@ addApiResourceView _ =
              , Block.text [] [ text "Choose this if you want to add a resource, such as an API for consumption" ]]
          |> Card.block [Block.align Text.alignXsRight] 
             [Block.custom <|
-                 Button.button [ Button.primary ] [ text "Select" ]
+                 Button.button [ Button.primary, Button.onClick (AddClientMode ApiResource) ] [ text "Select" ]
              ]
          |> Card.view
          
@@ -430,7 +497,7 @@ addApiConsumerView _ =
              , Block.text [] [ text "Choose this if you want to add a consumer of an API" ]]
          |> Card.block [Block.align Text.alignXsRight] 
             [Block.custom <|
-                 Button.button [ Button.primary ] [ text "Select" ]
+                 Button.button [ Button.primary, Button.onClick (AddClientMode Client) ] [ text "Select" ]
              ]
          |> Card.view
         

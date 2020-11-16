@@ -14,21 +14,149 @@
 
 
 module Api.Data exposing
-    ( LoginRequest
+    ( ApiResource, ApiResourceSecrets(..), ApiResourceScopes(..), ApiResourceUserClaims(..), ApiResourceProperties(..)
+    , ApiResourceClaim, ApiResourceClaimApiResource(..)
+    , ApiResourceProperty, ApiResourcePropertyApiResource(..)
+    , ApiResourceScope, ApiResourceScopeApiResource(..)
+    , ApiResourceSecret, ApiResourceSecretApiResource(..)
+    , LoginRequest
     , LogoutInputModel
+    , encodeApiResource
+    , encodeApiResourceClaim
+    , encodeApiResourceProperty
+    , encodeApiResourceScope
+    , encodeApiResourceSecret
     , encodeLoginRequest
     , encodeLogoutInputModel
+    , apiResourceDecoder
+    , apiResourceClaimDecoder
+    , apiResourcePropertyDecoder
+    , apiResourceScopeDecoder
+    , apiResourceSecretDecoder
     , loginRequestDecoder
     , logoutInputModelDecoder
     )
 
 import Api
+import Api.Time exposing (Posix)
 import Dict
 import Json.Decode
 import Json.Encode
 
 
 -- MODEL
+
+
+type alias ApiResource =
+    { id : Maybe Int
+    , enabled : Maybe Bool
+    , name : Maybe String
+    , displayName : Maybe String
+    , description : Maybe String
+    , allowedAccessTokenSigningAlgorithms : Maybe String
+    , showInDiscoveryDocument : Maybe Bool
+    , secrets : ApiResourceSecrets
+    , scopes : ApiResourceScopes
+    , userClaims : ApiResourceUserClaims
+    , properties : ApiResourceProperties
+    , created : Maybe Posix
+    , updated : Maybe Posix
+    , lastAccessed : Maybe Posix
+    , nonEditable : Maybe Bool
+    }
+
+
+type ApiResourceSecrets = ApiResourceSecrets (Maybe (List (ApiResourceSecret)))
+
+
+unwrapApiResourceSecrets : ApiResourceSecrets -> Maybe (List (ApiResourceSecret))
+unwrapApiResourceSecrets (ApiResourceSecrets secrets) = secrets
+
+
+type ApiResourceScopes = ApiResourceScopes (Maybe (List (ApiResourceScope)))
+
+
+unwrapApiResourceScopes : ApiResourceScopes -> Maybe (List (ApiResourceScope))
+unwrapApiResourceScopes (ApiResourceScopes scopes) = scopes
+
+
+type ApiResourceUserClaims = ApiResourceUserClaims (Maybe (List (ApiResourceClaim)))
+
+
+unwrapApiResourceUserClaims : ApiResourceUserClaims -> Maybe (List (ApiResourceClaim))
+unwrapApiResourceUserClaims (ApiResourceUserClaims userClaims) = userClaims
+
+
+type ApiResourceProperties = ApiResourceProperties (Maybe (List (ApiResourceProperty)))
+
+
+unwrapApiResourceProperties : ApiResourceProperties -> Maybe (List (ApiResourceProperty))
+unwrapApiResourceProperties (ApiResourceProperties properties) = properties
+
+
+type alias ApiResourceClaim =
+    { id : Maybe Int
+    , type_ : Maybe String
+    , apiResourceId : Maybe Int
+    , apiResource : ApiResourceClaimApiResource
+    }
+
+
+type ApiResourceClaimApiResource = ApiResourceClaimApiResource (Maybe ApiResource)
+
+
+unwrapApiResourceClaimApiResource : ApiResourceClaimApiResource -> Maybe ApiResource
+unwrapApiResourceClaimApiResource (ApiResourceClaimApiResource apiResource) = apiResource
+
+
+type alias ApiResourceProperty =
+    { id : Maybe Int
+    , key : Maybe String
+    , value : Maybe String
+    , apiResourceId : Maybe Int
+    , apiResource : ApiResourcePropertyApiResource
+    }
+
+
+type ApiResourcePropertyApiResource = ApiResourcePropertyApiResource (Maybe ApiResource)
+
+
+unwrapApiResourcePropertyApiResource : ApiResourcePropertyApiResource -> Maybe ApiResource
+unwrapApiResourcePropertyApiResource (ApiResourcePropertyApiResource apiResource) = apiResource
+
+
+type alias ApiResourceScope =
+    { id : Maybe Int
+    , scope : Maybe String
+    , apiResourceId : Maybe Int
+    , apiResource : ApiResourceScopeApiResource
+    }
+
+
+type ApiResourceScopeApiResource = ApiResourceScopeApiResource (Maybe ApiResource)
+
+
+unwrapApiResourceScopeApiResource : ApiResourceScopeApiResource -> Maybe ApiResource
+unwrapApiResourceScopeApiResource (ApiResourceScopeApiResource apiResource) = apiResource
+
+
+type alias ApiResourceSecret =
+    { id : Maybe Int
+    , description : Maybe String
+    , value : Maybe String
+    , expiration : Maybe Posix
+    , type_ : Maybe String
+    , created : Maybe Posix
+    , apiResourceId : Maybe Int
+    , apiResource : ApiResourceSecretApiResource
+    }
+
+
+type ApiResourceSecretApiResource = ApiResourceSecretApiResource (Maybe ApiResource)
+
+
+unwrapApiResourceSecretApiResource : ApiResourceSecretApiResource -> Maybe ApiResource
+unwrapApiResourceSecretApiResource (ApiResourceSecretApiResource apiResource) = apiResource
 
 
 type alias LoginRequest =
@@ -44,6 +172,137 @@ type alias LogoutInputModel =
 
 
 -- ENCODER
+
+
+encodeApiResource : ApiResource -> Json.Encode.Value
+encodeApiResource =
+    encodeObject << encodeApiResourcePairs
+
+
+encodeApiResourceWithTag : ( String, String ) -> ApiResource -> Json.Encode.Value
+encodeApiResourceWithTag (tagField, tag) model =
+    encodeObject (encodeApiResourcePairs model ++ [ encode tagField Json.Encode.string tag ])
+
+
+encodeApiResourcePairs : ApiResource -> List EncodedField
+encodeApiResourcePairs model =
+    let
+        pairs =
+            [ maybeEncode "id" Json.Encode.int model.id
+            , maybeEncode "enabled" Json.Encode.bool model.enabled
+            , maybeEncodeNullable "name" Json.Encode.string model.name
+            , maybeEncodeNullable "displayName" Json.Encode.string model.displayName
+            , maybeEncodeNullable "description" Json.Encode.string model.description
+            , maybeEncodeNullable "allowedAccessTokenSigningAlgorithms" Json.Encode.string model.allowedAccessTokenSigningAlgorithms
+            , maybeEncode "showInDiscoveryDocument" Json.Encode.bool model.showInDiscoveryDocument
+            , maybeEncodeNullable "secrets" (Json.Encode.list encodeApiResourceSecret) <| unwrapApiResourceSecrets model.secrets
+            , maybeEncodeNullable "scopes" (Json.Encode.list encodeApiResourceScope) <| unwrapApiResourceScopes model.scopes
+            , maybeEncodeNullable "userClaims" (Json.Encode.list encodeApiResourceClaim) <| unwrapApiResourceUserClaims model.userClaims
+            , maybeEncodeNullable "properties" (Json.Encode.list encodeApiResourceProperty) <| unwrapApiResourceProperties model.properties
+            , maybeEncode "created" Api.Time.encodeDateTime model.created
+            , maybeEncodeNullable "updated" Api.Time.encodeDateTime model.updated
+            , maybeEncodeNullable "lastAccessed" Api.Time.encodeDateTime model.lastAccessed
+            , maybeEncode "nonEditable" Json.Encode.bool model.nonEditable
+            ]
+    in
+    pairs
+
+
+encodeApiResourceClaim : ApiResourceClaim -> Json.Encode.Value
+encodeApiResourceClaim =
+    encodeObject << encodeApiResourceClaimPairs
+
+
+encodeApiResourceClaimWithTag : ( String, String ) -> ApiResourceClaim -> Json.Encode.Value
+encodeApiResourceClaimWithTag (tagField, tag) model =
+    encodeObject (encodeApiResourceClaimPairs model ++ [ encode tagField Json.Encode.string tag ])
+
+
+encodeApiResourceClaimPairs : ApiResourceClaim -> List EncodedField
+encodeApiResourceClaimPairs model =
+    let
+        pairs =
+            [ maybeEncode "id" Json.Encode.int model.id
+            , maybeEncodeNullable "type" Json.Encode.string model.type_
+            , maybeEncode "apiResourceId" Json.Encode.int model.apiResourceId
+            , maybeEncode "apiResource" encodeApiResource <| unwrapApiResourceClaimApiResource model.apiResource
+            ]
+    in
+    pairs
+
+
+encodeApiResourceProperty : ApiResourceProperty -> Json.Encode.Value
+encodeApiResourceProperty =
+    encodeObject << encodeApiResourcePropertyPairs
+
+
+encodeApiResourcePropertyWithTag : ( String, String ) -> ApiResourceProperty -> Json.Encode.Value
+encodeApiResourcePropertyWithTag (tagField, tag) model =
+    encodeObject (encodeApiResourcePropertyPairs model ++ [ encode tagField Json.Encode.string tag ])
+
+
+encodeApiResourcePropertyPairs : ApiResourceProperty -> List EncodedField
+encodeApiResourcePropertyPairs model =
+    let
+        pairs =
+            [ maybeEncode "id" Json.Encode.int model.id
+            , maybeEncodeNullable "key" Json.Encode.string model.key
+            , maybeEncodeNullable "value" Json.Encode.string model.value
+            , maybeEncode "apiResourceId" Json.Encode.int model.apiResourceId
+            , maybeEncode "apiResource" encodeApiResource <| unwrapApiResourcePropertyApiResource model.apiResource
+            ]
+    in
+    pairs
+
+
+encodeApiResourceScope : ApiResourceScope -> Json.Encode.Value
+encodeApiResourceScope =
+    encodeObject << encodeApiResourceScopePairs
+
+
+encodeApiResourceScopeWithTag : ( String, String ) -> ApiResourceScope -> Json.Encode.Value
+encodeApiResourceScopeWithTag (tagField, tag) model =
+    encodeObject (encodeApiResourceScopePairs model ++ [ encode tagField Json.Encode.string tag ])
+
+
+encodeApiResourceScopePairs : ApiResourceScope -> List EncodedField
+encodeApiResourceScopePairs model =
+    let
+        pairs =
+            [ maybeEncode "id" Json.Encode.int model.id
+            , maybeEncodeNullable "scope" Json.Encode.string model.scope
+            , maybeEncode "apiResourceId" Json.Encode.int model.apiResourceId
+            , maybeEncode "apiResource" encodeApiResource <| unwrapApiResourceScopeApiResource model.apiResource
+            ]
+    in
+    pairs
+
+
+encodeApiResourceSecret : ApiResourceSecret -> Json.Encode.Value
+encodeApiResourceSecret =
+    encodeObject << encodeApiResourceSecretPairs
+
+
+encodeApiResourceSecretWithTag : ( String, String ) -> ApiResourceSecret -> Json.Encode.Value
+encodeApiResourceSecretWithTag (tagField, tag) model =
+    encodeObject (encodeApiResourceSecretPairs model ++ [ encode tagField Json.Encode.string tag ])
+
+
+encodeApiResourceSecretPairs : ApiResourceSecret -> List EncodedField
+encodeApiResourceSecretPairs model =
+    let
+        pairs =
+            [ maybeEncode "id" Json.Encode.int model.id
+            , maybeEncodeNullable "description" Json.Encode.string model.description
+            , maybeEncodeNullable "value" Json.Encode.string model.value
+            , maybeEncodeNullable "expiration" Api.Time.encodeDateTime model.expiration
+            , maybeEncodeNullable "type" Json.Encode.string model.type_
+            , maybeEncode "created" Api.Time.encodeDateTime model.created
+            , maybeEncode "apiResourceId" Json.Encode.int model.apiResourceId
+            , maybeEncode "apiResource" encodeApiResource <| unwrapApiResourceSecretApiResource model.apiResource
+            ]
+    in
+    pairs
 
 
 encodeLoginRequest : LoginRequest -> Json.Encode.Value
@@ -89,6 +348,67 @@ encodeLogoutInputModelPairs model =
 
 
 -- DECODER
+
+
+apiResourceDecoder : Json.Decode.Decoder ApiResource
+apiResourceDecoder =
+    Json.Decode.succeed ApiResource
+        |> maybeDecode "id" Json.Decode.int Nothing
+        |> maybeDecode "enabled" Json.Decode.bool Nothing
+        |> maybeDecodeNullable "name" Json.Decode.string Nothing
+        |> maybeDecodeNullable "displayName" Json.Decode.string Nothing
+        |> maybeDecodeNullable "description" Json.Decode.string Nothing
+        |> maybeDecodeNullable "allowedAccessTokenSigningAlgorithms" Json.Decode.string Nothing
+        |> maybeDecode "showInDiscoveryDocument" Json.Decode.bool Nothing
+        |> maybeDecodeNullableLazy ApiResourceSecrets "secrets" (Json.Decode.list (Json.Decode.lazy (\_ -> apiResourceSecretDecoder))) Nothing
+        |> maybeDecodeNullableLazy ApiResourceScopes "scopes" (Json.Decode.list (Json.Decode.lazy (\_ -> apiResourceScopeDecoder))) Nothing
+        |> maybeDecodeNullableLazy ApiResourceUserClaims "userClaims" (Json.Decode.list (Json.Decode.lazy (\_ -> apiResourceClaimDecoder))) Nothing
+        |> maybeDecodeNullableLazy ApiResourceProperties "properties" (Json.Decode.list (Json.Decode.lazy (\_ -> apiResourcePropertyDecoder))) Nothing
+        |> maybeDecode "created" Api.Time.dateTimeDecoder Nothing
+        |> maybeDecodeNullable "updated" Api.Time.dateTimeDecoder Nothing
+        |> maybeDecodeNullable "lastAccessed" Api.Time.dateTimeDecoder Nothing
+        |> maybeDecode "nonEditable" Json.Decode.bool Nothing
+
+
+apiResourceClaimDecoder : Json.Decode.Decoder ApiResourceClaim
+apiResourceClaimDecoder =
+    Json.Decode.succeed ApiResourceClaim
+        |> maybeDecode "id" Json.Decode.int Nothing
+        |> maybeDecodeNullable "type" Json.Decode.string Nothing
+        |> maybeDecode "apiResourceId" Json.Decode.int Nothing
+        |> maybeDecodeLazy ApiResourceClaimApiResource "apiResource" (Json.Decode.lazy (\_ -> apiResourceDecoder)) Nothing
+
+
+apiResourcePropertyDecoder : Json.Decode.Decoder ApiResourceProperty
+apiResourcePropertyDecoder =
+    Json.Decode.succeed ApiResourceProperty
+        |> maybeDecode "id" Json.Decode.int Nothing
+        |> maybeDecodeNullable "key" Json.Decode.string Nothing
+        |> maybeDecodeNullable "value" Json.Decode.string Nothing
+        |> maybeDecode "apiResourceId" Json.Decode.int Nothing
+        |> maybeDecodeLazy ApiResourcePropertyApiResource "apiResource" (Json.Decode.lazy (\_ -> apiResourceDecoder)) Nothing
+
+
+apiResourceScopeDecoder : Json.Decode.Decoder ApiResourceScope
+apiResourceScopeDecoder =
+    Json.Decode.succeed ApiResourceScope
+        |> maybeDecode "id" Json.Decode.int Nothing
+        |> maybeDecodeNullable "scope" Json.Decode.string Nothing
+        |> maybeDecode "apiResourceId" Json.Decode.int Nothing
+        |> maybeDecodeLazy ApiResourceScopeApiResource "apiResource" (Json.Decode.lazy (\_ -> apiResourceDecoder)) Nothing
+
+
+apiResourceSecretDecoder : Json.Decode.Decoder ApiResourceSecret
+apiResourceSecretDecoder =
+    Json.Decode.succeed ApiResourceSecret
+        |> maybeDecode "id" Json.Decode.int Nothing
+        |> maybeDecodeNullable "description" Json.Decode.string Nothing
+        |> maybeDecodeNullable "value" Json.Decode.string Nothing
+        |> maybeDecodeNullable "expiration" Api.Time.dateTimeDecoder Nothing
+        |> maybeDecodeNullable "type" Json.Decode.string Nothing
+        |> maybeDecode "created" Api.Time.dateTimeDecoder Nothing
+        |> maybeDecode "apiResourceId" Json.Decode.int Nothing
+        |> maybeDecodeLazy ApiResourceSecretApiResource "apiResource" (Json.Decode.lazy (\_ -> apiResourceDecoder)) Nothing
 
 
 loginRequestDecoder : Json.Decode.Decoder LoginRequest
