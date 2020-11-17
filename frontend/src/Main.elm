@@ -51,11 +51,11 @@ init json url key =
             
 initializeModel: Decode.Value -> Navbar.State -> Url.Url -> Nav.Key -> Model
 initializeModel json state url key =
-    case Decode.decodeValue modelDecoder json of
+    case Decode.decodeValue userStateDecoder json of
         Ok ml ->
             toModel ml state url key
         Err error ->
-            Model (Login "" "")  (UserState "" "" True "" LoginPage) None (toString error) state url key |> Debug.log "Oh no an error occured, well it does not matter"
+            Model (Login "" "")  (UserState "" "" True "" LoginPage) None (toString error) state url key |> Debug.log "An Error because we have no model in storage: "
              
 
 type alias Login = 
@@ -74,7 +74,7 @@ type alias UserState =
 type alias Model =
     { login: Login
     , userState: UserState
-    , client: ClientMode
+    , applicationMode: ApplicationMode
     , errorMsg: String
     , navBarState: Navbar.State
     , url: Url.Url
@@ -83,11 +83,11 @@ type alias Model =
             
 type Page 
     = LoginPage
-    | ClientsPage
-    | ClientSelectionPage
+    | ApplicationsPage
+    | ApplicationSelectionPage
     | UsersPage
     
-type ClientMode
+type ApplicationMode
     = None
     | ApiResource
     | Client
@@ -115,7 +115,14 @@ encodeModel model =
 
 toModel: UserState -> Navbar.State -> Url.Url -> Nav.Key -> Model
 toModel ui navState url key =
-    Model (Login "" "") (UserState ui.userName ui.userId False "" ui.page) None "" navState url key
+    let 
+        page = (decode url)
+    in
+    case page of
+        Just foundPage ->          
+            Model (Login "" "") (UserState ui.userName ui.userId False "" foundPage) None "" navState url key |> Debug.log "Hello: "
+        Nothing ->
+            Model (Login "" "") (UserState ui.userName ui.userId False "" LoginPage) None "" navState url key
 
 
 pageToString: Page -> String
@@ -123,10 +130,10 @@ pageToString page =
     case page of
         LoginPage ->
             "LoginPage"
-        ClientsPage ->
-            "ClientsPage"
-        ClientSelectionPage ->
-            "ClientSelectionPage"
+        ApplicationsPage ->
+            "ApplicationsPage"
+        ApplicationSelectionPage ->
+            "ApplicationSelectionPage"
         UsersPage ->
             "UsersPage"
 
@@ -135,23 +142,23 @@ stringToPage page =
     case page of
         "LoginPage" ->
             Decode.succeed LoginPage
-        "ClientsPage" ->
-            Decode.succeed ClientsPage
-        "ClientSelectionPage" ->
-            Decode.succeed ClientSelectionPage
+        "ApplicationsPage" ->
+            Decode.succeed ApplicationsPage
+        "ApplicationSelectionPage" ->
+            Decode.succeed ApplicationSelectionPage
         "UsersPage" ->
             Decode.succeed UsersPage
         _ ->
             Decode.succeed LoginPage
     
-modelDecoder: Decoder UserState
-modelDecoder =
+userStateDecoder: Decoder UserState
+userStateDecoder =
     (Decode.map5 UserState
         (field "username" Decode.string)
         (field "userId" Decode.string)
         (field "loggedIn" Decode.bool)
         (field "url" Decode.string)
-        (field "page" Decode.string |> andThen stringToPage))
+        (field "page" Decode.string |> andThen stringToPage) ) 
         
         
 
@@ -215,7 +222,7 @@ type Msg
     | LinkClicked Browser.UrlRequest
     | UrlChanged Url.Url
     | NavMsg Navbar.State
-    | AddClientMode ClientMode
+    | AddApplicationMode ApplicationMode
     | ClickMe
     
     
@@ -261,8 +268,8 @@ update msg model =
         ClickMe ->
             ( model |> Debug.log "Hello", Cmd.none)
 
-        AddClientMode client ->
-            ( {model | client = client} , Cmd.none )
+        AddApplicationMode mode ->
+            ( {model | applicationMode = mode} , Cmd.none )
             
             
 
@@ -292,8 +299,8 @@ routeParser : Parser (Page -> a) a
 routeParser =
     Parser.oneOf
         [ Parser.map LoginPage (Parser.s "login")
-        , Parser.map ClientsPage (Parser.s "clients")
-        , Parser.map ClientSelectionPage (Parser.s "clients" </> Parser.s "clientSelection")
+        , Parser.map ApplicationsPage (Parser.s "applications")
+        , Parser.map ApplicationSelectionPage (Parser.s "applications" </> Parser.s "applicationSelection")
         , Parser.map UsersPage (Parser.s "users")
         ]
 
@@ -358,7 +365,7 @@ menu model =
         |> Navbar.container
         |> Navbar.brand [] [ text "Auth server" ]
         |> Navbar.items
-            [ Navbar.itemLink [ href "/clients" ] [ text "Clients" ]
+            [ Navbar.itemLink [ href "/applications" ] [ text "Applications" ]
             , Navbar.itemLink [ href "/users" ] [ text "Users" ]
             ]
         |> Navbar.view model.navBarState
@@ -370,20 +377,20 @@ mainContent model =
             LoginPage ->
                 [loginForm model.login]
 
-            ClientsPage ->
-                clientsView model
+            ApplicationsPage ->
+                applicationsView model
                 
-            ClientSelectionPage ->
-                clientSelectionView model
+            ApplicationSelectionPage ->
+                applicationSelectionView model
 
             UsersPage ->
                 usersView model
         
         
-clientsView: Model -> List (Html Msg)
-clientsView model =
+applicationsView: Model -> List (Html Msg)
+applicationsView model =
     [ Grid.container []
-        [ Button.linkButton [ Button.primary, Button.block, Button.large, Button.attrs [href "/clients/clientSelection"] ] [ text "Add new"] , h1 [] [ text "Registered clients" ]
+        [ Button.linkButton [ Button.primary, Button.block, Button.large, Button.attrs [href "/applications/applicationSelection"] ] [ text "Add new"] , h1 [] [ text "Registered applications" ]
         , Table.table 
             { options = [ Table.striped, Table.hover ]
             , thead = Table.simpleThead 
@@ -407,15 +414,15 @@ clientsView model =
         ]
     ] 
     
-clientSelectionView: Model -> List (Html Msg)
-clientSelectionView model =
+applicationSelectionView: Model -> List (Html Msg)
+applicationSelectionView model =
     let
-        clientMode = model.client
+        applicationMode = model.applicationMode
     in
-    case clientMode of
+    case applicationMode of
         None ->
-            [ h1 [] [ text "Add a new client"] 
-                , chooseClientView model 
+            [ h1 [] [ text "Add a new application"] 
+                , chooseApplicationView model 
                 ]                    
         ApiResource ->
             [ h1 [] [ text "Fill out api"]
@@ -448,7 +455,7 @@ apiResourceView _ =
                   ]
                   , Grid.container [] 
                     [ Grid.row [] 
-                        [ Grid.col [] [ Button.button [ Button.danger, Button.onClick (AddClientMode None) ] [ text "Cancel"] ]
+                        [ Grid.col [] [ Button.button [ Button.danger, Button.onClick (AddApplicationMode None) ] [ text "Cancel"] ]
                         , Grid.col [Col.xs2, Col.mdAuto] []
                         , Grid.col [] [ Button.button [ Button.primary ] [ text "Add"] ]
                         ]
@@ -463,8 +470,8 @@ apiResourceView _ =
     
     
     
-chooseClientView: Model -> Html Msg
-chooseClientView model =
+chooseApplicationView: Model -> Html Msg
+chooseApplicationView model =
     Grid.container []
         [Grid.row [ Row.centerLg ]
             [ Grid.col [Col.xs, Col.mdAuto] [ addApiResourceView model ] 
@@ -484,7 +491,7 @@ addApiResourceView _ =
              , Block.text [] [ text "Choose this if you want to add a resource, such as an API for consumption" ]]
          |> Card.block [Block.align Text.alignXsRight] 
             [Block.custom <|
-                 Button.button [ Button.primary, Button.onClick (AddClientMode ApiResource) ] [ text "Select" ]
+                 Button.button [ Button.primary, Button.onClick (AddApplicationMode ApiResource) ] [ text "Select" ]
              ]
          |> Card.view
          
@@ -497,13 +504,13 @@ addApiConsumerView _ =
              , Block.text [] [ text "Choose this if you want to add a consumer of an API" ]]
          |> Card.block [Block.align Text.alignXsRight] 
             [Block.custom <|
-                 Button.button [ Button.primary, Button.onClick (AddClientMode Client) ] [ text "Select" ]
+                 Button.button [ Button.primary, Button.onClick (AddApplicationMode Client) ] [ text "Select" ]
              ]
          |> Card.view
         
 clientView: Model -> List (Html Msg)
 clientView _ =
-    [ h1 [] [text "Clients"]
+    [ h1 [] [text "Applications"]
     , Grid.container []
         [Grid.row []
             [ Grid.col [] 

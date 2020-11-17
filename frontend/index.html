@@ -24,15 +24,11 @@
     });
 
     app.ports.setStorage.subscribe(function(state) {
-        console.log(state);
-        localStorage.setItem('model', JSON.stringify(state));
-        // setTimeout(function() { app.ports.onStoreChange.send(state); }, 0);
-    });
-
-    
-    app.ports.removeStorage.subscribe(function() {
-        console.log('Removing')
-        localStorage.removeItem('model');
+        if (state == null) {
+            localStorage.removeItem('model');    
+        } else {
+            localStorage.setItem('model', JSON.stringify(state));    
+        }
     });
 
 </script>
