@@ -127,7 +127,6 @@ menu : Model -> Html Msg
 menu model =
     Navbar.config NavMsg
         |> Navbar.withAnimation
-        |> Navbar.container
         |> Navbar.brand [] [ text "Auth server" ]
         |> Navbar.items
             [ Navbar.itemLink [ href (Route.toString Route.Applications) ] [ text "Applications" ]
