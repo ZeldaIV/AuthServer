@@ -51,45 +51,51 @@ init flags url key =
             , navbarCmd
             )            
         
-        Err error ->
-            -- TODO: User is not signed in
+        Err _ ->
             ( Model url key navbarState Nothing
-            , Nav.pushUrl key (Route.toString Route.Login)
+            , navbarCmd
             )                  
               
 userStateDecoder: Decoder User
 userStateDecoder =
     (Decode.map User
         (field "username" Decode.string) )
-        
-encodeModel: Maybe User -> Encode.Value
-encodeModel model =
-    case model of
-        Just userstate ->
-            Encode.object [
-                ("username", Encode.string userstate.username)
-            ]
+       
 
+
+
+
+test: Model -> (Cmd Msg)
+test model =
+    case model.user of
+        Just _ ->
+            Cmd.none
         Nothing ->
-            Encode.object [
-                ("username", Encode.string "")
-            ]
-
-
-
+            Nav.pushUrl model.key (Route.toString Route.Login)
 
 -- UPDATE
 
 
 type Msg
     = NavMsg Navbar.State
+    | OnSignin User
+    | OnSignOut
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
+    let 
+        cmd = test model
+    in
+    case msg of    
         NavMsg state ->
-            ( { model | navBarState = state }, Cmd.none )
+            ( { model | navBarState = state }, cmd )
+
+        OnSignin user ->
+            ( { model | user = Just user }, Cmd.none )
+        OnSignOut ->
+            ( { model | user = Nothing }, Cmd.none )
+            
 
 
 subscriptions : Model -> Sub Msg
@@ -108,19 +114,26 @@ view :
 view { page, toMsg } model =
     { title = page.title
     , body =
-        [ Html.map toMsg (menu model)
-            , div [ class "page" ] page.body
-        ]
+        case model.user of
+            Just _ ->
+                [ Html.map toMsg (menu model)
+                    , div [ class "page" ] page.body
+                ]
+            Nothing ->
+                page.body 
     }
 
 menu : Model -> Html Msg
 menu model =
-        Navbar.config NavMsg
-            |> Navbar.withAnimation
-            |> Navbar.container
-            |> Navbar.brand [] [ text "Auth server" ]
-            |> Navbar.items
-                [ Navbar.itemLink [ href (Route.toString Route.Applications) ] [ text "Applications" ]
-                , Navbar.itemLink [ href (Route.toString Route.Users) ] [ text "Users" ]
-                ]
-            |> Navbar.view model.navBarState
+    Navbar.config NavMsg
+        |> Navbar.withAnimation
+        |> Navbar.container
+        |> Navbar.brand [] [ text "Auth server" ]
+        |> Navbar.items
+            [ Navbar.itemLink [ href (Route.toString Route.Applications) ] [ text "Applications" ]
+            , Navbar.itemLink [ href (Route.toString Route.Users) ] [ text "Users" ]
+            ]
+        |> Navbar.view model.navBarState
+
+
+            

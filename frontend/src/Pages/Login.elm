@@ -9,11 +9,14 @@ import Bootstrap.Card.Block as Block
 import Bootstrap.Form as Form
 import Bootstrap.Form.Input as Input
 import Bootstrap.Grid as Grid
+import Browser.Navigation as Nav
 import Html exposing (Html, text)
 import Html.Attributes exposing (for)
 import Http
+import Ports
 import Shared exposing (User)
 import Spa.Document exposing (Document)
+import Spa.Generated.Route as Route
 import Spa.Page as Page exposing (Page)
 import Spa.Url exposing (Url)
 
@@ -36,37 +39,27 @@ mapModelToLoginRequest login =
     , returnUrl= (Just "")
     }    
 
-performLogin: Maybe Api.Data.LoginRequest -> Api.Request ()
-performLogin login =
-    Account.accountPost login
-
 loginUser: LoginRequest -> Cmd Msg
 loginUser data =
-    send LoginCompleted (performLogin <| Just data)
+    send LoginCompleted (Account.accountPost <| Just data)
     
-getUser: Cmd Msg
-getUser =
-    send GetUserCompleted Account.accountUserGet
-    
-loginCompleted : Model -> Result Http.Error () -> (Model, Cmd Msg )
-loginCompleted model result =
+loginCompleted : Result Http.Error () -> Cmd Msg
+loginCompleted result =
     case result of
         Ok _ ->
-             (model |> Debug.log "User logged in", getUser)
+            send getUserCompleted Account.accountUserGet |> Cmd.map GotUser
             
         Err _ ->
-            ( model |> Debug.log "Could not login", Cmd.none )
+            Cmd.none
             -- TODO: Handle error
             
-getUserCompleted : Model -> Result Http.Error String -> (Model, Cmd Msg)
-getUserCompleted model result = 
+getUserCompleted : Result Http.Error String -> User
+getUserCompleted result = 
     case result of
-        Ok _ ->
-            (model, Cmd.none)
-            -- TODO: Handle success
+        Ok val ->
+            User val
         Err _ ->
-            ( model|> Debug.log "Error getting user: ", Cmd.none)
-            -- TODO: Handle error
+            User ""
 
 -- INIT
 
@@ -77,7 +70,8 @@ type alias Params =
 
 type alias Model =
     { form: Form,
-     user: Maybe User }
+      user: Maybe User,
+      key: Nav.Key}
     
 type alias Form =
     { username : String
@@ -88,7 +82,7 @@ type alias Form =
 
 init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
 init shared { params } =
-    ( {form = Form "" "", user= shared.user }, Cmd.none )
+    ( {form = Form "" "", user= shared.user, key = shared.key }, Cmd.none )
 
 
 
@@ -100,8 +94,7 @@ type Msg
     | SetPassword String
     | OnLogin Form
     | LoginCompleted (Result Http.Error ())
-    | GetUserCompleted (Result Http.Error String)
-    | SaveUser User
+    | GotUser User
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -123,13 +116,12 @@ update msg model =
             (model, loginUser <| mapModelToLoginRequest login)
     
         LoginCompleted result ->
-            loginCompleted model result
-        
-        GetUserCompleted result -> 
-            getUserCompleted model result
-        
-        SaveUser user ->
-            ( {model | user = Just user} , Cmd.none)
+            (model, loginCompleted result)
+                
+        GotUser user ->
+             ({ model | user = Just user }, Cmd.batch 
+             [Ports.saveUser user
+             , Nav.replaceUrl model.key (Route.toString Route.Applications)])
 
 
 save : Model -> Shared.Model -> Shared.Model
@@ -139,7 +131,7 @@ save model shared =
 
 load : Shared.Model -> Model -> ( Model, Cmd Msg )
 load shared model =
-    ( { model | user = shared.user} , Cmd.none )
+    ( { model | user = shared.user}, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg

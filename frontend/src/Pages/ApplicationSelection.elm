@@ -85,13 +85,13 @@ update msg model =
             let
                 form = model.form
             in
-                ({model | form = { form | name = displayName}}, Cmd.none)
+                ({model | form = { form | displayName = displayName}}, Cmd.none)
 
         DescriptionEntered description ->
             let
                 form = model.form
             in
-                ({model | form = { form | name = description}}, Cmd.none)
+                ({model | form = { form | description = description}}, Cmd.none)
     
 
 
