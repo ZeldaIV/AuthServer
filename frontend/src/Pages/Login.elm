@@ -9,9 +9,9 @@ import Bootstrap.Card.Block as Block
 import Bootstrap.Form as Form
 import Bootstrap.Form.Input as Input
 import Bootstrap.Grid as Grid
-import Browser.Dom as Http
 import Html exposing (Html, text)
 import Html.Attributes exposing (for)
+import Http
 import Shared exposing (User)
 import Spa.Document exposing (Document)
 import Spa.Page as Page exposing (Page)

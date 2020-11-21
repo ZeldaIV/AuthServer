@@ -13,13 +13,15 @@
     "build:elm": "elm make src/Main.elm --optimize --output=public/dist/elm.compiled.js",
     "build:dev:elm": "elm make src/Main.elm --debug --output=public/dist/elm.compiled.js || true",
     "build:elm-spa": "elm-spa build .",
-    "dev:elm": "elm-live src/Main.elm -u -d public --host=127.0.0.1 --port=3001 --ssl -- --debug --output=public/dist/elm.compiled.js",
+    "dev:elm": "elm-live src/Main.elm -u -d public --host=127.0.0.1 --port=3001 --ssl-key='../Certificates/nginx-selfsigned.key' --ssl-cert='../Certificates/nginx-selfsigned.crt' -- --debug --output=public/dist/elm.compiled.js",
+    "dev:mock": "run-p runmockserver dev:elm",
+    "runmockserver": "node ./api_mocking/mock_api.js",
     "dev:elm-spa": "chokidar src/Pages -c \"elm-spa build .\"",
     "buildAll": "run-s generateApi build",
     "genSwagger": "ASPNETCORE_ENVIRONMENT=SwaggerGen dotnet build ../",
     "genElmApiCode": "docker run --rm -v \"${PWD}:/local\" openapitools/openapi-generator-cli generate -i local/swagger.yaml -g elm -o /local",
     "generateApi": "run-s genSwagger genElmApiCode",
-    "publish": "cp ./public/* ../wwwroot"
+    "publish": "cp -r ./public/ ../wwwroot"
   },
   "keywords": [],
   "license": "ISC",

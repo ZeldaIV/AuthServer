@@ -10,7 +10,7 @@ module Shared exposing
     )
 
 import Bootstrap.Navbar as Navbar
-import Browser.Navigation exposing (Key)
+import Browser.Navigation as Nav exposing (Key)
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, href)
 import Json.Decode as Decode exposing (Decoder, field)
@@ -54,8 +54,8 @@ init flags url key =
         Err error ->
             -- TODO: User is not signed in
             ( Model url key navbarState Nothing
-            , navbarCmd
-            ) 
+            , Nav.pushUrl key (Route.toString Route.Login)
+            )                  
               
 userStateDecoder: Decoder User
 userStateDecoder =
@@ -115,12 +115,12 @@ view { page, toMsg } model =
 
 menu : Model -> Html Msg
 menu model =
-    Navbar.config NavMsg
-        |> Navbar.withAnimation
-        |> Navbar.container
-        |> Navbar.brand [] [ text "Auth server" ]
-        |> Navbar.items
-            [ Navbar.itemLink [ href (Route.toString Route.Applications) ] [ text "Applications" ]
-            , Navbar.itemLink [ href (Route.toString Route.Users) ] [ text "Users" ]
-            ]
-        |> Navbar.view model.navBarState
+        Navbar.config NavMsg
+            |> Navbar.withAnimation
+            |> Navbar.container
+            |> Navbar.brand [] [ text "Auth server" ]
+            |> Navbar.items
+                [ Navbar.itemLink [ href (Route.toString Route.Applications) ] [ text "Applications" ]
+                , Navbar.itemLink [ href (Route.toString Route.Users) ] [ text "Users" ]
+                ]
+            |> Navbar.view model.navBarState
