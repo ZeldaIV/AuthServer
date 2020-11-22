@@ -1,10 +1,14 @@
+
 const https = require('https');
 const fs = require('fs');
+const responses = require('./api_responses');
 
 const options = {
     key: fs.readFileSync('../Certificates/nginx-selfsigned.key'),
     cert: fs.readFileSync('../Certificates/nginx-selfsigned.crt')
 };
+
+
 
 https.createServer(options, (req, res) => {
     console.log('Request: ');
@@ -13,22 +17,17 @@ https.createServer(options, (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', 'https://127.0.0.1:3001');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+
+    responses.maybeLoginRequest(req, res);
+
+    responses.maybeGetUserRequest(req, res);
+
+    responses.maybeGetApiResourceRequest(req, res);
     
-    if (req.method === 'POST' && req.url === "/Account") {
-        res.writeHead(200, {'Content-Type': 'application/json'});
-        res.end();
-    }
-    if (req.method === 'GET' && req.url === '/Account/user') {
-        res.writeHead(200, {'Content-Type': 'text/plain'});
-        res.end('\"Auser\"');
-    }
     console.log('Rsponding with: ')
     console.log('\tstatusCode:', res.statusCode);
     console.log('\theaders:', res.headers);
     console.log('\tbody:', res.body);
-
-    // Website you wish to allow to connect
-    
     
     if (req.method === 'OPTIONS') {
         console.log('Responding with OK to Options')
@@ -37,3 +36,4 @@ https.createServer(options, (req, res) => {
     }
     
 }).listen(3001);
+
