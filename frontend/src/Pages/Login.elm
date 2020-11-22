@@ -1,8 +1,4 @@
 module Pages.Login exposing (Params, Model, Msg, page)
-
-import Api exposing (send)
-import Api.Data exposing (LoginRequest)
-import Api.Request.Account as Account
 import Bootstrap.Button as Button
 import Bootstrap.Card as Card
 import Bootstrap.Card.Block as Block
@@ -10,10 +6,12 @@ import Bootstrap.Form as Form
 import Bootstrap.Form.Input as Input
 import Bootstrap.Grid as Grid
 import Browser.Navigation as Nav
+import Data.LoginRequest exposing (LoginRequest)
 import Html exposing (Html, text)
 import Html.Attributes exposing (for)
 import Http
 import Ports
+import Request.Account as Account
 import Shared exposing (User)
 import Spa.Document exposing (Document)
 import Spa.Generated.Route as Route
@@ -37,29 +35,25 @@ mapModelToLoginRequest login =
     { username= (Just login.username)
     , password= (Just login.password)
     , returnUrl= (Just "")
-    }    
-
-loginUser: LoginRequest -> Cmd Msg
-loginUser data =
-    send LoginCompleted (Account.accountPost <| Just data)
+    }
     
 loginCompleted : Result Http.Error () -> Cmd Msg
 loginCompleted result =
     case result of
         Ok _ ->
-            send getUserCompleted Account.accountUserGet |> Cmd.map GotUser
+            Account.accountUserGet { onSend = getUserCompleted }
             
         Err _ ->
             Cmd.none
             -- TODO: Handle error
             
-getUserCompleted : Result Http.Error String -> User
+getUserCompleted : Result Http.Error String -> Msg
 getUserCompleted result = 
     case result of
         Ok val ->
-            User val
+            GotUser (User val)
         Err _ ->
-            User ""
+            GotUser (User "")
 
 -- INIT
 
@@ -113,7 +107,7 @@ update msg model =
             ({model | form = { form | password = password }}, Cmd.none)
     
         OnLogin login ->
-            (model, loginUser <| mapModelToLoginRequest login)
+            (model, Account.accountPost { onSend = LoginCompleted, body = Just (mapModelToLoginRequest login)})
     
         LoginCompleted result ->
             (model, loginCompleted result)

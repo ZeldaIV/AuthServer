@@ -20,6 +20,8 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Swagger;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace AuthServer
 {
@@ -115,7 +117,7 @@ namespace AuthServer
             services.AddAuthentication();
             services.AddCors(o =>
             {
-                o.AddPolicy(Cors, builder => { builder.WithOrigins("http://localhost", "https://localhost"); });
+                o.AddPolicy(Cors, builder => { builder.WithOrigins("https://localhost"); });
             });
             // services.AddControllers(config =>
             // {
@@ -125,7 +127,7 @@ namespace AuthServer
             //     config.Filters.Add(new AuthorizeFilter(policy));
             //     config.EnableEndpointRouting = false;
             // });
-            
+
             services.AddSpaStaticFiles(configuration =>
             {
                 configuration.RootPath = "wwwroot";
@@ -133,7 +135,8 @@ namespace AuthServer
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "AuthServer API", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "AuthServer API", Version = "v1", Description = "AuthServer Idp"});
+                c.DocumentFilter<DocumentFiler>();
             });
 
             services.AddMvc(config =>
@@ -209,6 +212,14 @@ namespace AuthServer
 
             app.UseSwagger();
             app.UseMvc();
+        }
+    }
+
+    public class DocumentFiler : IDocumentFilter
+    {
+        public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
+        {
+            swaggerDoc.Servers = new List<OpenApiServer>{ new OpenApiServer{ Url = "https://localhost:3001"}};
         }
     }
 }

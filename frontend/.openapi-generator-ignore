@@ -23,6 +23,7 @@
 #!docs/README.md
 
 elm.json
+src/Main.elm
 .gitignore
 README.md
 VERSION
