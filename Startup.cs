@@ -4,8 +4,10 @@ using System.IO;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using AuthServer.Authorization;
+using AuthServer.AutoMapperConfig;
 using AuthServer.Configuration;
 using AuthServer.Data;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -20,7 +22,6 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace AuthServer
@@ -54,6 +55,8 @@ namespace AuthServer
             var mysqlConnectionString = Configuration.GetConnectionString("MysqlConnectionString");
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
             var dbServerVersion = new MariaDbServerVersion(new Version(10, 3, 9));
+
+            services.AddAutoMapper(MapperConfig.Configure);
             
             services.AddDbContextPool<ApplicationDbContext>(
                 options =>

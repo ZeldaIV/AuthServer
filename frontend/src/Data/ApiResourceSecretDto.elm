@@ -10,54 +10,49 @@
 -}
 
 
-module Data.ApiResourceSecret exposing (ApiResourceSecret, decoder, encode, encodeWithTag, toString)
+module Data.ApiResourceSecretDto exposing (ApiResourceSecretDto, decoder, encode, encodeWithTag, toString)
 
 import DateTime exposing (DateTime)
 import DateTime exposing (DateTime)
-import Data.ApiResource as ApiResource exposing (ApiResource)
 import Dict exposing (Dict)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Encode
 
 
-type alias ApiResourceSecret =
+type alias ApiResourceSecretDto =
     { id : Maybe (Int)
     , description : (Maybe String)
     , value : (Maybe String)
     , expiration : (Maybe DateTime)
     , type_ : (Maybe String)
     , created : Maybe (DateTime)
-    , apiResourceId : Maybe (Int)
-    , apiResource : Maybe (ApiResource)
     }
 
 
-decoder : Decoder ApiResourceSecret
+decoder : Decoder ApiResourceSecretDto
 decoder =
-    Decode.succeed ApiResourceSecret
+    Decode.succeed ApiResourceSecretDto
         |> optional "id" (Decode.nullable Decode.int) Nothing
         |> optional "description" (Decode.nullable Decode.string) Nothing
         |> optional "value" (Decode.nullable Decode.string) Nothing
         |> optional "expiration" (Decode.nullable DateTime.decoder) Nothing
         |> optional "type" (Decode.nullable Decode.string) Nothing
         |> optional "created" (Decode.nullable DateTime.decoder) Nothing
-        |> optional "apiResourceId" (Decode.nullable Decode.int) Nothing
-        |> optional "apiResource" (Decode.nullable ApiResource.decoder) Nothing
 
 
 
-encode : ApiResourceSecret -> Encode.Value
+encode : ApiResourceSecretDto -> Encode.Value
 encode =
     Encode.object << encodePairs
 
 
-encodeWithTag : ( String, String ) -> ApiResourceSecret -> Encode.Value
+encodeWithTag : ( String, String ) -> ApiResourceSecretDto -> Encode.Value
 encodeWithTag (tagField, tag) model =
     Encode.object <| encodePairs model ++ [ ( tagField, Encode.string tag ) ]
 
 
-encodePairs : ApiResourceSecret -> List (String, Encode.Value)
+encodePairs : ApiResourceSecretDto -> List (String, Encode.Value)
 encodePairs model =
     [ ( "id", Maybe.withDefault Encode.null (Maybe.map Encode.int model.id) )
     , ( "description", Maybe.withDefault Encode.null (Maybe.map Encode.string model.description) )
@@ -65,13 +60,11 @@ encodePairs model =
     , ( "expiration", Maybe.withDefault Encode.null (Maybe.map DateTime.encode model.expiration) )
     , ( "type", Maybe.withDefault Encode.null (Maybe.map Encode.string model.type_) )
     , ( "created", Maybe.withDefault Encode.null (Maybe.map DateTime.encode model.created) )
-    , ( "apiResourceId", Maybe.withDefault Encode.null (Maybe.map Encode.int model.apiResourceId) )
-    , ( "apiResource", Maybe.withDefault Encode.null (Maybe.map ApiResource.encode model.apiResource) )
     ]
 
 
 
-toString : ApiResourceSecret -> String
+toString : ApiResourceSecretDto -> String
 toString =
     Encode.encode 0 << encode
 

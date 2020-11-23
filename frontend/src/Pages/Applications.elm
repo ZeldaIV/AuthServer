@@ -3,11 +3,11 @@ module Pages.Applications exposing (Params, Model, Msg, page)
 import Bootstrap.Button as Button
 import Bootstrap.Grid as Grid
 import Bootstrap.Table as Table exposing (Row)
-import Data.ApiResource exposing (ApiResource)
+import Data.ApiResourceDto exposing (ApiResourceDto)
 import DateTime exposing (DateTime)
 import Html exposing (Html, h1, text)
 import Html.Attributes exposing (href)
-import Http
+import Http exposing (Error)
 import Request.ApiResource as ApiResource
 import Spa.Document exposing (Document)
 import Spa.Generated.Route as Route
@@ -34,31 +34,32 @@ type alias Params =
 
 
 type alias Model =
-    { apiResources: List ApiResource
+    { apiResources: List ApiResourceDto,
+      error: String
     }
 
 
 init : Url Params -> ( Model, Cmd Msg )
 init { params } =
-    ( { apiResources = []}, ApiResource.apiResourceGet { onSend = gotResources} )
+    ( { apiResources = [], error = ""}, ApiResource.apiResourceGet { onSend = gotResources} )
 
 
-gotResources: Result Http.Error (List ApiResource) -> Msg
+gotResources: Result Http.Error (List ApiResourceDto) -> Msg
 gotResources result =
     case result of
         Ok value ->
             GotApiResources value
 
-        Err _ ->
-            ErrorGettingResources
+        Err error ->
+            ErrorGettingResources error |> Debug.log "Error"
 
 
 -- UPDATE
 
 
 type Msg
-    = GotApiResources (List ApiResource)
-    | ErrorGettingResources
+    = GotApiResources (List ApiResourceDto)
+    | ErrorGettingResources Error
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -67,8 +68,8 @@ update msg model =
         GotApiResources apiResources ->
             ({ model | apiResources = apiResources}, Cmd.none)
 
-        ErrorGettingResources ->
-            (model, Cmd.none)    
+        ErrorGettingResources error ->
+            (model |> Debug.log "Got error: ", Cmd.none)
         
 
 
@@ -119,7 +120,7 @@ fromMaybeBool val =
         Nothing ->
             ""
     
-rowView: ApiResource -> Row Msg
+rowView: ApiResourceDto -> Row Msg
 rowView resource =
     Table.tr [] 
         [ Table.td [] [text (fromMaybeInt resource.id)]
@@ -129,9 +130,9 @@ rowView resource =
         , Table.td [] [text (fromMaybeDateTime resource.created)]
         ]
         
-createRowsView: (List ApiResource) -> List (Row Msg)
+createRowsView: (List ApiResourceDto) -> List (Row Msg)
 createRowsView resources =
-     (List.map rowView) resources
+     (List.map rowView) resources |> Debug.log "The list?: "
     
             
 applicationsView: Model -> Html Msg

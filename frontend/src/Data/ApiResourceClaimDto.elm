@@ -10,54 +10,47 @@
 -}
 
 
-module Data.ApiResourceClaim exposing (ApiResourceClaim, decoder, encode, encodeWithTag, toString)
+module Data.ApiResourceClaimDto exposing (ApiResourceClaimDto, decoder, encode, encodeWithTag, toString)
 
-import Data.ApiResource as ApiResource exposing (ApiResource)
 import Dict exposing (Dict)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Encode
 
 
-type alias ApiResourceClaim =
+type alias ApiResourceClaimDto =
     { id : Maybe (Int)
     , type_ : (Maybe String)
-    , apiResourceId : Maybe (Int)
-    , apiResource : Maybe (ApiResource)
     }
 
 
-decoder : Decoder ApiResourceClaim
+decoder : Decoder ApiResourceClaimDto
 decoder =
-    Decode.succeed ApiResourceClaim
+    Decode.succeed ApiResourceClaimDto
         |> optional "id" (Decode.nullable Decode.int) Nothing
         |> optional "type" (Decode.nullable Decode.string) Nothing
-        |> optional "apiResourceId" (Decode.nullable Decode.int) Nothing
-        |> optional "apiResource" (Decode.nullable ApiResource.decoder) Nothing
 
 
 
-encode : ApiResourceClaim -> Encode.Value
+encode : ApiResourceClaimDto -> Encode.Value
 encode =
     Encode.object << encodePairs
 
 
-encodeWithTag : ( String, String ) -> ApiResourceClaim -> Encode.Value
+encodeWithTag : ( String, String ) -> ApiResourceClaimDto -> Encode.Value
 encodeWithTag (tagField, tag) model =
     Encode.object <| encodePairs model ++ [ ( tagField, Encode.string tag ) ]
 
 
-encodePairs : ApiResourceClaim -> List (String, Encode.Value)
+encodePairs : ApiResourceClaimDto -> List (String, Encode.Value)
 encodePairs model =
     [ ( "id", Maybe.withDefault Encode.null (Maybe.map Encode.int model.id) )
     , ( "type", Maybe.withDefault Encode.null (Maybe.map Encode.string model.type_) )
-    , ( "apiResourceId", Maybe.withDefault Encode.null (Maybe.map Encode.int model.apiResourceId) )
-    , ( "apiResource", Maybe.withDefault Encode.null (Maybe.map ApiResource.encode model.apiResource) )
     ]
 
 
 
-toString : ApiResourceClaim -> String
+toString : ApiResourceClaimDto -> String
 toString =
     Encode.encode 0 << encode
 

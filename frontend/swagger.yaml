@@ -71,17 +71,17 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ApiResource'
+                  $ref: '#/components/schemas/ApiResourceDto'
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ApiResource'
+                  $ref: '#/components/schemas/ApiResourceDto'
             text/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ApiResource'
+                  $ref: '#/components/schemas/ApiResourceDto'
     post:
       tags:
         - ApiResource
@@ -89,13 +89,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ApiResource'
+              $ref: '#/components/schemas/ApiResourceDto'
           text/json:
             schema:
-              $ref: '#/components/schemas/ApiResource'
+              $ref: '#/components/schemas/ApiResourceDto'
           application/*+json:
             schema:
-              $ref: '#/components/schemas/ApiResource'
+              $ref: '#/components/schemas/ApiResourceDto'
       responses:
         '200':
           description: Success
@@ -121,7 +121,7 @@ components:
           type: string
           nullable: true
       additionalProperties: false
-    ApiResourceSecret:
+    ApiResourceSecretDto:
       type: object
       properties:
         id:
@@ -143,13 +143,8 @@ components:
         created:
           type: string
           format: date-time
-        apiResourceId:
-          type: integer
-          format: int32
-        apiResource:
-          $ref: '#/components/schemas/ApiResource'
       additionalProperties: false
-    ApiResourceScope:
+    ApiResourceScopeDto:
       type: object
       properties:
         id:
@@ -158,13 +153,8 @@ components:
         scope:
           type: string
           nullable: true
-        apiResourceId:
-          type: integer
-          format: int32
-        apiResource:
-          $ref: '#/components/schemas/ApiResource'
       additionalProperties: false
-    ApiResourceClaim:
+    ApiResourceClaimDto:
       type: object
       properties:
         id:
@@ -173,13 +163,8 @@ components:
         type:
           type: string
           nullable: true
-        apiResourceId:
-          type: integer
-          format: int32
-        apiResource:
-          $ref: '#/components/schemas/ApiResource'
       additionalProperties: false
-    ApiResourceProperty:
+    ApiResourcePropertyDto:
       type: object
       properties:
         id:
@@ -191,13 +176,8 @@ components:
         value:
           type: string
           nullable: true
-        apiResourceId:
-          type: integer
-          format: int32
-        apiResource:
-          $ref: '#/components/schemas/ApiResource'
       additionalProperties: false
-    ApiResource:
+    ApiResourceDto:
       type: object
       properties:
         id:
@@ -222,22 +202,22 @@ components:
         secrets:
           type: array
           items:
-            $ref: '#/components/schemas/ApiResourceSecret'
+            $ref: '#/components/schemas/ApiResourceSecretDto'
           nullable: true
         scopes:
           type: array
           items:
-            $ref: '#/components/schemas/ApiResourceScope'
+            $ref: '#/components/schemas/ApiResourceScopeDto'
           nullable: true
         userClaims:
           type: array
           items:
-            $ref: '#/components/schemas/ApiResourceClaim'
+            $ref: '#/components/schemas/ApiResourceClaimDto'
           nullable: true
         properties:
           type: array
           items:
-            $ref: '#/components/schemas/ApiResourceProperty'
+            $ref: '#/components/schemas/ApiResourcePropertyDto'
           nullable: true
         created:
           type: string

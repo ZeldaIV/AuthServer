@@ -12,7 +12,7 @@
 
 module Request.ApiResource exposing (apiResourceGet, apiResourcePost)
 
-import Data.ApiResource as ApiResource exposing (ApiResource)
+import Data.ApiResourceDto as ApiResourceDto exposing (ApiResourceDto)
 import Dict
 import Http
 import Json.Decode as Decode
@@ -27,7 +27,7 @@ basePath =
 
 
 apiResourceGet :
-    { onSend : Result Http.Error (List ApiResource) -> msg
+    { onSend : Result Http.Error (List ApiResourceDto) -> msg
 
 
 
@@ -43,7 +43,7 @@ apiResourceGet params =
             ["ApiResource"]
             (List.filterMap identity [])
         , body = Http.emptyBody
-        , expect = Http.expectJson params.onSend (Decode.list ApiResource.decoder)
+        , expect = Http.expectJson params.onSend (Decode.list ApiResourceDto.decoder)
         , timeout = Just 30000
         , tracker = Nothing
         }
@@ -53,7 +53,7 @@ apiResourcePost :
     { onSend : Result Http.Error () -> msg
 
 
-    , body : Maybe ApiResource
+    , body : Maybe ApiResourceDto
 
 
     }
@@ -65,7 +65,7 @@ apiResourcePost params =
         , url = Url.crossOrigin basePath
             ["ApiResource"]
             (List.filterMap identity [])
-        , body = Maybe.withDefault Http.emptyBody <| Maybe.map (Http.jsonBody << ApiResource.encode) params.body
+        , body = Maybe.withDefault Http.emptyBody <| Maybe.map (Http.jsonBody << ApiResourceDto.encode) params.body
         , expect = Http.expectWhatever params.onSend
         , timeout = Just 30000
         , tracker = Nothing

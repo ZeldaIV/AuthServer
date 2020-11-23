@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using AuthServer.Data;
-using IdentityServer4.EntityFramework.Entities;
+using AuthServer.Dtos.ApiResource;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AuthServer.Controllers
@@ -11,20 +12,24 @@ namespace AuthServer.Controllers
     public class ApiResourceController
     {
         private readonly IIdentityServerDbContext _context;
+        private readonly IMapper _mapper;
 
-        public ApiResourceController(IIdentityServerDbContext context)
+        public ApiResourceController(IIdentityServerDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
         
         [HttpGet]
-        public List<ApiResource> GetApiResources()
+        public List<ApiResourceDto> GetApiResources()
         {
-            return _context.GetAllApiResources().ToList();
+            var apiResources = _context.GetAllApiResources().ToList();
+            
+            return _mapper.Map<List<ApiResourceDto>>(apiResources);
         }
 
         [HttpPost]
-        public void AddResource(ApiResource resource)
+        public void AddResource(ApiResourceDto resource)
         {
             
         }

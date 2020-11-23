@@ -15,8 +15,10 @@ exports.maybeGetUserRequest = function (req, res) {
 
 exports.maybeGetApiResourceRequest = function (req, res) {
     if (req.method === "GET" && req.url === "/ApiResource") {
-        res.writeHead(200, {'Content-type': 'application/json'});
-        res.end(JSON.stringify(apiResources));
+        res.writeHead(200, {'Content-Type': 'application/json'});
+        res.write(JSON.stringify(apiResources))
+        //res.body = JSON.stringify(apiResources)
+        res.end();
     }
 }
 
@@ -31,13 +33,13 @@ const apiResources = [
         description : "You cannot use this api for anything",
         allowedAccessTokenSigningAlgorithms : "unknown",
         showInDiscoveryDocument : true,
-        secrets : [], //(Maybe (List ApiResourceSecret)),
-        scopes : [], //(Maybe (List ApiResourceScope))
-        userClaims : [], // (Maybe (List ApiResourceClaim))
-        properties : [], // (Maybe (List ApiResourceProperty))
-        created : "", //Maybe (DateTime)
-        updated : "", //(Maybe DateTime)
-        lastAccessed : "", // (Maybe DateTime)
+        secrets : null, //(Maybe (List ApiResourceSecret)),
+        scopes : null, //(Maybe (List ApiResourceScope))
+        userClaims : null, // (Maybe (List ApiResourceClaim))
+        properties : null, // (Maybe (List ApiResourceProperty))
+        created : null, //Maybe (DateTime)
+        updated : null, //(Maybe DateTime)
+        lastAccessed : null, // (Maybe DateTime)
         nonEditable : false//Maybe (Bool)
     },
     {
@@ -48,13 +50,13 @@ const apiResources = [
         description : "You cannot use this api for anything either",
         allowedAccessTokenSigningAlgorithms : "unknown",
         showInDiscoveryDocument : true,
-        secrets : [], //(Maybe (List ApiResourceSecret)),
-        scopes : [], //(Maybe (List ApiResourceScope))
-        userClaims : [], // (Maybe (List ApiResourceClaim))
-        properties : [], // (Maybe (List ApiResourceProperty))
-        created : "", //Maybe (DateTime)
-        updated : "", //(Maybe DateTime)
-        lastAccessed : "", // (Maybe DateTime)
+        secrets : null, //(Maybe (List ApiResourceSecret)),
+        scopes : null, //(Maybe (List ApiResourceScope))
+        userClaims : null, // (Maybe (List ApiResourceClaim))
+        properties : null, // (Maybe (List ApiResourceProperty))
+        created : null, //Maybe (DateTime)
+        updated : null, //(Maybe DateTime)
+        lastAccessed : null, // (Maybe DateTime)
         nonEditable : false//Maybe (Bool)
     }
 ]
