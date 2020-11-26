@@ -13,6 +13,7 @@ import Spa.Document exposing (Document)
 import Spa.Generated.Route as Route
 import Spa.Page as Page exposing (Page)
 import Spa.Url as Url exposing (Url)
+import Uuid exposing (Uuid)
 
 
 page : Page Params Model Msg
@@ -95,11 +96,11 @@ fromMaybeString value =
             a
         Nothing ->
             ""
-fromMaybeInt: Maybe Int -> String
-fromMaybeInt val =
+fromMaybeUuid: Maybe Uuid -> String
+fromMaybeUuid val =
     case val of
         Just a ->     
-            String.fromInt a
+            Uuid.toString a
         Nothing ->
             ""
             
@@ -123,11 +124,10 @@ fromMaybeBool val =
 rowView: ApiResourceDto -> Row Msg
 rowView resource =
     Table.tr [] 
-        [ Table.td [] [text (fromMaybeInt resource.id)]
+        [ Table.td [] [text (fromMaybeUuid resource.id)]
         , Table.td [] [text (fromMaybeString resource.name)]
         , Table.td [] [text (fromMaybeString resource.displayName)]
         , Table.td [] [text (fromMaybeBool resource.enabled)]
-        , Table.td [] [text (fromMaybeDateTime resource.created)]
         ]
         
 createRowsView: (List ApiResourceDto) -> List (Row Msg)
@@ -146,7 +146,6 @@ applicationsView  model =
                 , Table.th [] [ text "Name"]
                 , Table.th [] [ text "DisplayName"]
                 , Table.th [] [ text "Enabled"]
-                , Table.th [] [ text "Created at"]
                 ]
             , tbody = Table.tbody []  (createRowsView model.apiResources)
             } 

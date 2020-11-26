@@ -12,13 +12,7 @@
 
 module Data.ApiResourceDto exposing (ApiResourceDto, decoder, encode, encodeWithTag, toString)
 
-import Data.ApiResourceSecretDto as ApiResourceSecretDto exposing (ApiResourceSecretDto)
-import Data.ApiResourceScopeDto as ApiResourceScopeDto exposing (ApiResourceScopeDto)
-import Data.ApiResourceClaimDto as ApiResourceClaimDto exposing (ApiResourceClaimDto)
-import Data.ApiResourcePropertyDto as ApiResourcePropertyDto exposing (ApiResourcePropertyDto)
-import DateTime exposing (DateTime)
-import DateTime exposing (DateTime)
-import DateTime exposing (DateTime)
+import Uuid exposing (Uuid)
 import Dict exposing (Dict)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
@@ -26,42 +20,26 @@ import Json.Encode as Encode
 
 
 type alias ApiResourceDto =
-    { id : Maybe (Int)
+    { id : Maybe (Uuid)
     , enabled : Maybe (Bool)
     , name : (Maybe String)
     , displayName : (Maybe String)
     , description : (Maybe String)
-    , allowedAccessTokenSigningAlgorithms : (Maybe String)
-    , showInDiscoveryDocument : Maybe (Bool)
-    , secrets : (Maybe (List ApiResourceSecretDto))
-    , scopes : (Maybe (List ApiResourceScopeDto))
-    , userClaims : (Maybe (List ApiResourceClaimDto))
-    , properties : (Maybe (List ApiResourcePropertyDto))
-    , created : Maybe (DateTime)
-    , updated : (Maybe DateTime)
-    , lastAccessed : (Maybe DateTime)
-    , nonEditable : Maybe (Bool)
+    , apiSecrets : (Maybe (List String))
+    , scopes : (Maybe (List String))
     }
 
 
 decoder : Decoder ApiResourceDto
 decoder =
     Decode.succeed ApiResourceDto
-        |> optional "id" (Decode.nullable Decode.int) Nothing
+        |> optional "id" (Decode.nullable Uuid.decoder) Nothing
         |> optional "enabled" (Decode.nullable Decode.bool) Nothing
         |> optional "name" (Decode.nullable Decode.string) Nothing
         |> optional "displayName" (Decode.nullable Decode.string) Nothing
         |> optional "description" (Decode.nullable Decode.string) Nothing
-        |> optional "allowedAccessTokenSigningAlgorithms" (Decode.nullable Decode.string) Nothing
-        |> optional "showInDiscoveryDocument" (Decode.nullable Decode.bool) Nothing
-        |> optional "secrets" (Decode.nullable (Decode.list ApiResourceSecretDto.decoder)) Nothing
-        |> optional "scopes" (Decode.nullable (Decode.list ApiResourceScopeDto.decoder)) Nothing
-        |> optional "userClaims" (Decode.nullable (Decode.list ApiResourceClaimDto.decoder)) Nothing
-        |> optional "properties" (Decode.nullable (Decode.list ApiResourcePropertyDto.decoder)) Nothing
-        |> optional "created" (Decode.nullable DateTime.decoder) Nothing
-        |> optional "updated" (Decode.nullable DateTime.decoder) Nothing
-        |> optional "lastAccessed" (Decode.nullable DateTime.decoder) Nothing
-        |> optional "nonEditable" (Decode.nullable Decode.bool) Nothing
+        |> optional "apiSecrets" (Decode.nullable (Decode.list Decode.string)) Nothing
+        |> optional "scopes" (Decode.nullable (Decode.list Decode.string)) Nothing
 
 
 
@@ -77,21 +55,13 @@ encodeWithTag (tagField, tag) model =
 
 encodePairs : ApiResourceDto -> List (String, Encode.Value)
 encodePairs model =
-    [ ( "id", Maybe.withDefault Encode.null (Maybe.map Encode.int model.id) )
+    [ ( "id", Maybe.withDefault Encode.null (Maybe.map Uuid.encode model.id) )
     , ( "enabled", Maybe.withDefault Encode.null (Maybe.map Encode.bool model.enabled) )
     , ( "name", Maybe.withDefault Encode.null (Maybe.map Encode.string model.name) )
     , ( "displayName", Maybe.withDefault Encode.null (Maybe.map Encode.string model.displayName) )
     , ( "description", Maybe.withDefault Encode.null (Maybe.map Encode.string model.description) )
-    , ( "allowedAccessTokenSigningAlgorithms", Maybe.withDefault Encode.null (Maybe.map Encode.string model.allowedAccessTokenSigningAlgorithms) )
-    , ( "showInDiscoveryDocument", Maybe.withDefault Encode.null (Maybe.map Encode.bool model.showInDiscoveryDocument) )
-    , ( "secrets", Maybe.withDefault Encode.null (Maybe.map (Encode.list ApiResourceSecretDto.encode) model.secrets) )
-    , ( "scopes", Maybe.withDefault Encode.null (Maybe.map (Encode.list ApiResourceScopeDto.encode) model.scopes) )
-    , ( "userClaims", Maybe.withDefault Encode.null (Maybe.map (Encode.list ApiResourceClaimDto.encode) model.userClaims) )
-    , ( "properties", Maybe.withDefault Encode.null (Maybe.map (Encode.list ApiResourcePropertyDto.encode) model.properties) )
-    , ( "created", Maybe.withDefault Encode.null (Maybe.map DateTime.encode model.created) )
-    , ( "updated", Maybe.withDefault Encode.null (Maybe.map DateTime.encode model.updated) )
-    , ( "lastAccessed", Maybe.withDefault Encode.null (Maybe.map DateTime.encode model.lastAccessed) )
-    , ( "nonEditable", Maybe.withDefault Encode.null (Maybe.map Encode.bool model.nonEditable) )
+    , ( "apiSecrets", Maybe.withDefault Encode.null (Maybe.map (Encode.list Encode.string) model.apiSecrets) )
+    , ( "scopes", Maybe.withDefault Encode.null (Maybe.map (Encode.list Encode.string) model.scopes) )
     ]
 
 

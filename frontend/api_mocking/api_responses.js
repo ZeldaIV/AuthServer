@@ -26,37 +26,21 @@ exports.maybeGetApiResourceRequest = function (req, res) {
 
 const apiResources = [
     {
-        id: 1,
+        id: "8880A722-0FF9-4EDB-8ED8-68DC8F29EFD8",
         enabled : true,
         name : "FakeApi",
         displayName : "This is a fake api",
         description : "You cannot use this api for anything",
-        allowedAccessTokenSigningAlgorithms : "unknown",
-        showInDiscoveryDocument : true,
-        secrets : null, //(Maybe (List ApiResourceSecret)),
-        scopes : null, //(Maybe (List ApiResourceScope))
-        userClaims : null, // (Maybe (List ApiResourceClaim))
-        properties : null, // (Maybe (List ApiResourceProperty))
-        created : null, //Maybe (DateTime)
-        updated : null, //(Maybe DateTime)
-        lastAccessed : null, // (Maybe DateTime)
-        nonEditable : false//Maybe (Bool)
+        apiSecrets : ["a secret"],
+        scopes : null,
     },
     {
-        id: 2,
+        id: "AE696620-0738-4CC7-86F0-A1471BC7ABE3",
         enabled : true,
         name : "AnotherFakeApi",
         displayName : "This is yet another fake api",
         description : "You cannot use this api for anything either",
-        allowedAccessTokenSigningAlgorithms : "unknown",
-        showInDiscoveryDocument : true,
-        secrets : null, //(Maybe (List ApiResourceSecret)),
-        scopes : null, //(Maybe (List ApiResourceScope))
-        userClaims : null, // (Maybe (List ApiResourceClaim))
-        properties : null, // (Maybe (List ApiResourceProperty))
-        created : null, //Maybe (DateTime)
-        updated : null, //(Maybe DateTime)
-        lastAccessed : null, // (Maybe DateTime)
-        nonEditable : false//Maybe (Bool)
+        apiSecrets : null, 
+        scopes : ["Ascope"],
     }
 ]
