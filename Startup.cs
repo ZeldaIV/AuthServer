@@ -7,6 +7,7 @@ using AuthServer.Authorization;
 using AuthServer.AutoMapperConfig;
 using AuthServer.Configuration;
 using AuthServer.Data;
+using AuthServer.Utilities;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -110,8 +111,11 @@ namespace AuthServer
                     });
             }
             
-
-            services.AddSingleton<IAuthorizationHandler, AdministratorHandler>();
+            services.AddSingleton<IAuthorizationHandler, AdministratorHandler>()
+                .AddScoped<IStores, Stores>()
+                .AddScoped<IControllerUtils, ControllerUtils>();
+            
+            
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("Administrator",

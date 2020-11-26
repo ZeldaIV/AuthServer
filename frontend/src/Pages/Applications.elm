@@ -51,7 +51,7 @@ gotResources result =
             GotApiResources value
 
         Err error ->
-            ErrorGettingResources error |> Debug.log "Error"
+            ErrorGettingResources error
 
 
 -- UPDATE
@@ -69,7 +69,7 @@ update msg model =
             ({ model | apiResources = apiResources}, Cmd.none)
 
         ErrorGettingResources error ->
-            (model |> Debug.log "Got error: ", Cmd.none)
+            (model, Cmd.none)
         
 
 
@@ -132,7 +132,7 @@ rowView resource =
         
 createRowsView: (List ApiResourceDto) -> List (Row Msg)
 createRowsView resources =
-     (List.map rowView) resources |> Debug.log "The list?: "
+     (List.map rowView) resources
     
             
 applicationsView: Model -> Html Msg

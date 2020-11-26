@@ -1,37 +1,31 @@
 using System.Collections.Generic;
 using System.Linq;
-using AuthServer.Data;
 using AuthServer.Dtos.ApiResource;
-using AutoMapper;
+using AuthServer.Utilities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AuthServer.Controllers
 {
-    [Route("[controller]")]
-    [ApiController]
-    public class ApiResourceController
+    
+    public class ApiResourceController : ControllerBase
     {
-        private readonly IIdentityServerDbContext _context;
-        private readonly IMapper _mapper;
-
-        public ApiResourceController(IIdentityServerDbContext context, IMapper mapper)
+        
+        public ApiResourceController(IControllerUtils utils) : base(utils)
         {
-            _context = context;
-            _mapper = mapper;
         }
         
         [HttpGet]
         public List<ApiResourceDto> GetApiResources()
         {
-            var apiResources = _context.GetAllApiResources().ToList();
+            var apiResources = DbContext.GetAllApiResources().ToList();
             
-            return _mapper.Map<List<ApiResourceDto>>(apiResources);
+            return Mapper.Map<List<ApiResourceDto>>(apiResources);
         }
 
         [HttpPost]
         public void AddResource(ApiResourceDto resource)
         {
-            
+
         }
     }
 }

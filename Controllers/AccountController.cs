@@ -1,50 +1,34 @@
 using System;
 using System.Threading.Tasks;
+using AuthServer.Utilities;
 using IdentityServer4.Events;
 using IdentityServer4.Extensions;
 using IdentityServer4.Models;
-using IdentityServer4.Services;
-using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace AuthServer.Controllers
 {
-    [Route("[controller]")]
-    [ApiController]
     [AllowAnonymous]
     public class AccountController: ControllerBase
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly IIdentityServerInteractionService _interaction;
-        private readonly IClientStore _clientStore;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
-        private readonly IEventService _events;
-        private readonly ILogger<AccountController> _logger;
 
         public AccountController(
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager,
-            IIdentityServerInteractionService interaction,
-            IClientStore clientStore,
             IAuthenticationSchemeProvider schemeProvider,
-            IEventService events,
-            ILogger<AccountController> logger)
+            IControllerUtils utils
+            ): base(utils)
         {
             _userManager = userManager;
             _signInManager = signInManager;
-            _interaction = interaction;
-            _clientStore = clientStore;
             _schemeProvider = schemeProvider;
-            _events = events;
-            _logger = logger;
         }
 
         public class LoginRequest
@@ -59,8 +43,8 @@ namespace AuthServer.Controllers
         public async Task<IActionResult> Login([FromBody]LoginRequest model)
         {
             var t = new IdentityResource();
-            var context = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
-            _logger.LogInformation($"===> Found context: {context}");
+            var context = await Interaction.GetAuthorizationContextAsync(model.ReturnUrl);
+            Logger.LogInformation($"===> Found context: {context}");
             // the user clicked the "cancel" button
             // if (button != "login")
             // {
@@ -91,9 +75,9 @@ namespace AuthServer.Controllers
             var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, false, lockoutOnFailure: true);
             if (result.Succeeded)
             {
-                _logger.LogInformation($"===> Successfull login");
+                Logger.LogInformation($"===> Successfull login");
                 var user = await _userManager.FindByNameAsync(model.Username);
-                await _events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName, clientId: context?.Client.ClientId));
+                await Events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName, clientId: context?.Client.ClientId));
 
                 if (context != null)
                 {
@@ -111,12 +95,12 @@ namespace AuthServer.Controllers
                 // request for a local page
                 if (Url.IsLocalUrl(model.ReturnUrl))
                 {
-                    _logger.LogInformation($"==========> redirecting local: {model.ReturnUrl}");
+                    Logger.LogInformation($"==========> redirecting local: {model.ReturnUrl}");
                     return new OkResult();
                 }
                 if (string.IsNullOrEmpty(model.ReturnUrl))
                 {
-                    _logger.LogInformation($"==========> Is null or empty: {model.ReturnUrl}");
+                    Logger.LogInformation($"==========> Is null or empty: {model.ReturnUrl}");
                     return new OkResult();
                     //return Redirect("~/");
                 }
@@ -126,7 +110,7 @@ namespace AuthServer.Controllers
                 
             }
 
-            await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials", clientId:context?.Client.ClientId));
+            await Events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials", clientId:context?.Client.ClientId));
             // ModelState.AddModelError(string.Empty, AccountOptions.InvalidCredentialsErrorMessage);
 
             
@@ -149,7 +133,7 @@ namespace AuthServer.Controllers
                 await _signInManager.SignOutAsync();
 
                 // raise the logout event
-                await _events.RaiseAsync(new UserLogoutSuccessEvent(User.GetSubjectId(), User.GetDisplayName()));
+                await Events.RaiseAsync(new UserLogoutSuccessEvent(User.GetSubjectId(), User.GetDisplayName()));
             }
 
 
@@ -162,8 +146,8 @@ namespace AuthServer.Controllers
         // [ValidateAntiForgeryToken]
         public string GetUser()
         {
-            _logger.LogInformation($"=========> User is auth:  {User?.Identity.IsAuthenticated}");
-            _logger.LogInformation($"====> User name is: {User?.Identity.Name}");
+            Logger.LogInformation($"=========> User is auth:  {User?.Identity.IsAuthenticated}");
+            Logger.LogInformation($"====> User name is: {User?.Identity.Name}");
             
             return User?.Identity.IsAuthenticated == true ? User.Identity.Name : "";
         } 
