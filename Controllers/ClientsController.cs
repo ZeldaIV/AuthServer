@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using AuthServer.Dtos;
 using AuthServer.Utilities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AuthServer.Controllers
@@ -12,14 +13,14 @@ namespace AuthServer.Controllers
         }
 
         [HttpGet]
-        // [Authorize(Policy = "Administrator")]
+        [Authorize(Policy = "Administrator")]
         public List<ClientDto> GetClients()
         {
             return new List<ClientDto>();
         }
 
         [HttpPut]
-        // [Authorize(Policy = "Administrator")]
+        [Authorize(Policy = "Administrator")]
         public bool AddClient(ClientDto client)
         {
             return true;

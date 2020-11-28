@@ -23,7 +23,7 @@ import Url.Builder as Url
 
 basePath : String
 basePath =
-    "https://localhost:3001"
+    "https://localhost"
 
 
 usersGet :
@@ -53,9 +53,9 @@ usersPut :
     { onSend : Result Http.Error Bool -> msg
 
 
-    , body : Maybe UserDto
 
 
+    , userName : Maybe (String)    , email : Maybe (String)    , emailConfirmed : Maybe (Bool)    , phoneNumber : Maybe (String)    , phoneNumberConfirmed : Maybe (Bool)    , twoFactorEnabled : Maybe (Bool)
     }
     -> Cmd msg
 usersPut params =
@@ -64,8 +64,8 @@ usersPut params =
         , headers = List.filterMap identity []
         , url = Url.crossOrigin basePath
             ["Users"]
-            (List.filterMap identity [])
-        , body = Maybe.withDefault Http.emptyBody <| Maybe.map (Http.jsonBody << UserDto.encode) params.body
+            (List.filterMap identity [Maybe.map (Url.string "UserName" << identity) params.userName, Maybe.map (Url.string "Email" << identity) params.email, Maybe.map (Url.string "EmailConfirmed" << (\val -> if val then "true" else "false")) params.emailConfirmed, Maybe.map (Url.string "PhoneNumber" << identity) params.phoneNumber, Maybe.map (Url.string "PhoneNumberConfirmed" << (\val -> if val then "true" else "false")) params.phoneNumberConfirmed, Maybe.map (Url.string "TwoFactorEnabled" << (\val -> if val then "true" else "false")) params.twoFactorEnabled])
+        , body = Http.emptyBody
         , expect = Http.expectJson params.onSend Decode.bool
         , timeout = Just 30000
         , tracker = Nothing

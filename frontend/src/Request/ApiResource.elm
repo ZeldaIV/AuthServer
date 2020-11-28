@@ -13,6 +13,7 @@
 module Request.ApiResource exposing (apiResourceGet, apiResourcePost)
 
 import Data.ApiResourceDto as ApiResourceDto exposing (ApiResourceDto)
+import Uuid exposing (Uuid)
 import Dict
 import Http
 import Json.Decode as Decode
@@ -23,7 +24,7 @@ import Url.Builder as Url
 
 basePath : String
 basePath =
-    "https://localhost:3001"
+    "https://localhost"
 
 
 apiResourceGet :
@@ -53,9 +54,9 @@ apiResourcePost :
     { onSend : Result Http.Error () -> msg
 
 
-    , body : Maybe ApiResourceDto
 
 
+    , id : Maybe (Uuid)    , enabled : Maybe (Bool)    , name : Maybe (String)    , displayName : Maybe (String)    , description : Maybe (String)    , apiSecrets : Maybe (List String)    , scopes : Maybe (List String)
     }
     -> Cmd msg
 apiResourcePost params =
@@ -64,8 +65,8 @@ apiResourcePost params =
         , headers = List.filterMap identity []
         , url = Url.crossOrigin basePath
             ["ApiResource"]
-            (List.filterMap identity [])
-        , body = Maybe.withDefault Http.emptyBody <| Maybe.map (Http.jsonBody << ApiResourceDto.encode) params.body
+            (List.filterMap identity [Maybe.map (Url.string "Id" << Uuid.toString) params.id, Maybe.map (Url.string "Enabled" << (\val -> if val then "true" else "false")) params.enabled, Maybe.map (Url.string "Name" << identity) params.name, Maybe.map (Url.string "DisplayName" << identity) params.displayName, Maybe.map (Url.string "Description" << identity) params.description, Maybe.map (Url.string "ApiSecrets" << String.join "," << List.map identity) params.apiSecrets, Maybe.map (Url.string "Scopes" << String.join "," << List.map identity) params.scopes])
+        , body = Http.emptyBody
         , expect = Http.expectWhatever params.onSend
         , timeout = Just 30000
         , tracker = Nothing

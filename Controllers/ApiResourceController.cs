@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AuthServer.Dtos.ApiResource;
 using AuthServer.Utilities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AuthServer.Controllers
@@ -15,6 +16,7 @@ namespace AuthServer.Controllers
         }
         
         [HttpGet]
+        [Authorize(Policy = "Administrator")]
         public List<ApiResourceDto> GetApiResources()
         {
             var apiResources = DbContext.GetAllApiResources().ToList();
@@ -23,6 +25,7 @@ namespace AuthServer.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "Administrator")]
         public void AddResource(ApiResourceDto resource)
         {
 

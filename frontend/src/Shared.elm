@@ -13,8 +13,9 @@ import Bootstrap.Navbar as Navbar
 import Browser.Navigation as Nav exposing (Key)
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, href)
+import Http exposing (Error)
 import Json.Decode as Decode exposing (Decoder, field)
-import Json.Encode as Encode
+import Request.Account as Account
 import Spa.Document exposing (Document)
 import Spa.Generated.Route as Route
 import Url exposing (Url)
@@ -36,23 +37,24 @@ type alias Model =
     , key : Key
     , navBarState : Navbar.State
     , user: Maybe User
+    , isSignedIn: Bool
     }
 
 
 init : Flags -> Url -> Key -> ( Model, Cmd Msg )
 init flags url key =
     let
-            ( navbarState, navbarCmd ) =
-                Navbar.initialState NavMsg
+        ( navbarState, navbarCmd ) =
+            Navbar.initialState NavMsg
     in
     case Decode.decodeValue userStateDecoder flags of
         Ok value ->
-            ( Model url key navbarState (Just value)
+            ( Model url key navbarState (Just value) False
             , navbarCmd
             )            
         
         Err _ ->
-            ( Model url key navbarState Nothing
+            ( Model url key navbarState Nothing False
             , navbarCmd
             )                  
               
@@ -62,16 +64,14 @@ userStateDecoder =
         (field "username" Decode.string) )
        
 
-
-
-
-test: Model -> (Cmd Msg)
-test model =
-    case model.user of
-        Just _ ->
-            Cmd.none
-        Nothing ->
-            Nav.pushUrl model.key (Route.toString Route.Login)
+signedInResult: Result Error Bool -> Msg
+signedInResult result =
+    case result of
+        Ok value ->
+            IsSignedIn value
+        Err _ ->
+            IsSignedIn False -- TODO: Handle errors 
+    
 
 -- UPDATE
 
@@ -80,21 +80,28 @@ type Msg
     = NavMsg Navbar.State
     | OnSignin User
     | OnSignOut
+    | IsSignedIn Bool
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    let 
-        cmd = test model
-    in
     case msg of    
         NavMsg state ->
-            ( { model | navBarState = state }, cmd )
+            ( { model | navBarState = state }, Account.accountIsSignedInGet { onSend = signedInResult } )
 
         OnSignin user ->
             ( { model | user = Just user }, Cmd.none )
         OnSignOut ->
             ( { model | user = Nothing }, Cmd.none )
+
+        IsSignedIn signedIn ->
+            ( {model | isSignedIn = signedIn}, 
+             if signedIn then
+                Cmd.none
+             else
+                (Nav.pushUrl model.key (Route.toString Route.Login))
+             )
+            
             
 
 
@@ -114,13 +121,12 @@ view :
 view { page, toMsg } model =
     { title = page.title
     , body =
-        case model.user of
-            Just _ ->
-                [ Html.map toMsg (menu model)
-                    , div [ class "page" ] page.body
-                ]
-            Nothing ->
-                page.body 
+        if model.isSignedIn then
+            [ Html.map toMsg (menu model)
+                , div [ class "page" ] page.body
+            ]
+        else
+            page.body 
     }
 
 menu : Model -> Html Msg

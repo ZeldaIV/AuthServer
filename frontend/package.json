@@ -7,7 +7,7 @@
     "start": "yarn install && yarn run build:dev && yarn run dev",
     "test": "elm-test",
     "test:watch": "elm-test --watch",
-    "build": "run-s build:elm-spa build:elm",
+    "build": "run-s build:elm-spa build:elm publish",
     "build:dev": "run-s build:elm-spa build:dev:elm",
     "dev": "run-p dev:elm-spa dev:elm",
     "build:elm": "elm make src/Main.elm --optimize --output=public/dist/elm.compiled.js",

@@ -21,8 +21,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace AuthServer
@@ -45,14 +45,14 @@ namespace AuthServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<CookiePolicyOptions>(options =>
-            {
-                // This lambda determines whether user consent for non-essential cookies is needed for a given request.
-                options.CheckConsentNeeded = context => true;
-                options.MinimumSameSitePolicy = SameSiteMode.None;
-            });
+            // services.Configure<CookiePolicyOptions>(options =>
+            // {
+            //     // This lambda determines whether user consent for non-essential cookies is needed for a given request.
+            //     options.CheckConsentNeeded = context => true;
+            //     options.MinimumSameSitePolicy = SameSiteMode.None;
+            // });
 
-            
+
             var mysqlConnectionString = Configuration.GetConnectionString("MysqlConnectionString");
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
             var dbServerVersion = new MariaDbServerVersion(new Version(10, 3, 9));
@@ -73,6 +73,11 @@ namespace AuthServer
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+            services.ConfigureApplicationCookie(o =>
+            {
+                o.LoginPath = "/login";
+            });
+
             if (!_env.IsEnvironment("SwaggerGen"))
             {
                 var tokenSigning = Configuration.Get<TokenSigningConfiguration>();
@@ -84,6 +89,7 @@ namespace AuthServer
                         options.Events.RaiseInformationEvents = true;
                         options.Events.RaiseFailureEvents = true;
                         options.Events.RaiseSuccessEvents = true;
+                        options.UserInteraction.LoginUrl = "/";
                         // options.IssuerUri = "https://authserver.com";
                     })
                     .AddAspNetIdentity<IdentityUser>()
@@ -112,8 +118,11 @@ namespace AuthServer
             }
             
             services.AddSingleton<IAuthorizationHandler, AdministratorHandler>()
+                .AddScoped<IIdentityServerDbContext, IdentityServerDbContext>()
                 .AddScoped<IStores, Stores>()
                 .AddScoped<IControllerUtils, ControllerUtils>();
+            
+            
             
             
             services.AddAuthorization(options =>
@@ -157,7 +166,7 @@ namespace AuthServer
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, ILogger<Startup> logger)
+        public void Configure(IApplicationBuilder app)
         {
             if (_env.IsDevelopment())
             {
@@ -177,17 +186,18 @@ namespace AuthServer
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
             });
             
-            //app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
+            app.UseSerilogRequestLogging();
             
 
-            app.UseCookiePolicy();
+            // app.UseCookiePolicy();
             
             
             app.UseIdentityServer();
             app.UseRouting();
             app.UseAuthorization();
             app.UseCors(Cors);
-            
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
@@ -200,11 +210,11 @@ namespace AuthServer
             var distFolder = Path.Combine(Directory.GetCurrentDirectory(), appSubPath);
             if (!Directory.Exists(distFolder))
             {
-                logger.LogError($"Unable to host spa app in: {distFolder}, folder not found");
+                Log.Error($"Unable to host spa app in: {distFolder}, folder not found");
                 return;
             }
 
-            logger.LogInformation($"Hosting '{appSubPath}' static files from folder: {distFolder}");
+            Log.Information($"Hosting '{appSubPath}' static files from folder: {distFolder}");
             var staticFileOptions = new StaticFileOptions(new SharedOptions
             {
                 FileProvider = new PhysicalFileProvider(distFolder)
@@ -226,7 +236,7 @@ namespace AuthServer
     {
         public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
         {
-            swaggerDoc.Servers = new List<OpenApiServer>{ new OpenApiServer{ Url = "https://localhost:3001"}};
+            swaggerDoc.Servers = new List<OpenApiServer>{ new OpenApiServer{ Url = "https://localhost"}};
         }
     }
 }

@@ -2,18 +2,12 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace AuthServer.Authorization
 {
     public class AdministratorHandler : AuthorizationHandler<AdministratorRequirement>
     {
-        private readonly ILogger<AdministratorHandler> _logger;
-
-        public AdministratorHandler(ILogger<AdministratorHandler> logger)
-        {
-            _logger = logger;
-        }
 
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context,
             AdministratorRequirement requirement)
@@ -22,7 +16,7 @@ namespace AuthServer.Authorization
             // && c.Issuer == "https://authserver.com"
             if (!context.User.HasClaim(c => c.Type == ClaimTypes.Role))
             {
-                _logger.LogInformation("Claim Role not found");
+                Log.Information("Claim Role not found");
                 return Task.CompletedTask;
             }
 
@@ -30,7 +24,7 @@ namespace AuthServer.Authorization
 
             if (roleValue == requirement.Role)
             {
-                _logger.LogInformation("Claim found. Allowing");
+                Log.Information("Claim found. Allowing");
                 context.Succeed(requirement);
             }
 

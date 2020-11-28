@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace AuthServer
 {
@@ -13,25 +14,30 @@ namespace AuthServer
     {
         public static void Main(string[] args)
         {
+            Log.Logger = new LoggerConfiguration()
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .WriteTo.Seq("http://localhost:5341")
+                .CreateLogger();
+            
             var host = CreateWebHostBuilder(args).Build();
             using (var scope = host.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
-                var logger = services.GetRequiredService<ILogger<Program>>();
                 Task.Run(async () =>
                 {
                     var appDbContext = services.GetRequiredService<ApplicationDbContext>();
                     var appDbSuccess = await DbInitializer.Initialize(appDbContext);
                     if (appDbSuccess)
-                        logger.LogInformation("Db app migrations initialized");
+                        Log.Information("Db app migrations initialized");
                     else
-                        logger.LogError("Could not initialize app db after 5 attempts.");
+                        Log.Error("Could not initialize app db after 5 attempts.");
                     var configurationDbContext = services.GetRequiredService<ConfigurationDbContext>();
                     var identityDbSuccess = await DbInitializer.Initialize(configurationDbContext);
                     if (identityDbSuccess)
-                        logger.LogInformation("Db identity migrations initialized");
+                        Log.Information("Db identity migrations initialized");
                     else
-                        logger.LogError("Could not initialize identity db after 5 attempts.");
+                        Log.Error("Could not initialize identity db after 5 attempts.");
                     SeedData.EnsureSeedData(services);
                 }).GetAwaiter().GetResult();
             }
@@ -47,7 +53,7 @@ namespace AuthServer
                     config.AddCommandLine(args);
                 })
                 .UseWebRoot("wwwroot")
-                
+                .UseSerilog()
                 .UseStartup<Startup>();
         }
     }

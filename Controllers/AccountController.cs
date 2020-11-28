@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace AuthServer.Controllers
 {
@@ -44,7 +45,7 @@ namespace AuthServer.Controllers
         {
             var t = new IdentityResource();
             var context = await Interaction.GetAuthorizationContextAsync(model.ReturnUrl);
-            Logger.LogInformation($"===> Found context: {context}");
+            Log.Information($"===> Found context: {context}");
             // the user clicked the "cancel" button
             // if (button != "login")
             // {
@@ -75,10 +76,9 @@ namespace AuthServer.Controllers
             var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, false, lockoutOnFailure: true);
             if (result.Succeeded)
             {
-                Logger.LogInformation($"===> Successfull login");
+                Log.Information($"===> Successfull login");
                 var user = await _userManager.FindByNameAsync(model.Username);
                 await Events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName, clientId: context?.Client.ClientId));
-
                 if (context != null)
                 {
                 //    if (await _clientStore.IsPkceClientAsync(context.ClientId))
@@ -95,12 +95,12 @@ namespace AuthServer.Controllers
                 // request for a local page
                 if (Url.IsLocalUrl(model.ReturnUrl))
                 {
-                    Logger.LogInformation($"==========> redirecting local: {model.ReturnUrl}");
+                    Log.Information($"==========> redirecting local: {model.ReturnUrl}");
                     return new OkResult();
                 }
                 if (string.IsNullOrEmpty(model.ReturnUrl))
                 {
-                    Logger.LogInformation($"==========> Is null or empty: {model.ReturnUrl}");
+                    Log.Information($"==========> Is null or empty: {model.ReturnUrl}");
                     return new OkResult();
                     //return Redirect("~/");
                 }
@@ -146,11 +146,16 @@ namespace AuthServer.Controllers
         // [ValidateAntiForgeryToken]
         public string GetUser()
         {
-            Logger.LogInformation($"=========> User is auth:  {User?.Identity.IsAuthenticated}");
-            Logger.LogInformation($"====> User name is: {User?.Identity.Name}");
-            
-            return User?.Identity.IsAuthenticated == true ? User.Identity.Name : "";
-        } 
+            return User?.Identity?.IsAuthenticated == true ? User.Identity.Name : "";
+        }
+
+        [HttpGet]
+        [Route("isSignedIn")]
+        public bool IsSignedIn()
+        {
+            Log.Information($"=====>>> {User?.Identity?.IsAuthenticated}");
+            return User?.Identity?.IsAuthenticated ?? false;
+        }
         
 
         

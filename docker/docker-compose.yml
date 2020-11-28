@@ -16,6 +16,22 @@ services:
     networks:
       - auth-server-frontend
     restart: unless-stopped
+    
+  seqsink:
+    image: datalust/seq
+    expose:
+      - 80
+      - 5341
+    ports:
+      - "8800:80"
+      - "5341:5341"
+    volumes:
+      - seq-vol:/data
+    networks:
+      - default
+    env_file:
+      - seq.env
+    restart: unless-stopped
 
   db:
     image: mariadb:10.3.9
@@ -37,6 +53,7 @@ services:
       - 5001
     volumes:
       - ../Certificates:/certificates:ro
+      - ../wwwroot:/app/wwwroot
     networks:
       - auth-server-backend
       - auth-server-frontend
@@ -49,6 +66,7 @@ services:
 
 volumes:
   auth-server-db:
+  seq-vol:
 
 networks:
   auth-server-frontend:

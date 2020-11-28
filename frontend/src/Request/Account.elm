@@ -10,10 +10,9 @@
 -}
 
 
-module Request.Account exposing (accountLogoutPost, accountPost, accountUserGet)
+module Request.Account exposing (accountIsSignedInGet, accountLogoutPost, accountPost, accountUserGet)
 
 import Data.LoginRequest as LoginRequest exposing (LoginRequest)
-import Data.LogoutInputModel as LogoutInputModel exposing (LogoutInputModel)
 import Dict
 import Http
 import Json.Decode as Decode
@@ -24,16 +23,39 @@ import Url.Builder as Url
 
 basePath : String
 basePath =
-    "https://localhost:3001"
+    "https://localhost"
+
+
+accountIsSignedInGet :
+    { onSend : Result Http.Error Bool -> msg
+
+
+
+
+
+    }
+    -> Cmd msg
+accountIsSignedInGet params =
+    Http.request
+        { method = "GET"
+        , headers = List.filterMap identity []
+        , url = Url.crossOrigin basePath
+            ["Account", "isSignedIn"]
+            (List.filterMap identity [])
+        , body = Http.emptyBody
+        , expect = Http.expectJson params.onSend Decode.bool
+        , timeout = Just 30000
+        , tracker = Nothing
+        }
 
 
 accountLogoutPost :
     { onSend : Result Http.Error () -> msg
 
 
-    , body : Maybe LogoutInputModel
 
 
+    , logoutId : Maybe (String)
     }
     -> Cmd msg
 accountLogoutPost params =
@@ -42,8 +64,8 @@ accountLogoutPost params =
         , headers = List.filterMap identity []
         , url = Url.crossOrigin basePath
             ["Account", "logout"]
-            (List.filterMap identity [])
-        , body = Maybe.withDefault Http.emptyBody <| Maybe.map (Http.jsonBody << LogoutInputModel.encode) params.body
+            (List.filterMap identity [Maybe.map (Url.string "LogoutId" << identity) params.logoutId])
+        , body = Http.emptyBody
         , expect = Http.expectWhatever params.onSend
         , timeout = Just 30000
         , tracker = Nothing

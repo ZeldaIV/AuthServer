@@ -9,7 +9,7 @@ services:
 
   db:
     ports:
-      - "3306"
+      - "3306:3306"
     env_file:
       - secret.db.env
 

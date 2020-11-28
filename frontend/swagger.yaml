@@ -4,7 +4,7 @@ info:
   description: AuthServer Idp
   version: v1
 servers:
-  - url: https://localhost:3001
+  - url: https://localhost
 paths:
   /Account:
     post:
@@ -28,17 +28,12 @@ paths:
     post:
       tags:
         - Account
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LogoutInputModel'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/LogoutInputModel'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/LogoutInputModel'
+      parameters:
+        - name: LogoutId
+          in: query
+          schema:
+            type: string
+            nullable: true
       responses:
         '200':
           description: Success
@@ -59,6 +54,23 @@ paths:
             text/json:
               schema:
                 type: string
+  /Account/isSignedIn:
+    get:
+      tags:
+        - Account
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: boolean
+            application/json:
+              schema:
+                type: boolean
+            text/json:
+              schema:
+                type: boolean
   /ApiResource:
     get:
       tags:
@@ -85,17 +97,45 @@ paths:
     post:
       tags:
         - ApiResource
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ApiResourceDto'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/ApiResourceDto'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/ApiResourceDto'
+      parameters:
+        - name: Id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: Enabled
+          in: query
+          schema:
+            type: boolean
+        - name: Name
+          in: query
+          schema:
+            type: string
+            nullable: true
+        - name: DisplayName
+          in: query
+          schema:
+            type: string
+            nullable: true
+        - name: Description
+          in: query
+          schema:
+            type: string
+            nullable: true
+        - name: ApiSecrets
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+            nullable: true
+        - name: Scopes
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+            nullable: true
       responses:
         '200':
           description: Success
@@ -125,17 +165,48 @@ paths:
     put:
       tags:
         - Clients
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ClientDto'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/ClientDto'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/ClientDto'
+      parameters:
+        - name: ClientId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: Enabled
+          in: query
+          schema:
+            type: boolean
+        - name: ClientSecrets
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+            nullable: true
+        - name: AllowedGrantTypes
+          in: query
+          schema:
+            $ref: '#/components/schemas/GrantTypesDto'
+        - name: RedirectUris
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+            nullable: true
+        - name: AllowedScopes
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+            nullable: true
+        - name: PostLogoutRedirectUris
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+            nullable: true
       responses:
         '200':
           description: Success
@@ -175,17 +246,17 @@ paths:
     put:
       tags:
         - Scopes
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ScopeDto'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/ScopeDto'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/ScopeDto'
+      parameters:
+        - name: Name
+          in: query
+          schema:
+            type: string
+            nullable: true
+        - name: DisplayName
+          in: query
+          schema:
+            type: string
+            nullable: true
       responses:
         '200':
           description: Success
@@ -225,17 +296,34 @@ paths:
     put:
       tags:
         - Users
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserDto'
-          text/json:
-            schema:
-              $ref: '#/components/schemas/UserDto'
-          application/*+json:
-            schema:
-              $ref: '#/components/schemas/UserDto'
+      parameters:
+        - name: UserName
+          in: query
+          schema:
+            type: string
+            nullable: true
+        - name: Email
+          in: query
+          schema:
+            type: string
+            nullable: true
+        - name: EmailConfirmed
+          in: query
+          schema:
+            type: boolean
+        - name: PhoneNumber
+          in: query
+          schema:
+            type: string
+            nullable: true
+        - name: PhoneNumberConfirmed
+          in: query
+          schema:
+            type: boolean
+        - name: TwoFactorEnabled
+          in: query
+          schema:
+            type: boolean
       responses:
         '200':
           description: Success
@@ -261,13 +349,6 @@ components:
           type: string
           nullable: true
         returnUrl:
-          type: string
-          nullable: true
-      additionalProperties: false
-    LogoutInputModel:
-      type: object
-      properties:
-        logoutId:
           type: string
           nullable: true
       additionalProperties: false

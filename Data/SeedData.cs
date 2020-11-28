@@ -6,7 +6,7 @@ using IdentityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace AuthServer.Data
 {
@@ -15,7 +15,6 @@ namespace AuthServer.Data
         public static async void EnsureSeedData(IServiceProvider serviceProvider)
         {
             using var scope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            var logger = scope.ServiceProvider.GetRequiredService<ILogger<SeedData>>();
             var context = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
             var configuration = scope.ServiceProvider.GetService<IConfiguration>();
@@ -39,7 +38,7 @@ namespace AuthServer.Data
             }
             else
             {
-                logger.LogInformation($@"Administrator: {administrator} already exists, will not create");
+                Log.Information($@"Administrator: {administrator} already exists, will not create");
             }
         }
     }

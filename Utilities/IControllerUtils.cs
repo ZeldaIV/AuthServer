@@ -12,7 +12,5 @@ namespace AuthServer.Utilities
         public IEventService Events { get; }
         public IIdentityServerDbContext Context { get; }
         public IMapper Mapper { get; }
-        public ILogger Logger { get; }
-        
     }
 }
