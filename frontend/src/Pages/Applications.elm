@@ -9,6 +9,7 @@ import Html exposing (Html, h1, text)
 import Html.Attributes exposing (href)
 import Http exposing (Error)
 import Request.ApiResource as ApiResource
+import Shared
 import Spa.Document exposing (Document)
 import Spa.Generated.Route as Route
 import Spa.Page as Page exposing (Page)
@@ -18,11 +19,13 @@ import Uuid exposing (Uuid)
 
 page : Page Params Model Msg
 page =
-    Page.element
+    Page.application
         { init = init
         , update = update
         , view = view
         , subscriptions = subscriptions
+        , load = load
+        , save = save
         }
 
 
@@ -35,14 +38,15 @@ type alias Params =
 
 
 type alias Model =
-    { apiResources: List ApiResourceDto,
-      error: String
+    { apiResources: List ApiResourceDto
+    , error: String
+    , isSignedIn: Bool
     }
 
 
-init : Url Params -> ( Model, Cmd Msg )
-init { params } =
-    ( { apiResources = [], error = ""}, ApiResource.apiResourceGet { onSend = gotResources} )
+init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
+init model { params } =
+    ( { apiResources = [], error = "", isSignedIn = model.isSignedIn }, ApiResource.apiResourceGet { onSend = gotResources} )
 
 
 gotResources: Result Http.Error (List ApiResourceDto) -> Msg
@@ -54,6 +58,14 @@ gotResources result =
         Err error ->
             ErrorGettingResources error
 
+save : Model -> Shared.Model -> Shared.Model
+save model shared =
+    { shared | isSignedIn = model.isSignedIn }
+
+
+load : Shared.Model -> Model -> ( Model, Cmd Msg )
+load shared model =
+    ( { model | isSignedIn = shared.isSignedIn}, Cmd.none )
 
 -- UPDATE
 

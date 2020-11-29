@@ -29,6 +29,39 @@ page =
         , save = save
         , load = load
         }
+        
+-- INIT
+
+
+type alias Params =
+    ()
+
+
+type alias Model =
+    { form: Form
+    , user: Maybe User
+    , isSignedIn: Bool
+    , key: Nav.Key}
+    
+type alias Form =
+    { username : String
+    , password : String
+    }
+    
+
+
+init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
+init shared { params }  =
+    ( {form = Form "" "", user= shared.user, isSignedIn = shared.isSignedIn, key = shared.key }, Cmd.none )        
+        
+save : Model -> Shared.Model -> Shared.Model
+save model shared =
+    { shared | user = model.user, isSignedIn = model.isSignedIn }
+
+
+load : Shared.Model -> Model -> ( Model, Cmd Msg )
+load shared model =
+    ( { model | user = shared.user, isSignedIn = shared.isSignedIn}, Cmd.none )
 
 mapModelToLoginRequest: Form -> LoginRequest
 mapModelToLoginRequest login =
@@ -41,7 +74,7 @@ loginCompleted : Result Http.Error () -> Cmd Msg
 loginCompleted result =
     case result of
         Ok _ ->
-            Account.accountUserGet { onSend = getUserCompleted }
+            Account.accountIsSignedInGet { onSend = getUserIsSignedInCompleted }
             
         Err _ ->
             Cmd.none
@@ -54,31 +87,14 @@ getUserCompleted result =
             GotUser (User val)
         Err _ ->
             GotUser (User "")
-
--- INIT
-
-
-type alias Params =
-    ()
-
-
-type alias Model =
-    { form: Form,
-      user: Maybe User,
-      key: Nav.Key}
-    
-type alias Form =
-    { username : String
-    , password : String
-    }
-    
-
-
-init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
-init shared { params } =
-    ( {form = Form "" "", user= shared.user, key = shared.key }, Cmd.none )
-
-
+            
+getUserIsSignedInCompleted : Result Http.Error Bool -> Msg
+getUserIsSignedInCompleted result = 
+    case result of
+        Ok val ->
+            IsSignedIn val
+        Err _ ->
+            IsSignedIn False -- TODO: Handle error
 
 -- UPDATE
 
@@ -89,6 +105,7 @@ type Msg
     | OnLogin Form
     | LoginCompleted (Result Http.Error ())
     | GotUser User
+    | IsSignedIn Bool
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -111,21 +128,18 @@ update msg model =
     
         LoginCompleted result ->
             (model, loginCompleted result)
+            
+        IsSignedIn val ->
+            ({model | isSignedIn = val}, 
+                if (val) then
+                    Nav.replaceUrl model.key (Route.toString Route.Applications)
+                else
+                    Cmd.none)
                 
         GotUser user ->
              ({ model | user = Just user }, Cmd.batch 
              [Ports.saveUser user
              , Nav.replaceUrl model.key (Route.toString Route.Applications)])
-
-
-save : Model -> Shared.Model -> Shared.Model
-save model shared =
-    { shared | user = model.user }
-
-
-load : Shared.Model -> Model -> ( Model, Cmd Msg )
-load shared model =
-    ( { model | user = shared.user}, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg

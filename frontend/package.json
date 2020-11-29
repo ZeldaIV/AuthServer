@@ -8,7 +8,7 @@
     "test": "elm-test",
     "test:watch": "elm-test --watch",
     "build": "run-s build:elm-spa build:elm publish",
-    "build:dev": "run-s build:elm-spa build:dev:elm",
+    "build:dev": "run-s build:elm-spa build:dev:elm publish",
     "dev": "run-p dev:elm-spa dev:elm",
     "build:elm": "elm make src/Main.elm --optimize --output=public/dist/elm.compiled.js",
     "build:dev:elm": "elm make src/Main.elm --debug --output=public/dist/elm.compiled.js || true",

@@ -89,7 +89,6 @@ namespace AuthServer
                         options.Events.RaiseInformationEvents = true;
                         options.Events.RaiseFailureEvents = true;
                         options.Events.RaiseSuccessEvents = true;
-                        options.UserInteraction.LoginUrl = "/";
                         // options.IssuerUri = "https://authserver.com";
                     })
                     .AddAspNetIdentity<IdentityUser>()
