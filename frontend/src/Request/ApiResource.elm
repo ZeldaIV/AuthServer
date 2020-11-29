@@ -10,10 +10,9 @@
 -}
 
 
-module Request.ApiResource exposing (apiResourceGet, apiResourcePost)
+module Request.ApiResource exposing (apiResourceGet, apiResourcePut)
 
 import Data.ApiResourceDto as ApiResourceDto exposing (ApiResourceDto)
-import Uuid exposing (Uuid)
 import Dict
 import Http
 import Json.Decode as Decode
@@ -50,23 +49,23 @@ apiResourceGet params =
         }
 
 
-apiResourcePost :
+apiResourcePut :
     { onSend : Result Http.Error () -> msg
 
 
+    , body : Maybe ApiResourceDto
 
 
-    , id : Maybe (Uuid)    , enabled : Maybe (Bool)    , name : Maybe (String)    , displayName : Maybe (String)    , description : Maybe (String)    , apiSecrets : Maybe (List String)    , scopes : Maybe (List String)
     }
     -> Cmd msg
-apiResourcePost params =
+apiResourcePut params =
     Http.request
-        { method = "POST"
+        { method = "PUT"
         , headers = List.filterMap identity []
         , url = Url.crossOrigin basePath
             ["ApiResource"]
-            (List.filterMap identity [Maybe.map (Url.string "Id" << Uuid.toString) params.id, Maybe.map (Url.string "Enabled" << (\val -> if val then "true" else "false")) params.enabled, Maybe.map (Url.string "Name" << identity) params.name, Maybe.map (Url.string "DisplayName" << identity) params.displayName, Maybe.map (Url.string "Description" << identity) params.description, Maybe.map (Url.string "ApiSecrets" << String.join "," << List.map identity) params.apiSecrets, Maybe.map (Url.string "Scopes" << String.join "," << List.map identity) params.scopes])
-        , body = Http.emptyBody
+            (List.filterMap identity [])
+        , body = Maybe.withDefault Http.emptyBody <| Maybe.map (Http.jsonBody << ApiResourceDto.encode) params.body
         , expect = Http.expectWhatever params.onSend
         , timeout = Just 30000
         , tracker = Nothing

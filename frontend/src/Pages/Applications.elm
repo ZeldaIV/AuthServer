@@ -136,9 +136,9 @@ fromMaybeBool val =
 rowView: ApiResourceDto -> Row Msg
 rowView resource =
     Table.tr [] 
-        [ Table.td [] [text (fromMaybeUuid resource.id)]
-        , Table.td [] [text (fromMaybeString resource.name)]
+        [ Table.td [] [text (fromMaybeString resource.name)]
         , Table.td [] [text (fromMaybeString resource.displayName)]
+        , Table.td [] [text (fromMaybeString resource.description)]
         , Table.td [] [text (fromMaybeBool resource.enabled)]
         ]
         
@@ -154,9 +154,9 @@ applicationsView  model =
         , Table.table 
             { options = [ Table.striped, Table.hover ]
             , thead = Table.simpleThead 
-                [ Table.th [] [ text "Id" ]
-                , Table.th [] [ text "Name"]
+                [ Table.th [] [ text "Name"]
                 , Table.th [] [ text "DisplayName"]
+                , Table.th [] [ text "Description"]
                 , Table.th [] [ text "Enabled"]
                 ]
             , tbody = Table.tbody []  (createRowsView model.apiResources)

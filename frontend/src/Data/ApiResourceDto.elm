@@ -12,7 +12,6 @@
 
 module Data.ApiResourceDto exposing (ApiResourceDto, decoder, encode, encodeWithTag, toString)
 
-import Uuid exposing (Uuid)
 import Dict exposing (Dict)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
@@ -20,8 +19,7 @@ import Json.Encode as Encode
 
 
 type alias ApiResourceDto =
-    { id : Maybe (Uuid)
-    , enabled : Maybe (Bool)
+    { enabled : Maybe (Bool)
     , name : (Maybe String)
     , displayName : (Maybe String)
     , description : (Maybe String)
@@ -33,7 +31,6 @@ type alias ApiResourceDto =
 decoder : Decoder ApiResourceDto
 decoder =
     Decode.succeed ApiResourceDto
-        |> optional "id" (Decode.nullable Uuid.decoder) Nothing
         |> optional "enabled" (Decode.nullable Decode.bool) Nothing
         |> optional "name" (Decode.nullable Decode.string) Nothing
         |> optional "displayName" (Decode.nullable Decode.string) Nothing
@@ -55,8 +52,7 @@ encodeWithTag (tagField, tag) model =
 
 encodePairs : ApiResourceDto -> List (String, Encode.Value)
 encodePairs model =
-    [ ( "id", Maybe.withDefault Encode.null (Maybe.map Uuid.encode model.id) )
-    , ( "enabled", Maybe.withDefault Encode.null (Maybe.map Encode.bool model.enabled) )
+    [ ( "enabled", Maybe.withDefault Encode.null (Maybe.map Encode.bool model.enabled) )
     , ( "name", Maybe.withDefault Encode.null (Maybe.map Encode.string model.name) )
     , ( "displayName", Maybe.withDefault Encode.null (Maybe.map Encode.string model.displayName) )
     , ( "description", Maybe.withDefault Encode.null (Maybe.map Encode.string model.description) )

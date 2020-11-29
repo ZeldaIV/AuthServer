@@ -9,11 +9,15 @@ import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
 import Bootstrap.Grid.Row as Row
 import Bootstrap.Text as Text
+import Data.ApiResourceDto exposing (ApiResourceDto)
 import Html exposing (Html, h1, text)
 import Html.Attributes exposing (for, style)
+import Http exposing (Error)
+import Request.ApiResource as ApiResource
 import Spa.Document exposing (Document)
 import Spa.Page as Page exposing (Page)
 import Spa.Url as Url exposing (Url)
+import Uuid
 
 
 page : Page Params Model Msg
@@ -50,6 +54,27 @@ init { params } =
 
 type alias Form = { name: String, displayName: String, description: String}
 
+fromFormToModel: Form -> ApiResourceDto
+fromFormToModel form = 
+    { name = Just form.name
+    , displayName = Just form.displayName
+    , description = Just form.description
+    , apiSecrets = Nothing
+    , scopes = Nothing
+    , enabled = Just True }
+    
+    
+addedNewResource: Result Error () -> Msg
+addedNewResource result =
+    case result of
+        Ok value ->
+            AddApplicationMode None
+
+        Err error ->
+            AddApplicationMode None
+        
+            
+
 type ApplicationMode
     = None
     | ApiResourceMode
@@ -73,7 +98,7 @@ update msg model =
 
         AddApiResource form ->
            -- TODO: Call api
-           ( model , Cmd.none )
+           ( model , ApiResource.apiResourcePut { onSend = addedNewResource, body = Just (form |> fromFormToModel)} )
 
         NameEntered name ->
             let

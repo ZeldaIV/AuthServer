@@ -94,48 +94,20 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ApiResourceDto'
-    post:
+    put:
       tags:
         - ApiResource
-      parameters:
-        - name: Id
-          in: query
-          schema:
-            type: string
-            format: uuid
-        - name: Enabled
-          in: query
-          schema:
-            type: boolean
-        - name: Name
-          in: query
-          schema:
-            type: string
-            nullable: true
-        - name: DisplayName
-          in: query
-          schema:
-            type: string
-            nullable: true
-        - name: Description
-          in: query
-          schema:
-            type: string
-            nullable: true
-        - name: ApiSecrets
-          in: query
-          schema:
-            type: array
-            items:
-              type: string
-            nullable: true
-        - name: Scopes
-          in: query
-          schema:
-            type: array
-            items:
-              type: string
-            nullable: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiResourceDto'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/ApiResourceDto'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/ApiResourceDto'
       responses:
         '200':
           description: Success
@@ -355,9 +327,6 @@ components:
     ApiResourceDto:
       type: object
       properties:
-        id:
-          type: string
-          format: uuid
         enabled:
           type: boolean
         name:
