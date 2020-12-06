@@ -1,5 +1,5 @@
 # AuthServer
-A server to offer OAuth2.0 using openid connect with administration pages
+An implementation of authorization and authentication based on IdentityServer and custom UI.
 
 AuthServer is meant to provide a web user interface for adding users, clients and resources
 to provide authorization and authentication for any app, api or other client.
