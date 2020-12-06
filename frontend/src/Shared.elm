@@ -11,6 +11,7 @@ module Shared exposing
 
 import Bootstrap.Navbar as Navbar
 import Browser.Navigation as Nav exposing (Key)
+import Data.ApiResourceDto exposing (ApiResourceDto)
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, href)
 import Http exposing (Error)
@@ -38,6 +39,7 @@ type alias Model =
     , navBarState : Navbar.State
     , user: Maybe User
     , isSignedIn: Bool
+    , apiResources: Maybe (List ApiResourceDto)
     }
 
 
@@ -49,12 +51,12 @@ init flags url key =
     in
     case Decode.decodeValue userStateDecoder flags of
         Ok value ->
-            ( Model url key navbarState (Just value) False
+            ( Model url key navbarState (Just value) False Nothing
             , navbarCmd
             )            
         
         Err _ ->
-            ( Model url key navbarState Nothing False
+            ( Model url key navbarState Nothing False Nothing
             , navbarCmd
             )                  
               

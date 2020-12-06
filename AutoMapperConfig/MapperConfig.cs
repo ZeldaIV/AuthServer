@@ -1,4 +1,4 @@
-using AuthServer.Dtos.ApiResource;
+using AuthServer.Dtos;
 using AutoMapper;
 using IdentityServer4.EntityFramework.Entities;
 

@@ -3,10 +3,13 @@ module Pages.Applications exposing (Params, Model, Msg, page)
 import Bootstrap.Button as Button
 import Bootstrap.Grid as Grid
 import Bootstrap.Table as Table exposing (Row)
+import Browser.Navigation as Nav
 import Data.ApiResourceDto exposing (ApiResourceDto)
 import DateTime exposing (DateTime)
 import Html exposing (Html, h1, text)
 import Html.Attributes exposing (href)
+
+import Html.Events exposing (onClick)
 import Http exposing (Error)
 import Request.ApiResource as ApiResource
 import Shared
@@ -41,12 +44,13 @@ type alias Model =
     { apiResources: List ApiResourceDto
     , error: String
     , isSignedIn: Bool
+    , key: Nav.Key
     }
 
 
 init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
-init model { params } =
-    ( { apiResources = [], error = "", isSignedIn = model.isSignedIn }, ApiResource.apiResourceGet { onSend = gotResources} )
+init shared { params } =
+    ( { apiResources = [], error = "", isSignedIn = shared.isSignedIn, key = shared.key }, ApiResource.apiResourceGet { onSend = gotResources} )
 
 
 gotResources: Result Http.Error (List ApiResourceDto) -> Msg
@@ -60,18 +64,19 @@ gotResources result =
 
 save : Model -> Shared.Model -> Shared.Model
 save model shared =
-    { shared | isSignedIn = model.isSignedIn }
+    { shared | isSignedIn = model.isSignedIn, apiResources = Just model.apiResources }
 
 
 load : Shared.Model -> Model -> ( Model, Cmd Msg )
 load shared model =
-    ( { model | isSignedIn = shared.isSignedIn}, Cmd.none )
+    ( { model | isSignedIn = shared.isSignedIn }, Cmd.none )
 
 -- UPDATE
 
 
 type Msg
     = GotApiResources (List ApiResourceDto)
+    | GoToApplication (Maybe String)
     | ErrorGettingResources Error
 
 
@@ -83,6 +88,17 @@ update msg model =
 
         ErrorGettingResources error ->
             (model, Cmd.none)
+
+        GoToApplication maybeString ->
+            (model, case maybeString of
+                Just a ->
+                    Nav.pushUrl model.key (Route.toString (Route.Applications__Name_String {name = a}))
+                Nothing ->
+                    Cmd.none
+            )
+            
+                    
+            
         
 
 
@@ -135,7 +151,7 @@ fromMaybeBool val =
     
 rowView: ApiResourceDto -> Row Msg
 rowView resource =
-    Table.tr [] 
+    Table.tr [Table.rowAttr (onClick (GoToApplication resource.name))  ] 
         [ Table.td [] [text (fromMaybeString resource.name)]
         , Table.td [] [text (fromMaybeString resource.displayName)]
         , Table.td [] [text (fromMaybeString resource.description)]
@@ -150,7 +166,8 @@ createRowsView resources =
 applicationsView: Model -> Html Msg
 applicationsView  model =
      Grid.container []
-        [ Button.linkButton [ Button.primary, Button.block, Button.large, Button.attrs [href (Route.toString Route.ApplicationSelection)] ] [ text "Add new"] , h1 [] [ text "Registered applications" ]
+        [ Button.linkButton [ Button.primary, Button.block, Button.large, Button.attrs [href (Route.toString Route.ApplicationSelection)] ] [ text "Add new"] 
+        , h1 [] [ text "Registered applications" ]
         , Table.table 
             { options = [ Table.striped, Table.hover ]
             , thead = Table.simpleThead 

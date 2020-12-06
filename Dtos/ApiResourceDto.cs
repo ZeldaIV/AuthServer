@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace AuthServer.Dtos.ApiResource
+namespace AuthServer.Dtos
 {
     public class ApiResourceDto
     {
