@@ -9,6 +9,8 @@ import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
 import Data.ApiResourceDto exposing (ApiResourceDto)
 import Html exposing (Html, h1, text)
+import Http exposing (Error)
+import Request.ApiResource exposing (apiResourceGet, apiResourcePatch)
 import Shared
 import Spa.Document exposing (Document)
 import Spa.Page as Page exposing (Page)
@@ -37,11 +39,13 @@ type alias Params =
 
 type alias Model =
     { apiResource: ApiResource
-    , form: ApiResource 
+    , form: ApiResource
+    , allResources: Maybe (List ApiResourceDto)
     }
 
 type alias ApiResource =
-    { enabled : Bool
+    { id: Int
+    , enabled : Bool
     , name : String
     , displayName : String
     , description : String
@@ -55,26 +59,39 @@ init shared { params } =
         resource =
             (resourceFromList params.name shared.apiResources) |> dtoToModel
     in
-    ({ apiResource = resource, form = resource }, Cmd.none )
+    ({ apiResource = resource, form = resource, allResources = shared.apiResources }, Cmd.none )
 
 
 dtoToModel: Maybe ApiResourceDto -> ApiResource
 dtoToModel dto =
     case dto of
         Just d ->
-            { enabled = (Maybe.withDefault False d.enabled)
+            { id = (Maybe.withDefault -1 d.id)
+            , enabled = (Maybe.withDefault False d.enabled)
             , name = (Maybe.withDefault "" d.name)
             , displayName = (Maybe.withDefault "" d.displayName)
             , description = (Maybe.withDefault "" d.description)
             , apiSecrets = (Maybe.withDefault [""] d.apiSecrets)
             , scopes = (Maybe.withDefault [""] d.scopes)}
         Nothing ->
-            { enabled = False
+            { id = -1
+            , enabled = False
             , name = ""
             , displayName = ""
             , description = ""
             , apiSecrets = [""]
-            , scopes = [""]} 
+            , scopes = [""]}
+            
+modelToDto: ApiResource -> ApiResourceDto
+modelToDto r =
+    { id = Just r.id
+    , name = Just r.name
+    , description = Just r.description
+    , displayName = Just r.displayName
+    , scopes = Just r.scopes
+    , apiSecrets = Just r.apiSecrets
+    , enabled = Just r.enabled
+    }
             
 
 resourceFromList: String -> Maybe (List ApiResourceDto) -> Maybe ApiResourceDto
@@ -95,7 +112,25 @@ matchingName name resource =
     
 -- UPDATE
 
+updatedResource: Result Error () -> Msg
+updatedResource result =
+    case result of
+        Ok _ ->
+            UpdateSuccess
 
+        Err error ->
+            GotError error
+
+newResources: Result Error (List ApiResourceDto) -> Msg
+newResources result = 
+    case result of
+        Ok value ->
+            UpdateResources value
+
+        Err error ->
+            GotError error        
+        
+            
 type Msg
     = NameEntered String
     | DisplayNameEntered String
@@ -104,6 +139,9 @@ type Msg
     | ScopesEntered String
     | OnReset
     | OnUpdate
+    | GotError Error
+    | UpdateSuccess
+    | UpdateResources (List ApiResourceDto)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -138,7 +176,18 @@ update msg model =
             ({ model | form = model.apiResource }, Cmd.none)      
 
         OnUpdate ->
+            let resource = (modelToDto model.form)
+            in
+            (model, apiResourcePatch { onSend = updatedResource, body = Just resource })
+
+        GotError _ ->
             (model, Cmd.none)
+
+        UpdateSuccess ->
+            (model, apiResourceGet { onSend = newResources})
+
+        UpdateResources resources ->
+            ({ model | allResources = Just resources}, Cmd.none)
 
 
 

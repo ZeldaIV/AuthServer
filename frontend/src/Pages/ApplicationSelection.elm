@@ -56,7 +56,8 @@ type alias Form = { name: String, displayName: String, description: String}
 
 fromFormToModel: Form -> ApiResourceDto
 fromFormToModel form = 
-    { name = Just form.name
+    { id = Nothing
+    , name = Just form.name
     , displayName = Just form.displayName
     , description = Just form.description
     , apiSecrets = Nothing

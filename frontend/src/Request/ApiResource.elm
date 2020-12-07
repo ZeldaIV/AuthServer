@@ -10,7 +10,7 @@
 -}
 
 
-module Request.ApiResource exposing (apiResourceGet, apiResourcePut)
+module Request.ApiResource exposing (apiResourceGet, apiResourcePatch, apiResourcePut)
 
 import Data.ApiResourceDto as ApiResourceDto exposing (ApiResourceDto)
 import Dict
@@ -44,6 +44,29 @@ apiResourceGet params =
             (List.filterMap identity [])
         , body = Http.emptyBody
         , expect = Http.expectJson params.onSend (Decode.list ApiResourceDto.decoder)
+        , timeout = Just 30000
+        , tracker = Nothing
+        }
+
+
+apiResourcePatch :
+    { onSend : Result Http.Error () -> msg
+
+
+    , body : Maybe ApiResourceDto
+
+
+    }
+    -> Cmd msg
+apiResourcePatch params =
+    Http.request
+        { method = "PATCH"
+        , headers = List.filterMap identity []
+        , url = Url.crossOrigin basePath
+            ["ApiResource"]
+            (List.filterMap identity [])
+        , body = Maybe.withDefault Http.emptyBody <| Maybe.map (Http.jsonBody << ApiResourceDto.encode) params.body
+        , expect = Http.expectWhatever params.onSend
         , timeout = Just 30000
         , tracker = Nothing
         }

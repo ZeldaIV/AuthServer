@@ -111,6 +111,23 @@ paths:
       responses:
         '200':
           description: Success
+    patch:
+      tags:
+        - ApiResource
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiResourceDto'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/ApiResourceDto'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/ApiResourceDto'
+      responses:
+        '200':
+          description: Success
   /Clients:
     get:
       tags:
@@ -327,6 +344,9 @@ components:
     ApiResourceDto:
       type: object
       properties:
+        id:
+          type: integer
+          format: int32
         enabled:
           type: boolean
         name:

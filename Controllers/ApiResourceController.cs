@@ -34,5 +34,13 @@ namespace AuthServer.Controllers
             var newResource = Mapper.Map<ApiResource>(resource);
             await DbContext.AddApiResourceAsync(newResource, cancellationToken);
         }
+
+        [HttpPatch]
+        [Authorize(Policy = "Administrator")]
+        public async Task UpdateResource([FromBody] ApiResourceDto resource, CancellationToken cancellationToken)
+        {
+            var update = Mapper.Map<ApiResource>(resource);
+            await DbContext.UpdateApiResourceAsync(update, cancellationToken);
+        }
     }
 }

@@ -19,7 +19,8 @@ import Json.Encode as Encode
 
 
 type alias ApiResourceDto =
-    { enabled : Maybe (Bool)
+    { id : Maybe (Int)
+    , enabled : Maybe (Bool)
     , name : (Maybe String)
     , displayName : (Maybe String)
     , description : (Maybe String)
@@ -31,6 +32,7 @@ type alias ApiResourceDto =
 decoder : Decoder ApiResourceDto
 decoder =
     Decode.succeed ApiResourceDto
+        |> optional "id" (Decode.nullable Decode.int) Nothing
         |> optional "enabled" (Decode.nullable Decode.bool) Nothing
         |> optional "name" (Decode.nullable Decode.string) Nothing
         |> optional "displayName" (Decode.nullable Decode.string) Nothing
@@ -52,7 +54,8 @@ encodeWithTag (tagField, tag) model =
 
 encodePairs : ApiResourceDto -> List (String, Encode.Value)
 encodePairs model =
-    [ ( "enabled", Maybe.withDefault Encode.null (Maybe.map Encode.bool model.enabled) )
+    [ ( "id", Maybe.withDefault Encode.null (Maybe.map Encode.int model.id) )
+    , ( "enabled", Maybe.withDefault Encode.null (Maybe.map Encode.bool model.enabled) )
     , ( "name", Maybe.withDefault Encode.null (Maybe.map Encode.string model.name) )
     , ( "displayName", Maybe.withDefault Encode.null (Maybe.map Encode.string model.displayName) )
     , ( "description", Maybe.withDefault Encode.null (Maybe.map Encode.string model.description) )

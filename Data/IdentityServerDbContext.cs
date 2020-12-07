@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.EntityFramework.Entities;
-using IdentityServer4.EntityFramework.Interfaces;
 
 namespace AuthServer.Data
 {
@@ -11,6 +10,7 @@ namespace AuthServer.Data
     {
         public IEnumerable<ApiResource> GetAllApiResources();
         public Task AddApiResourceAsync(ApiResource resource, CancellationToken cancellationToken);
+        public Task UpdateApiResourceAsync(ApiResource update, CancellationToken cancellationToken);
     }
     
     public sealed class IdentityServerDbContext : IIdentityServerDbContext
@@ -30,6 +30,22 @@ namespace AuthServer.Data
         public async Task AddApiResourceAsync(ApiResource resource, CancellationToken cancellationToken)
         {
             await _context.ApiResources.AddAsync(resource, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task UpdateApiResourceAsync(ApiResource update, CancellationToken cancellationToken)
+        {
+            var entity = await _context.ApiResources.FindAsync(update.Id);
+            if (entity != null)
+            {
+                entity.Name = update.Name;
+                entity.Description = update.Description;
+                entity.Enabled = update.Enabled;
+                entity.Scopes = update.Scopes;
+                entity.Secrets = update.Secrets;
+                entity.DisplayName = update.DisplayName;
+            }
+            
             await _context.SaveChangesAsync(cancellationToken);
         }
     }
