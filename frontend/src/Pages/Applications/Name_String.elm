@@ -1,14 +1,14 @@
 module Pages.Applications.Name_String exposing (Params, Model, Msg, page)
 
 import Bootstrap.Button as Button
-import Bootstrap.Form as Form
+import Bootstrap.Form as Form exposing (Col)
 import Bootstrap.Form.Checkbox as Checbox
 import Bootstrap.Form.Fieldset as Fieldset
 import Bootstrap.Form.Input as Input
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
 import Data.ApiResourceDto exposing (ApiResourceDto)
-import Html exposing (h1, text)
+import Html exposing (Html, h1, text)
 import Shared
 import Spa.Document exposing (Document)
 import Spa.Page as Page exposing (Page)
@@ -36,7 +36,8 @@ type alias Params =
 
 
 type alias Model =
-    { apiResource: ApiResource 
+    { apiResource: ApiResource
+    , form: ApiResource 
     }
 
 type alias ApiResource =
@@ -50,7 +51,11 @@ type alias ApiResource =
 
 init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
 init shared { params } =
-    ( {apiResource = (resourceFromList params.name shared.apiResources) |> dtoToModel}, Cmd.none )
+    let
+        resource =
+            (resourceFromList params.name shared.apiResources) |> dtoToModel
+    in
+    ({ apiResource = resource, form = resource }, Cmd.none )
 
 
 dtoToModel: Maybe ApiResourceDto -> ApiResource
@@ -87,11 +92,6 @@ matchingName name resource =
             a == name
         Nothing ->
             False
-            
-            
-resourceName: ApiResource -> String
-resourceName resource =
-    resource.name
     
 -- UPDATE
 
@@ -101,31 +101,45 @@ type Msg
     | DisplayNameEntered String
     | DescriptionEntered String
     | Enabled Bool
+    | ScopesEntered String
+    | OnReset
+    | OnUpdate
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         NameEntered name ->
-            let resource = model.apiResource
+            let resource = model.form
             in
-            ({ model | apiResource = {resource | name = name} }, Cmd.none)
+            ({ model | form = {resource | name = name} }, Cmd.none)
 
         DisplayNameEntered displayName ->
-            let resource = model.apiResource
+            let resource = model.form
             in
-            ({ model | apiResource = {resource | displayName = displayName} }, Cmd.none)
+            ({ model | form = {resource | displayName = displayName} }, Cmd.none)
 
         DescriptionEntered description ->
-            let resource = model.apiResource
+            let resource = model.form
             in
-            ({ model | apiResource = {resource | description = description} }, Cmd.none)
+            ({ model | form = {resource | description = description} }, Cmd.none)
 
         Enabled enabled ->
-            let resource = model.apiResource
+            let resource = model.form
             in
-            ({ model | apiResource = {resource | enabled = enabled} }, Cmd.none)
-        
+            ({ model | form = {resource | enabled = enabled} }, Cmd.none)
+
+        ScopesEntered scopes ->
+            let (resource, newScopes) = (model.form, (String.split "," scopes))
+            in
+            ({ model | form = {resource | scopes = newScopes} }, Cmd.none)
+
+        OnReset ->
+            ({ model | form = model.apiResource }, Cmd.none)      
+
+        OnUpdate ->
+            (model, Cmd.none)
+
 
 
 save : Model -> Shared.Model -> Shared.Model
@@ -142,66 +156,82 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
 
-
-
 -- VIEW
+
+textInputRow: { id: String, title: String, value: String, help: String, msg: (String -> msg)} -> List (Col msg)
+textInputRow opts = 
+    [ Form.colLabel [Col.sm2] [ text opts.title ]
+    , Form.col [Col.sm10] 
+        [ Grid.row [] 
+          [ Grid.col [Col.xs4] 
+            [ Input.text [Input.id opts.id, Input.value opts.value, Input.onInput opts.msg]
+            , Form.help [] [ text opts.help ]]
+          ]
+         ]
+      ]
+      
+nameInput: ApiResource -> List (Col Msg)
+nameInput r =
+    (textInputRow 
+        { id = "name"
+        , title = "Resource name:"
+        , value = r.name
+        , help = "The name of the resource."
+        , msg = NameEntered})
+        
+displayNameInput: ApiResource -> List (Col Msg)
+displayNameInput r =
+    (textInputRow 
+        { id = "displayName"
+        , title = "Display name:"
+        , value = r.displayName
+        , help = "Will be displayed on a Consent screen, otherwise Name will be used."
+        , msg = DisplayNameEntered})
+
+descriptionInput: ApiResource -> List (Col Msg)
+descriptionInput r =
+    (textInputRow 
+        { id = "description"
+        , title = "Description:"
+        , value = r.description
+        , help = "Will be displayed on a Consent screen."
+        , msg = DescriptionEntered})
+
+scopesInput: ApiResource -> List (Col Msg)
+scopesInput r =
+    (textInputRow 
+        { id = "scopes"
+        , title = "Scopes:"
+        , value = String.join "," r.scopes
+        , help = "What scopes has to be present for a consumer."
+        , msg = ScopesEntered})
 
 
 view : Model -> Document Msg
 view model =
-    { title = (resourceName model.apiResource)
+    { title = model.form.name
     , body = [ Grid.container [] 
-                [ h1 [] [text model.apiResource.name]
+                [ h1 [] [text model.form.name]
                 , Form.form []
-                    [ Form.row [] 
-                      [ Form.colLabel [Col.sm2] [ text "Resource name:" ]
-                      , Form.col [Col.sm10] 
-                        [ Grid.row [] 
-                          [ Grid.col [Col.xs4] 
-                            [ Input.text [Input.id "name", Input.value model.apiResource.name, Input.onInput NameEntered]
-                            , Form.help [] [ text "The name of the resource."]]
-                          ]
-                         ]
-                      ]
-                    , Form.row [] 
-                      [ Form.colLabel [Col.sm2] [ text "Display name:" ]
-                      , Form.col [Col.sm10]
-                        [ Grid.row [] 
-                          [ Grid.col [Col.xs4]
-                            [ Input.text [Input.id "displayName", Input.value model.apiResource.displayName, Input.onInput DisplayNameEntered]
-                            , Form.help [] [ text "Will be displayed on a Consent screen, otherwise Name will be used."]
-                            ]
-                          ]
-                        ]
-                      ]
-                    , Form.row [] 
-                      [ Form.colLabel [Col.sm2] [ text "Description:" ]
-                      , Form.col [Col.sm10]
-                        [ Grid.row [] 
-                          [ Grid.col [Col.xs4] 
-                            [ Input.text [Input.id "description", Input.value model.apiResource.description, Input.onInput DescriptionEntered]
-                            , Form.help [] [ text "Will be displayed on a Consent screen."]
-                            ]
-                          ]
-                        ]
-                      ]
-                    , Form.row [] 
-                      [ Form.colLabel [Col.sm2] [ text "Scopes:" ]
-                      , Form.col [Col.sm10]
-                        [ Input.text [Input.id "scopes"]
-                        , Form.help [] [ text "What scopes has to be present for a consumer."]] 
-                      ]
+                    [ Form.row [] (nameInput model.form)
+                    , Form.row [] (displayNameInput model.form)
+                    , Form.row [] (descriptionInput model.form)
+                    , Form.row [] (scopesInput model.form)
                     , Form.row [] 
                         [ Form.colLabel [Col.sm2] [ text "Enable/Disable:"]
                         , Form.col [Col.sm10]
                             [ Fieldset.config 
                              |> Fieldset.children 
-                                [Checbox.checkbox [Checbox.id "enabled", Checbox.inline, Checbox.checked model.apiResource.enabled, Checbox.onCheck Enabled ] ""]
+                                [Checbox.checkbox [Checbox.id "enabled", Checbox.inline, Checbox.checked model.form.enabled, Checbox.onCheck Enabled ] ""]
                              |> Fieldset.view
                              ]
                         ]
-                    , Button.button [Button.primary] [text "Update"]
+                    , Grid.row [] 
+                        [ Grid.col [] [Button.button [Button.secondary, Button.onClick OnReset] [text "Reset"]]
+                        , Grid.col [] [Button.button [Button.primary, Button.onClick OnUpdate] [text "Update"]]
+                        ] 
                     ]
                 ]
              ]
     }
+    
