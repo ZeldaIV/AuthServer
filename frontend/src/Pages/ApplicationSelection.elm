@@ -98,7 +98,6 @@ update msg model =
             ( {model | mode = mode} , Cmd.none )
 
         AddApiResource form ->
-           -- TODO: Call api
            ( model , ApiResource.apiResourcePut { onSend = addedNewResource, body = Just (form |> fromFormToModel)} )
 
         NameEntered name ->

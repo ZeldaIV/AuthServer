@@ -10,6 +10,7 @@ namespace AuthServer.AutoMapperConfig
         {
             config.CreateMap<ApiResource, ApiResourceDto>()
                 .ReverseMap()
+                .ForMember(d => d.Id, s => s.AllowNull())
                 .ForMember(d => d.Properties, s => s.Ignore())
                 .ForMember(d => d.Updated, s => s.Ignore())
                 .ForMember(d => d.LastAccessed, s => s.Ignore())

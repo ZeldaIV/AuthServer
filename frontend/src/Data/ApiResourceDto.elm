@@ -19,7 +19,7 @@ import Json.Encode as Encode
 
 
 type alias ApiResourceDto =
-    { id : Maybe (Int)
+    { id : (Maybe Int)
     , enabled : Maybe (Bool)
     , name : (Maybe String)
     , displayName : (Maybe String)
