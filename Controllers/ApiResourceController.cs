@@ -23,8 +23,7 @@ namespace AuthServer.Controllers
         [Authorize(Policy = "Administrator")]
         public List<ApiResourceDto> GetApiResources()
         {
-            var apiResources = DbContext.GetAllApiResources().ToList();
-            return apiResources.Adapt<List<ApiResourceDto>>();
+            return DbContext.GetAllApiResources().ToList().Adapt<List<ApiResourceDto>>();
         }
 
         [HttpPut]

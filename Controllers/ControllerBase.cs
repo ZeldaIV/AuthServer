@@ -1,9 +1,8 @@
 using AuthServer.Data;
 using AuthServer.Utilities;
-using AutoMapper;
 using IdentityServer4.Services;
+using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace AuthServer.Controllers
 {

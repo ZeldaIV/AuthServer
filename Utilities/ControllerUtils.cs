@@ -1,7 +1,6 @@
 using AuthServer.Data;
-using AutoMapper;
 using IdentityServer4.Services;
-using Microsoft.Extensions.Logging;
+using MapsterMapper;
 
 namespace AuthServer.Utilities
 {

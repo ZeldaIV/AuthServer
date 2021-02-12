@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Serilog;
 
 namespace AuthServer.Controllers
@@ -153,7 +152,6 @@ namespace AuthServer.Controllers
         [Route("isSignedIn")]
         public bool IsSignedIn()
         {
-            Log.Information($"=====>>> {User?.Identity?.IsAuthenticated}");
             return User?.Identity?.IsAuthenticated ?? false;
         }
         
