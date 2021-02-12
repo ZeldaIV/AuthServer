@@ -12,7 +12,9 @@
 
 module Data.ClientDto exposing (ClientDto, decoder, encode, encodeWithTag, toString)
 
-import Uuid exposing (Uuid)
+import DateTime exposing (DateTime)
+import DateTime exposing (DateTime)
+import DateTime exposing (DateTime)
 import Dict exposing (Dict)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
@@ -20,26 +22,42 @@ import Json.Encode as Encode
 
 
 type alias ClientDto =
-    { clientId : Maybe (Uuid)
+    { id : (Maybe Int)
+    , clientId : (Maybe String)
     , enabled : Maybe (Bool)
+    , clientName : (Maybe String)
+    , description : (Maybe String)
+    , clientUri : (Maybe String)
+    , logoUri : (Maybe String)
     , clientSecrets : (Maybe (List String))
-    , allowedGrantTypes : Maybe (Object)
+    , allowedGrantTypes : (Maybe (List String))
     , redirectUris : (Maybe (List String))
     , allowedScopes : (Maybe (List String))
     , postLogoutRedirectUris : (Maybe (List String))
+    , created : Maybe (DateTime)
+    , updated : (Maybe DateTime)
+    , lastAccessed : (Maybe DateTime)
     }
 
 
 decoder : Decoder ClientDto
 decoder =
     Decode.succeed ClientDto
-        |> optional "clientId" (Decode.nullable Uuid.decoder) Nothing
+        |> optional "id" (Decode.nullable Decode.int) Nothing
+        |> optional "clientId" (Decode.nullable Decode.string) Nothing
         |> optional "enabled" (Decode.nullable Decode.bool) Nothing
+        |> optional "clientName" (Decode.nullable Decode.string) Nothing
+        |> optional "description" (Decode.nullable Decode.string) Nothing
+        |> optional "clientUri" (Decode.nullable Decode.string) Nothing
+        |> optional "logoUri" (Decode.nullable Decode.string) Nothing
         |> optional "clientSecrets" (Decode.nullable (Decode.list Decode.string)) Nothing
-        |> optional "allowedGrantTypes" (Decode.nullable Object.decoder) Nothing
+        |> optional "allowedGrantTypes" (Decode.nullable (Decode.list Decode.string)) Nothing
         |> optional "redirectUris" (Decode.nullable (Decode.list Decode.string)) Nothing
         |> optional "allowedScopes" (Decode.nullable (Decode.list Decode.string)) Nothing
         |> optional "postLogoutRedirectUris" (Decode.nullable (Decode.list Decode.string)) Nothing
+        |> optional "created" (Decode.nullable DateTime.decoder) Nothing
+        |> optional "updated" (Decode.nullable DateTime.decoder) Nothing
+        |> optional "lastAccessed" (Decode.nullable DateTime.decoder) Nothing
 
 
 
@@ -55,13 +73,21 @@ encodeWithTag (tagField, tag) model =
 
 encodePairs : ClientDto -> List (String, Encode.Value)
 encodePairs model =
-    [ ( "clientId", Maybe.withDefault Encode.null (Maybe.map Uuid.encode model.clientId) )
+    [ ( "id", Maybe.withDefault Encode.null (Maybe.map Encode.int model.id) )
+    , ( "clientId", Maybe.withDefault Encode.null (Maybe.map Encode.string model.clientId) )
     , ( "enabled", Maybe.withDefault Encode.null (Maybe.map Encode.bool model.enabled) )
+    , ( "clientName", Maybe.withDefault Encode.null (Maybe.map Encode.string model.clientName) )
+    , ( "description", Maybe.withDefault Encode.null (Maybe.map Encode.string model.description) )
+    , ( "clientUri", Maybe.withDefault Encode.null (Maybe.map Encode.string model.clientUri) )
+    , ( "logoUri", Maybe.withDefault Encode.null (Maybe.map Encode.string model.logoUri) )
     , ( "clientSecrets", Maybe.withDefault Encode.null (Maybe.map (Encode.list Encode.string) model.clientSecrets) )
-    , ( "allowedGrantTypes", Maybe.withDefault Encode.null (Maybe.map Object.encode model.allowedGrantTypes) )
+    , ( "allowedGrantTypes", Maybe.withDefault Encode.null (Maybe.map (Encode.list Encode.string) model.allowedGrantTypes) )
     , ( "redirectUris", Maybe.withDefault Encode.null (Maybe.map (Encode.list Encode.string) model.redirectUris) )
     , ( "allowedScopes", Maybe.withDefault Encode.null (Maybe.map (Encode.list Encode.string) model.allowedScopes) )
     , ( "postLogoutRedirectUris", Maybe.withDefault Encode.null (Maybe.map (Encode.list Encode.string) model.postLogoutRedirectUris) )
+    , ( "created", Maybe.withDefault Encode.null (Maybe.map DateTime.encode model.created) )
+    , ( "updated", Maybe.withDefault Encode.null (Maybe.map DateTime.encode model.updated) )
+    , ( "lastAccessed", Maybe.withDefault Encode.null (Maybe.map DateTime.encode model.lastAccessed) )
     ]
 
 

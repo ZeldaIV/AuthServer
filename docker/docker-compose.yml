@@ -28,7 +28,7 @@ services:
     volumes:
       - seq-vol:/data
     networks:
-      - default
+      - auth-server-backend
     env_file:
       - seq.env
     restart: unless-stopped

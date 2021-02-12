@@ -7,11 +7,12 @@ using AuthServer.Authorization;
 using AuthServer.AutoMapperConfig;
 using AuthServer.Configuration;
 using AuthServer.Data;
+using AuthServer.Swagger;
 using AuthServer.Utilities;
-using AutoMapper;
+using Mapster;
+using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -41,7 +42,6 @@ namespace AuthServer
 
         public IConfiguration Configuration { get; }
 
-
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -52,13 +52,12 @@ namespace AuthServer
             //     options.MinimumSameSitePolicy = SameSiteMode.None;
             // });
 
-
             var mysqlConnectionString = Configuration.GetConnectionString("MysqlConnectionString");
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
             var dbServerVersion = new MariaDbServerVersion(new Version(10, 3, 9));
 
             services.AddAutoMapper(MapperConfig.Configure);
-            
+
             services.AddDbContextPool<ApplicationDbContext>(
                 options =>
                 {
@@ -69,6 +68,7 @@ namespace AuthServer
                         }
                     );
                 });
+            
             services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -116,11 +116,15 @@ namespace AuthServer
                     });
             }
             
+            var config = new TypeAdapterConfig();
+            services.AddSingleton(config);
+            services.AddScoped<IMapper, ServiceMapper>();
+            
             services.AddSingleton<IAuthorizationHandler, AdministratorHandler>()
                 .AddScoped<IIdentityServerDbContext, IdentityServerDbContext>()
                 .AddScoped<IStores, Stores>()
                 .AddScoped<IControllerUtils, ControllerUtils>();
-            
+
             
             
             
@@ -134,14 +138,7 @@ namespace AuthServer
             {
                 o.AddPolicy(Cors, builder => { builder.WithOrigins("https://localhost"); });
             });
-            // services.AddControllers(config =>
-            // {
-            //     var policy = new AuthorizationPolicyBuilder()
-            //         .RequireAuthenticatedUser()
-            //         .Build();
-            //     config.Filters.Add(new AuthorizeFilter(policy));
-            //     config.EnableEndpointRouting = false;
-            // });
+            
 
             services.AddSpaStaticFiles(configuration =>
             {
@@ -151,17 +148,22 @@ namespace AuthServer
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "AuthServer API", Version = "v1", Description = "AuthServer Idp"});
+                
                 c.DocumentFilter<DocumentFiler>();
+                c.DocumentFilter<ModelFilter>();
             });
 
-            services.AddMvc(config =>
-                {
-                    var policy = new AuthorizationPolicyBuilder()
-                        .RequireAuthenticatedUser()
-                        .Build();
-                    config.Filters.Add(new AuthorizeFilter(policy));
-                    config.EnableEndpointRouting = false;
-                });
+            services.AddSwaggerGenNewtonsoftSupport();
+
+            services.AddMvc(o =>
+            {
+                var policy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
+                o.Filters.Add(new AuthorizeFilter(policy));
+                o.EnableEndpointRouting = false;
+
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -177,7 +179,6 @@ namespace AuthServer
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();
             }
-
             
 
             app.UseForwardedHeaders(new ForwardedHeadersOptions
@@ -235,7 +236,22 @@ namespace AuthServer
     {
         public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
         {
-            swaggerDoc.Servers = new List<OpenApiServer>{ new() { Url = "https://localhost"}};
+            swaggerDoc.Servers = new List<OpenApiServer>{ new() { Url = "https://localhost:5001"}};
+        }
+    }
+
+    public class ModelFilter : IDocumentFilter
+    {
+        public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
+        {
+            foreach (var type in Assembly.GetExecutingAssembly().GetTypes()) 
+                if (type.IsClass || type.IsInterface)
+                {
+                    if (type.GetCustomAttribute(typeof(GenerateModelAttribute)) != null)
+                    {
+                        context.SchemaGenerator.GenerateSchema(type, context.SchemaRepository);
+                    }
+                }
         }
     }
 }

@@ -10,11 +10,9 @@
 -}
 
 
-module Request.Clients exposing (clientsGet, clientsPut)
+module Request.Clients exposing (clientsGet, clientsPatch, clientsPut)
 
 import Data.ClientDto as ClientDto exposing (ClientDto)
-import Data.Object as Object exposing (Object)
-import Uuid exposing (Uuid)
 import Dict
 import Http
 import Json.Decode as Decode
@@ -25,7 +23,7 @@ import Url.Builder as Url
 
 basePath : String
 basePath =
-    "https://localhost"
+    "https://localhost:5001"
 
 
 clientsGet :
@@ -51,13 +49,36 @@ clientsGet params =
         }
 
 
+clientsPatch :
+    { onSend : Result Http.Error () -> msg
+
+
+    , body : Maybe ClientDto
+
+
+    }
+    -> Cmd msg
+clientsPatch params =
+    Http.request
+        { method = "PATCH"
+        , headers = List.filterMap identity []
+        , url = Url.crossOrigin basePath
+            ["Clients"]
+            (List.filterMap identity [])
+        , body = Maybe.withDefault Http.emptyBody <| Maybe.map (Http.jsonBody << ClientDto.encode) params.body
+        , expect = Http.expectWhatever params.onSend
+        , timeout = Just 30000
+        , tracker = Nothing
+        }
+
+
 clientsPut :
-    { onSend : Result Http.Error Bool -> msg
+    { onSend : Result Http.Error () -> msg
 
 
+    , body : Maybe ClientDto
 
 
-    , clientId : Maybe (Uuid)    , enabled : Maybe (Bool)    , clientSecrets : Maybe (List String)    , allowedGrantTypes : Maybe (Object)    , redirectUris : Maybe (List String)    , allowedScopes : Maybe (List String)    , postLogoutRedirectUris : Maybe (List String)
     }
     -> Cmd msg
 clientsPut params =
@@ -66,9 +87,9 @@ clientsPut params =
         , headers = List.filterMap identity []
         , url = Url.crossOrigin basePath
             ["Clients"]
-            (List.filterMap identity [Maybe.map (Url.string "ClientId" << Uuid.toString) params.clientId, Maybe.map (Url.string "Enabled" << (\val -> if val then "true" else "false")) params.enabled, Maybe.map (Url.string "ClientSecrets" << String.join "," << List.map identity) params.clientSecrets, Maybe.map (Url.string "AllowedGrantTypes" << Object.toString) params.allowedGrantTypes, Maybe.map (Url.string "RedirectUris" << String.join "," << List.map identity) params.redirectUris, Maybe.map (Url.string "AllowedScopes" << String.join "," << List.map identity) params.allowedScopes, Maybe.map (Url.string "PostLogoutRedirectUris" << String.join "," << List.map identity) params.postLogoutRedirectUris])
-        , body = Http.emptyBody
-        , expect = Http.expectJson params.onSend Decode.bool
+            (List.filterMap identity [])
+        , body = Maybe.withDefault Http.emptyBody <| Maybe.map (Http.jsonBody << ClientDto.encode) params.body
+        , expect = Http.expectWhatever params.onSend
         , timeout = Just 30000
         , tracker = Nothing
         }

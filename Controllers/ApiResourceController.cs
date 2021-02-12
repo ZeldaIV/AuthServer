@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AuthServer.Dtos;
 using AuthServer.Utilities;
 using IdentityServer4.EntityFramework.Entities;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,24 +24,21 @@ namespace AuthServer.Controllers
         public List<ApiResourceDto> GetApiResources()
         {
             var apiResources = DbContext.GetAllApiResources().ToList();
-            
-            return Mapper.Map<List<ApiResourceDto>>(apiResources);
+            return apiResources.Adapt<List<ApiResourceDto>>();
         }
 
         [HttpPut]
         [Authorize(Policy = "Administrator")]
         public async Task AddResource([FromBody] ApiResourceDto resource, CancellationToken cancellationToken)
         {
-            var newResource = Mapper.Map<ApiResource>(resource);
-            await DbContext.AddApiResourceAsync(newResource, cancellationToken);
+            await DbContext.AddApiResourceAsync(resource.Adapt<ApiResource>(), cancellationToken);
         }
 
         [HttpPatch]
         [Authorize(Policy = "Administrator")]
         public async Task UpdateResource([FromBody] ApiResourceDto resource, CancellationToken cancellationToken)
         {
-            var update = Mapper.Map<ApiResource>(resource);
-            await DbContext.UpdateApiResourceAsync(update, cancellationToken);
+            await DbContext.UpdateApiResourceAsync(resource.Adapt<ApiResource>(), cancellationToken);
         }
     }
 }
