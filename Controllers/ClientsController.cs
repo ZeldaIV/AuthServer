@@ -3,10 +3,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using AuthServer.Dtos;
 using AuthServer.Utilities;
-using IdentityServer4.EntityFramework.Entities;
+using IdentityServer4.Models;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Client = IdentityServer4.EntityFramework.Entities.Client;
 
 namespace AuthServer.Controllers
 {
@@ -32,7 +33,7 @@ namespace AuthServer.Controllers
 
         [HttpPatch]
         [Authorize(Policy = "Administrator")]
-        public async Task UpdateClean([FromBody] ClientDto client, CancellationToken cancellationToken)
+        public async Task UpdateClient([FromBody] ClientDto client, CancellationToken cancellationToken)
         {
             await DbContext.UpdateClient(client.Adapt<Client>(), cancellationToken);
         }

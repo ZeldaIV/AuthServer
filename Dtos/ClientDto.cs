@@ -13,7 +13,7 @@ namespace AuthServer.Dtos
         public string ClientUri { get; set; }
         public string LogoUri { get; set; }
         public List<string> ClientSecrets { get; set; }
-        public List<string> AllowedGrantTypes { get; set; }
+        public List<GrantTypesDto> AllowedGrantTypes { get; set; }
         public List<string> RedirectUris { get; set; }
         public List<string> AllowedScopes { get; set; }
         public List<string> PostLogoutRedirectUris { get; set; }

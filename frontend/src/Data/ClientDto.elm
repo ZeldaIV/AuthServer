@@ -10,7 +10,7 @@
 -}
 
 
-module Data.ClientDto exposing (ClientDto, decoder, encode, encodeWithTag, toString)
+module Data.ClientDto exposing (ClientDto, AllowedGrantTypes(..), decoder, encode, encodeWithTag, toString)
 
 import DateTime exposing (DateTime)
 import DateTime exposing (DateTime)
@@ -30,7 +30,7 @@ type alias ClientDto =
     , clientUri : (Maybe String)
     , logoUri : (Maybe String)
     , clientSecrets : (Maybe (List String))
-    , allowedGrantTypes : (Maybe (List String))
+    , allowedGrantTypes : (Maybe (List AllowedGrantTypes))
     , redirectUris : (Maybe (List String))
     , allowedScopes : (Maybe (List String))
     , postLogoutRedirectUris : (Maybe (List String))
@@ -38,6 +38,21 @@ type alias ClientDto =
     , updated : (Maybe DateTime)
     , lastAccessed : (Maybe DateTime)
     }
+
+
+type AllowedGrantTypes
+    = NotSet
+    | Implicit
+    | ImplicitAndClientCredentials
+    | Code
+    | CodeAndClientCredentials
+    | Hybrid
+    | HybridAndClientCredentials
+    | ClientCredentials
+    | ResourceOwnerPassword
+    | ResourceOwnerPasswordAndClientCredentials
+    | DeviceFlow
+
 
 
 decoder : Decoder ClientDto
@@ -51,7 +66,7 @@ decoder =
         |> optional "clientUri" (Decode.nullable Decode.string) Nothing
         |> optional "logoUri" (Decode.nullable Decode.string) Nothing
         |> optional "clientSecrets" (Decode.nullable (Decode.list Decode.string)) Nothing
-        |> optional "allowedGrantTypes" (Decode.nullable (Decode.list Decode.string)) Nothing
+        |> optional "allowedGrantTypes" (Decode.nullable (Decode.list allowedGrantTypesDecoder)) Nothing
         |> optional "redirectUris" (Decode.nullable (Decode.list Decode.string)) Nothing
         |> optional "allowedScopes" (Decode.nullable (Decode.list Decode.string)) Nothing
         |> optional "postLogoutRedirectUris" (Decode.nullable (Decode.list Decode.string)) Nothing
@@ -81,7 +96,7 @@ encodePairs model =
     , ( "clientUri", Maybe.withDefault Encode.null (Maybe.map Encode.string model.clientUri) )
     , ( "logoUri", Maybe.withDefault Encode.null (Maybe.map Encode.string model.logoUri) )
     , ( "clientSecrets", Maybe.withDefault Encode.null (Maybe.map (Encode.list Encode.string) model.clientSecrets) )
-    , ( "allowedGrantTypes", Maybe.withDefault Encode.null (Maybe.map (Encode.list Encode.string) model.allowedGrantTypes) )
+    , ( "allowedGrantTypes", Maybe.withDefault Encode.null (Maybe.map (Encode.list encodeAllowedGrantTypes) model.allowedGrantTypes) )
     , ( "redirectUris", Maybe.withDefault Encode.null (Maybe.map (Encode.list Encode.string) model.redirectUris) )
     , ( "allowedScopes", Maybe.withDefault Encode.null (Maybe.map (Encode.list Encode.string) model.allowedScopes) )
     , ( "postLogoutRedirectUris", Maybe.withDefault Encode.null (Maybe.map (Encode.list Encode.string) model.postLogoutRedirectUris) )
@@ -95,6 +110,90 @@ encodePairs model =
 toString : ClientDto -> String
 toString =
     Encode.encode 0 << encode
+
+
+
+
+allowedGrantTypesDecoder : Decoder AllowedGrantTypes
+allowedGrantTypesDecoder =
+    Decode.string
+        |> Decode.andThen
+            (\str ->
+                case str of
+                    "NotSet" ->
+                        Decode.succeed NotSet
+
+                    "Implicit" ->
+                        Decode.succeed Implicit
+
+                    "ImplicitAndClientCredentials" ->
+                        Decode.succeed ImplicitAndClientCredentials
+
+                    "Code" ->
+                        Decode.succeed Code
+
+                    "CodeAndClientCredentials" ->
+                        Decode.succeed CodeAndClientCredentials
+
+                    "Hybrid" ->
+                        Decode.succeed Hybrid
+
+                    "HybridAndClientCredentials" ->
+                        Decode.succeed HybridAndClientCredentials
+
+                    "ClientCredentials" ->
+                        Decode.succeed ClientCredentials
+
+                    "ResourceOwnerPassword" ->
+                        Decode.succeed ResourceOwnerPassword
+
+                    "ResourceOwnerPasswordAndClientCredentials" ->
+                        Decode.succeed ResourceOwnerPasswordAndClientCredentials
+
+                    "DeviceFlow" ->
+                        Decode.succeed DeviceFlow
+
+                    other ->
+                        Decode.fail <| "Unknown type: " ++ other
+            )
+
+
+
+encodeAllowedGrantTypes : AllowedGrantTypes -> Encode.Value
+encodeAllowedGrantTypes model =
+    case model of
+        NotSet ->
+            Encode.string "NotSet"
+
+        Implicit ->
+            Encode.string "Implicit"
+
+        ImplicitAndClientCredentials ->
+            Encode.string "ImplicitAndClientCredentials"
+
+        Code ->
+            Encode.string "Code"
+
+        CodeAndClientCredentials ->
+            Encode.string "CodeAndClientCredentials"
+
+        Hybrid ->
+            Encode.string "Hybrid"
+
+        HybridAndClientCredentials ->
+            Encode.string "HybridAndClientCredentials"
+
+        ClientCredentials ->
+            Encode.string "ClientCredentials"
+
+        ResourceOwnerPassword ->
+            Encode.string "ResourceOwnerPassword"
+
+        ResourceOwnerPasswordAndClientCredentials ->
+            Encode.string "ResourceOwnerPasswordAndClientCredentials"
+
+        DeviceFlow ->
+            Encode.string "DeviceFlow"
 
 
 

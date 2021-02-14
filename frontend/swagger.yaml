@@ -12,6 +12,9 @@ paths:
         - Account
       requestBody:
         content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
           application/json:
             schema:
               $ref: '#/components/schemas/LoginRequest'
@@ -98,6 +101,9 @@ paths:
         - ApiResource
       requestBody:
         content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/ApiResourceDto'
           application/json:
             schema:
               $ref: '#/components/schemas/ApiResourceDto'
@@ -115,6 +121,9 @@ paths:
         - ApiResource
       requestBody:
         content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/ApiResourceDto'
           application/json:
             schema:
               $ref: '#/components/schemas/ApiResourceDto'
@@ -155,6 +164,9 @@ paths:
         - Clients
       requestBody:
         content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/ClientDto'
           application/json:
             schema:
               $ref: '#/components/schemas/ClientDto'
@@ -172,6 +184,9 @@ paths:
         - Clients
       requestBody:
         content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/ClientDto'
           application/json:
             schema:
               $ref: '#/components/schemas/ClientDto'
@@ -359,6 +374,18 @@ components:
         allowedGrantTypes:
           type: array
           items:
+            enum:
+              - NotSet
+              - Implicit
+              - ImplicitAndClientCredentials
+              - Code
+              - CodeAndClientCredentials
+              - Hybrid
+              - HybridAndClientCredentials
+              - ClientCredentials
+              - ResourceOwnerPassword
+              - ResourceOwnerPasswordAndClientCredentials
+              - DeviceFlow
             type: string
           nullable: true
         redirectUris:
