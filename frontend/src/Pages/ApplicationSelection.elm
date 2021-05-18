@@ -1,4 +1,4 @@
-module Pages.ApplicationSelection exposing (Params, Model, Msg, page)
+module Pages.ApplicationSelection exposing (Model, Msg, page)
 
 import Array exposing (Array)
 import Bootstrap.Badge as Badge
@@ -17,37 +17,30 @@ import Bootstrap.Utilities.Spacing as Spacing
 import Bootstrap.Utilities.Border as Border
 import Data.ApiResourceDto exposing (ApiResourceDto)
 import Data.ClientDto exposing (AllowedGrantTypes(..), ClientDto)
-import DateTime
 import Html exposing (Html, div, h1, text)
 import Html.Attributes exposing (for, style)
 import Html.Events exposing (onClick)
 import Http exposing (Error)
+import Page
+import Request exposing (Request)
 import Request.ApiResource as ApiResource
 import Request.Clients as Clients
-import Spa.Document exposing (Document)
-import Spa.Page as Page exposing (Page)
-import Spa.Url exposing (Url)
-import Task
+import Shared
+
 import Time
+import View exposing (View)
 
-page : Page Params Model Msg
-page =
-    Page.element
-        { init = init
-        , update = update
-        , view = view
-        , subscriptions = subscriptions
-        }
-
-
+page : Shared.Model -> Request -> Page.With Model Msg
+page _ _ =
+    Page.protected.element
+        (\_ ->
+            { init = init
+            , update = update
+            , view = view
+            , subscriptions = subscriptions
+            })
 
 -- INIT
-
-
-type alias Params =
-    ()
-
-
 type alias Model =
     { apiForm: ApiForm
     , clientForm: ClientForm
@@ -56,8 +49,8 @@ type alias Model =
     , mode: ApplicationMode}
 
 
-init : Url Params -> ( Model, Cmd Msg )
-init { params } =
+init : ( Model, Cmd Msg )
+init =
     ( { apiForm = initialApiForm
        , clientForm = initialClientForm
        , grantTypes = initialGrantTypes
@@ -130,10 +123,10 @@ fromClientFormToModel form =
 addedNewResource: Result Error () -> Msg
 addedNewResource result =
     case result of
-        Ok value ->
+        Ok _ ->
             AddApplicationMode None
 
-        Err error ->
+        Err _ ->
             AddApplicationMode None
         
             
@@ -309,7 +302,7 @@ subscriptions model =
 -- VIEW
 
 
-view : Model -> Document Msg
+view : Model -> View Msg
 view model =
     { title = "ApplicationSelection"
     , body = [ applicationSelectionView model ]

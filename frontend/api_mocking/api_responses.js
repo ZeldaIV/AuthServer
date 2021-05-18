@@ -9,7 +9,8 @@ exports.maybeLoginRequest = function (req, res) {
 exports.maybeGetUserRequest = function (req, res) {
     if (req.method === 'GET' && req.url === '/Account/user') {
         res.writeHead(200, {'Content-Type': 'text/plain'});
-        res.end('\"Auser\"');
+        res.write(JSON.stringify(user));
+        res.end();
     }
 }
 
@@ -22,7 +23,19 @@ exports.maybeGetApiResourceRequest = function (req, res) {
     }
 }
 
+exports.maybeIsSignedIn = function (req, res) {
+    if (req.method === "GET" && req.url === "/Account/isSignedIn") {
+        res.writeHead(200, {'Content-Type': 'application/json'});
+        //res.write(true)
+        res.body = true;
+        res.end();
+    }
+}
 
+const user = {
+    userName: "Auser",
+    email: "auser@email.com"
+}
 
 const apiResources = [
     {

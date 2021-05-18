@@ -49,13 +49,13 @@ paths:
           content:
             text/plain:
               schema:
-                type: string
+                $ref: '#/components/schemas/UserDto'
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/UserDto'
             text/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/UserDto'
   /Account/isSignedIn:
     get:
       tags:

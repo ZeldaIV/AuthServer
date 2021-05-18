@@ -23,6 +23,8 @@ https.createServer(options, (req, res) => {
     responses.maybeGetUserRequest(req, res);
 
     responses.maybeGetApiResourceRequest(req, res);
+
+    responses.maybeIsSignedIn(req, res);
     
     console.log('Rsponding with: ')
     console.log('\tstatusCode:', res.statusCode);
@@ -35,5 +37,5 @@ https.createServer(options, (req, res) => {
         res.end();
     }
     
-}).listen(3001);
+}).listen(5001);
 

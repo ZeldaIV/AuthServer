@@ -1,35 +1,26 @@
-module Pages.Top exposing (Model, Msg, Params, page)
+module Pages.Top exposing (Msg, page)
 
 import Html exposing (..)
-import Spa.Document exposing (Document)
-import Spa.Page as Page exposing (Page)
-import Spa.Url exposing (Url)
-
-
-type alias Params =
-    ()
-
-
-type alias Model =
-    Url Params
+import Shared
+import Page exposing (Page)
+import Request exposing (Request)
+import View exposing (View)
 
 
 type alias Msg =
     Never
 
 
-page : Page Params Model Msg
-page =
+page : Shared.Model -> Request -> Page
+page _ req =
     Page.static
-        { view = view
+        { view = view req
         }
-
-
 
 -- VIEW
 
 
-view : Url Params -> Document Msg
+view : Request -> View Msg
 view { params } =
     { title = "Homepage"
     , body = [ text "Homepage" ]

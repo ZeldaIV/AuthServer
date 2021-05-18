@@ -1,134 +1,89 @@
 module Shared exposing
     ( Flags
     , Model
-    , Msg
+    , Msg(..)
     , init
     , subscriptions
     , update
     , view
-    , User
     )
 
 import Bootstrap.Navbar as Navbar
-import Browser.Navigation as Nav exposing (Key)
 import Data.ApiResourceDto exposing (ApiResourceDto)
+import Gen.Route
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, href)
-import Http exposing (Error)
-import Json.Decode as Decode exposing (Decoder, field)
-import Request.Account as Account
-import Spa.Document exposing (Document)
-import Spa.Generated.Route as Route
-import Url exposing (Url)
-
+import Json.Decode as Decode exposing (Decoder)
+import Request exposing (Request)
+import Storage exposing (Storage)
+import View exposing (View)
 
 
 -- INIT
-
-
 type alias Flags =
     Decode.Value
 
-type alias User = 
-    { username: String
-    }
-
 type alias Model =
-    { url : Url
-    , key : Key
-    , navBarState : Navbar.State
-    , user: Maybe User
-    , isSignedIn: Bool
+    { navBarState : Navbar.State
+    , storage: Storage
     , apiResources: Maybe (List ApiResourceDto)
     }
 
 
-init : Flags -> Url -> Key -> ( Model, Cmd Msg )
-init flags url key =
+init : Request -> Flags -> ( Model, Cmd Msg )
+init req flags =
     let
         ( navbarState, navbarCmd ) =
-            Navbar.initialState NavMsg
-    in
-    case Decode.decodeValue userStateDecoder flags of
-        Ok value ->
-            ( Model url key navbarState (Just value) False Nothing
-            , navbarCmd
-            )            
-        
-        Err _ ->
-            ( Model url key navbarState Nothing False Nothing
-            , navbarCmd
-            )                  
-              
-userStateDecoder: Decoder User
-userStateDecoder =
-    (Decode.map User
-        (field "username" Decode.string) )
-       
+                    Navbar.initialState NavMsg
 
-signedInResult: Result Error Bool -> Msg
-signedInResult result =
-    case result of
-        Ok value ->
-            IsSignedIn value
-        Err _ ->
-            IsSignedIn False -- TODO: Handle errors 
-    
+        model =
+            { navBarState = navbarState
+            , storage = Storage.fromJson flags
+            , apiResources = Nothing
+            }
+    in
+    ( model
+    , if model.storage.user /= Nothing && req.route == Gen.Route.Login then
+       Request.replaceRoute Gen.Route.Login req
+      else
+       navbarCmd
+     )
 
 -- UPDATE
-
-
 type Msg
     = NavMsg Navbar.State
-    | OnSignin User
-    | OnSignOut
-    | IsSignedIn Bool
+    | SignOut
+    | StorageUpdated Storage
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Request -> Msg -> Model -> ( Model, Cmd Msg )
+update _ msg model =
     case msg of    
         NavMsg state ->
-            ( { model | navBarState = state }, Account.accountIsSignedInGet { onSend = signedInResult } )
-
-        OnSignin user ->
-            ( { model | user = Just user }, Cmd.none )
-        OnSignOut ->
-            ( { model | user = Nothing }, Cmd.none )
-
-        IsSignedIn signedIn ->
-            ( {model | isSignedIn = signedIn}, 
-             if signedIn then
-                Cmd.none
-             else
-                (Nav.pushUrl model.key (Route.toString Route.Login))
-             )
+            ( { model | navBarState = state }, Cmd.none )
+        SignOut ->
+            ( model, Storage.signOut model.storage )
+        StorageUpdated storage ->
+            ( {model | storage = storage} , Cmd.none)
             
-            
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    Sub.none
-
-
 
 -- VIEW
-
-
-view :
-    { page : Document msg, toMsg : Msg -> msg }
+view : Request
+    -> { page : View msg, toMsg : Msg -> msg }
     -> Model
-    -> Document msg
-view { page, toMsg } model =
+    -> View msg
+view _ { page, toMsg } model =
     { title = page.title
     , body =
-        if model.isSignedIn then
-            [ Html.map toMsg (menu model)
-                , div [ class "page" ] page.body
-            ]
-        else
-            page.body 
+        [ Html.map toMsg (menu model)
+        , div [ class "page" ] page.body
+        ]
+        --if model.storage.user /= Nothing then
+        --    [ Html.map toMsg (menu model)
+        --        , div [ class "page" ] page.body
+        --    ]
+        --else
+        --    page.body
     }
 
 menu : Model -> Html Msg
@@ -137,10 +92,11 @@ menu model =
         |> Navbar.withAnimation
         |> Navbar.brand [] [ text "Auth server" ]
         |> Navbar.items
-            [ Navbar.itemLink [ href (Route.toString Route.Applications) ] [ text "Applications" ]
-            , Navbar.itemLink [ href (Route.toString Route.Users) ] [ text "Users" ]
+            [ Navbar.itemLink [ href (Gen.Route.toHref Gen.Route.Applications) ] [ text "Applications" ]
+            , Navbar.itemLink [ href (Gen.Route.toHref Gen.Route.Users) ] [ text "Users" ]
             ]
         |> Navbar.view model.navBarState
 
-
-            
+subscriptions : Request -> Model -> Sub Msg
+subscriptions _ _ =
+    Storage.load StorageUpdated

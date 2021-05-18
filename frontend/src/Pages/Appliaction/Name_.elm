@@ -1,4 +1,4 @@
-module Pages.Applications.Name_String exposing (Params, Model, Msg, page)
+module Pages.Appliaction.Name_ exposing (Model, Msg, page)
 
 import Bootstrap.Button as Button
 import Bootstrap.Form as Form exposing (Col)
@@ -8,34 +8,30 @@ import Bootstrap.Form.Input as Input
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
 import Data.ApiResourceDto exposing (ApiResourceDto)
-import Html exposing (Html, h1, text)
-import Http exposing (Error)
+import Gen.Params.Appliaction.Name_ exposing (Params)
+import Page
+import Request
 import Request.ApiResource exposing (apiResourceGet, apiResourcePatch)
 import Shared
-import Spa.Document exposing (Document)
-import Spa.Page as Page exposing (Page)
-import Spa.Url as Url exposing (Url)
+import Html exposing (Html, h1, text)
+import Http exposing (Error)
+import View exposing (View)
 
 
-page : Page Params Model Msg
-page =
-    Page.application
-        { init = init
-        , update = update
-        , subscriptions = subscriptions
-        , view = view
-        , save = save
-        , load = load
-        }
+page : Shared.Model -> Request.With Params -> Page.With Model Msg
+page shared req =
+    Page.protected.element
+        (\_ ->
+            { init = init shared req.params
+            , update = update
+            , view = view
+            , subscriptions = subscriptions
+            })
+
 
 
 
 -- INIT
-
-
-type alias Params =
-    { name : String }
-
 
 type alias Model =
     { apiResource: ApiResource
@@ -53,14 +49,29 @@ type alias ApiResource =
     , scopes : (List String)
     }
 
-init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
-init shared { params } =
+init : Shared.Model -> Params -> ( Model, Cmd Msg )
+init shared params  =
     let
         resource =
             (resourceFromList params.name shared.apiResources) |> dtoToModel
     in
     ({ apiResource = resource, form = resource, allResources = shared.apiResources }, Cmd.none )
 
+resourceFromList: String -> Maybe (List ApiResourceDto) -> Maybe ApiResourceDto
+resourceFromList name resources =
+    case resources of
+        Just a ->
+            List.head (List.filter (matchingName name) a)
+        Nothing ->
+            Nothing
+
+matchingName: String -> ApiResourceDto -> Bool
+matchingName name resource =
+    case resource.name of
+        Just a ->
+            a == name
+        Nothing ->
+            False
 
 dtoToModel: Maybe ApiResourceDto -> ApiResource
 dtoToModel dto =
@@ -81,7 +92,8 @@ dtoToModel dto =
             , description = ""
             , apiSecrets = [""]
             , scopes = [""]}
-            
+-- UPDATE
+
 modelToDto: ApiResource -> ApiResourceDto
 modelToDto r =
     { id = Just r.id
@@ -92,25 +104,6 @@ modelToDto r =
     , apiSecrets = Just r.apiSecrets
     , enabled = Just r.enabled
     }
-            
-
-resourceFromList: String -> Maybe (List ApiResourceDto) -> Maybe ApiResourceDto
-resourceFromList name resources =
-    case resources of
-        Just a ->
-            List.head (List.filter (matchingName name) a)
-        Nothing ->
-            Nothing
-
-matchingName: String -> ApiResourceDto -> Bool
-matchingName name resource =
-    case resource.name of
-        Just a ->        
-            a == name
-        Nothing ->
-            False
-    
--- UPDATE
 
 updatedResource: Result Error () -> Msg
 updatedResource result =
@@ -122,15 +115,14 @@ updatedResource result =
             GotError error
 
 newResources: Result Error (List ApiResourceDto) -> Msg
-newResources result = 
+newResources result =
     case result of
         Ok value ->
             UpdateResources value
 
         Err error ->
-            GotError error        
-        
-            
+            GotError error
+
 type Msg
     = NameEntered String
     | DisplayNameEntered String
@@ -173,7 +165,7 @@ update msg model =
             ({ model | form = {resource | scopes = newScopes} }, Cmd.none)
 
         OnReset ->
-            ({ model | form = model.apiResource }, Cmd.none)      
+            ({ model | form = model.apiResource }, Cmd.none)
 
         OnUpdate ->
             let resource = (modelToDto model.form)
@@ -191,46 +183,42 @@ update msg model =
 
 
 
-save : Model -> Shared.Model -> Shared.Model
-save model shared =
-    shared
-
-
-load : Shared.Model -> Model -> ( Model, Cmd Msg )
-load shared model =
-    ( model, Cmd.none )
+-- SUBSCRIPTIONS
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
+
+
 
 -- VIEW
 
+
 textInputRow: { id: String, title: String, value: String, help: String, msg: (String -> msg)} -> List (Col msg)
-textInputRow opts = 
+textInputRow opts =
     [ Form.colLabel [Col.sm2] [ text opts.title ]
-    , Form.col [Col.sm10] 
-        [ Grid.row [] 
-          [ Grid.col [Col.xs4] 
+    , Form.col [Col.sm10]
+        [ Grid.row []
+          [ Grid.col [Col.xs4]
             [ Input.text [Input.id opts.id, Input.value opts.value, Input.onInput opts.msg]
             , Form.help [] [ text opts.help ]]
           ]
          ]
       ]
-      
+
 nameInput: ApiResource -> List (Col Msg)
 nameInput r =
-    (textInputRow 
+    (textInputRow
         { id = "name"
         , title = "Resource name:"
         , value = r.name
         , help = "The name of the resource."
         , msg = NameEntered})
-        
+
 displayNameInput: ApiResource -> List (Col Msg)
 displayNameInput r =
-    (textInputRow 
+    (textInputRow
         { id = "displayName"
         , title = "Display name:"
         , value = r.displayName
@@ -239,7 +227,7 @@ displayNameInput r =
 
 descriptionInput: ApiResource -> List (Col Msg)
 descriptionInput r =
-    (textInputRow 
+    (textInputRow
         { id = "description"
         , title = "Description:"
         , value = r.description
@@ -248,7 +236,7 @@ descriptionInput r =
 
 scopesInput: ApiResource -> List (Col Msg)
 scopesInput r =
-    (textInputRow 
+    (textInputRow
         { id = "scopes"
         , title = "Scopes:"
         , value = String.join "," r.scopes
@@ -256,31 +244,30 @@ scopesInput r =
         , msg = ScopesEntered})
 
 
-view : Model -> Document Msg
+view : Model -> View Msg
 view model =
     { title = model.form.name
-    , body = [ Grid.container [] 
+    , body = [ Grid.container []
                 [ h1 [] [text model.form.name]
                 , Form.form []
                     [ Form.row [] (nameInput model.form)
                     , Form.row [] (displayNameInput model.form)
                     , Form.row [] (descriptionInput model.form)
                     , Form.row [] (scopesInput model.form)
-                    , Form.row [] 
+                    , Form.row []
                         [ Form.colLabel [Col.sm2] [ text "Enable/Disable:"]
                         , Form.col [Col.sm10]
-                            [ Fieldset.config 
-                             |> Fieldset.children 
+                            [ Fieldset.config
+                             |> Fieldset.children
                                 [Checbox.checkbox [Checbox.id "enabled", Checbox.inline, Checbox.checked model.form.enabled, Checbox.onCheck Enabled ] ""]
                              |> Fieldset.view
                              ]
                         ]
-                    , Grid.row [] 
+                    , Grid.row []
                         [ Grid.col [] [Button.button [Button.secondary, Button.onClick OnReset] [text "Reset"]]
                         , Grid.col [] [Button.button [Button.primary, Button.onClick OnUpdate] [text "Update"]]
-                        ] 
+                        ]
                     ]
                 ]
              ]
     }
-    

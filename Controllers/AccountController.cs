@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using AuthServer.Dtos;
 using AuthServer.Utilities;
 using IdentityServer4.Events;
 using IdentityServer4.Extensions;
@@ -143,9 +144,9 @@ namespace AuthServer.Controllers
         [Route("user")]
         [Authorize(Policy = "Administrator")]
         // [ValidateAntiForgeryToken]
-        public string GetUser()
+        public UserDto GetUser()
         {
-            return User?.Identity?.IsAuthenticated == true ? User.Identity.Name : "";
+            return User?.Identity?.IsAuthenticated == true ? new UserDto { UserName = User.Identity.Name } : null;
         }
 
         [HttpGet]

@@ -1,47 +1,42 @@
-module Pages.Login exposing (Params, Model, Msg, page)
+module Pages.Login exposing (Model, Msg, page)
 import Bootstrap.Button as Button
 import Bootstrap.Card as Card
 import Bootstrap.Card.Block as Block
 import Bootstrap.Form as Form
 import Bootstrap.Form.Input as Input
 import Bootstrap.Grid as Grid
-import Browser.Navigation as Nav
+import Bootstrap.Grid.Col as Col
 import Data.LoginRequest exposing (LoginRequest)
+import Data.UserDto exposing (UserDto)
+import Domain.User exposing (User)
+import Gen.Params.Login exposing (Params)
+import Gen.Route
 import Html exposing (Html, text)
 import Html.Attributes exposing (for)
 import Http
-import Ports
+import Page
+import Request exposing (Request)
 import Request.Account as Account
-import Shared exposing (User)
-import Spa.Document exposing (Document)
-import Spa.Generated.Route as Route
-import Spa.Page as Page exposing (Page)
-import Spa.Url exposing (Url)
+
+import Shared
+import Storage exposing (Storage)
+import View exposing (View)
 
 
-page : Page Params Model Msg
-page =
-    Page.application
+page : Shared.Model -> Request.With Params -> Page.With Model Msg
+page shared req =
+    Page.element
         { init = init
-        , update = update
-        , subscriptions = subscriptions
+        , update = update shared.storage req
         , view = view
-        , save = save
-        , load = load
+        , subscriptions = subscriptions
         }
         
 -- INIT
 
-
-type alias Params =
-    ()
-
-
 type alias Model =
     { form: Form
-    , user: Maybe User
-    , isSignedIn: Bool
-    , key: Nav.Key}
+    }
     
 type alias Form =
     { username : String
@@ -50,18 +45,9 @@ type alias Form =
     
 
 
-init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
-init shared { params }  =
-    ( {form = Form "" "", user= shared.user, isSignedIn = shared.isSignedIn, key = shared.key }, Cmd.none )        
-        
-save : Model -> Shared.Model -> Shared.Model
-save model shared =
-    { shared | user = model.user, isSignedIn = model.isSignedIn }
-
-
-load : Shared.Model -> Model -> ( Model, Cmd Msg )
-load shared model =
-    ( { model | user = shared.user, isSignedIn = shared.isSignedIn}, Cmd.none )
+init: ( Model, Cmd Msg )
+init =
+    ( { form = Form "" "" }, Cmd.none )
 
 mapModelToLoginRequest: Form -> LoginRequest
 mapModelToLoginRequest login =
@@ -74,27 +60,29 @@ loginCompleted : Result Http.Error () -> Cmd Msg
 loginCompleted result =
     case result of
         Ok _ ->
-            Account.accountIsSignedInGet { onSend = getUserIsSignedInCompleted }
+            Account.accountUserGet { onSend = getUserCompleted }
             
         Err _ ->
             Cmd.none
             -- TODO: Handle error
-            
-getUserCompleted : Result Http.Error String -> Msg
+
+unwrapUser: UserDto -> User
+unwrapUser dto =
+    User (maybeStringToString dto.userName) (maybeStringToString dto.email)
+
+maybeStringToString: Maybe String -> String
+maybeStringToString s =
+    case s of
+        Just res -> res
+        Nothing -> ""
+
+getUserCompleted : Result Http.Error UserDto -> Msg
 getUserCompleted result = 
     case result of
         Ok val ->
-            GotUser (User val)
+            GotUser (unwrapUser val)
         Err _ ->
-            GotUser (User "")
-            
-getUserIsSignedInCompleted : Result Http.Error Bool -> Msg
-getUserIsSignedInCompleted result = 
-    case result of
-        Ok val ->
-            IsSignedIn val
-        Err _ ->
-            IsSignedIn False -- TODO: Handle error
+            GotUser (User "" "")
 
 -- UPDATE
 
@@ -105,11 +93,10 @@ type Msg
     | OnLogin Form
     | LoginCompleted (Result Http.Error ())
     | GotUser User
-    | IsSignedIn Bool
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update: Storage -> Request -> Msg -> Model -> ( Model, Cmd Msg )
+update storage req msg model =
     case msg of
         SetUsername username ->
             let
@@ -128,22 +115,17 @@ update msg model =
     
         LoginCompleted result ->
             (model, loginCompleted result)
-            
-        IsSignedIn val ->
-            ({model | isSignedIn = val}, 
-                if (val) then
-                    Nav.replaceUrl model.key (Route.toString Route.Applications)
-                else
-                    Cmd.none)
-                
+
         GotUser user ->
-             ({ model | user = Just user }, Cmd.batch 
-             [Ports.saveUser user
-             , Nav.replaceUrl model.key (Route.toString Route.Applications)])
+             (model,
+             Cmd.batch [
+                Storage.signIn {name = user.name, email = user.email} storage,
+                Request.replaceRoute Gen.Route.Applications req
+                ])
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
@@ -151,12 +133,12 @@ subscriptions model =
 -- VIEW
 
 
-view : Model -> Document Msg
+view : Model -> View Msg
 view model =
     { title = "Login"
     , body = [Grid.container []
                   [ Grid.row []
-                      [ Grid.col []
+                      [ Grid.col [Col.xs2]
                           [ Card.config [ Card.outlinePrimary ]
                               |> Card.headerH4 [] [ text "Log In" ]
                               |> Card.block []

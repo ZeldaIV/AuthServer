@@ -1,56 +1,44 @@
-module Pages.Applications exposing (Params, Model, Msg, page)
+module Pages.Applications exposing (Model, Msg, page)
 
 import Bootstrap.Button as Button
 import Bootstrap.Grid as Grid
 import Bootstrap.Table as Table exposing (Row)
-import Browser.Navigation as Nav
 import Data.ApiResourceDto exposing (ApiResourceDto)
 import DateTime exposing (DateTime)
+import Gen.Route
 import Html exposing (Html, h1, text)
 import Html.Attributes exposing (href)
 
 import Html.Events exposing (onClick)
 import Http exposing (Error)
+import Page
+import Request exposing (Request)
 import Request.ApiResource as ApiResource
 import Shared
-import Spa.Document exposing (Document)
-import Spa.Generated.Route as Route
-import Spa.Page as Page exposing (Page)
-import Spa.Url as Url exposing (Url)
 import Uuid exposing (Uuid)
+import View exposing (View)
 
 
-page : Page Params Model Msg
-page =
-    Page.application
-        { init = init
-        , update = update
-        , view = view
-        , subscriptions = subscriptions
-        , load = load
-        , save = save
-        }
-
-
+page : Shared.Model -> Request -> Page.With Model Msg
+page _ req=
+    Page.protected.element
+        (\_ ->
+            { init = init
+            , update = update req
+            , view = view
+            , subscriptions = subscriptions
+            })
 
 -- INIT
-
-
-type alias Params =
-    ()
-
-
 type alias Model =
     { apiResources: List ApiResourceDto
     , error: String
-    , isSignedIn: Bool
-    , key: Nav.Key
     }
 
 
-init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
-init shared { params } =
-    ( { apiResources = [], error = "", isSignedIn = shared.isSignedIn, key = shared.key }, ApiResource.apiResourceGet { onSend = gotResources} )
+init : ( Model, Cmd Msg )
+init =
+    ( { apiResources = [], error = ""}, ApiResource.apiResourceGet { onSend = gotResources} )
 
 
 gotResources: Result Http.Error (List ApiResourceDto) -> Msg
@@ -62,15 +50,6 @@ gotResources result =
         Err error ->
             ErrorGettingResources error
 
-save : Model -> Shared.Model -> Shared.Model
-save model shared =
-    { shared | isSignedIn = model.isSignedIn, apiResources = Just model.apiResources }
-
-
-load : Shared.Model -> Model -> ( Model, Cmd Msg )
-load shared model =
-    ( { model | isSignedIn = shared.isSignedIn }, Cmd.none )
-
 -- UPDATE
 
 
@@ -80,19 +59,19 @@ type Msg
     | ErrorGettingResources Error
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : Request -> Msg -> Model -> ( Model, Cmd Msg )
+update req msg model =
     case msg of
         GotApiResources apiResources ->
             ({ model | apiResources = apiResources}, Cmd.none)
 
-        ErrorGettingResources error ->
+        ErrorGettingResources _ ->
             (model, Cmd.none)
 
         GoToApplication maybeString ->
             (model, case maybeString of
                 Just a ->
-                    Nav.pushUrl model.key (Route.toString (Route.Applications__Name_String {name = a}))
+                    Request.replaceRoute (Gen.Route.Appliaction__Name_ {name = a}) req
                 Nothing ->
                     Cmd.none
             )
@@ -103,7 +82,7 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
@@ -111,7 +90,7 @@ subscriptions model =
 -- VIEW
 
 
-view : Model -> Document Msg
+view : Model -> View Msg
 view model =
     { title = "Applications"
     , body = [applicationsView model]
@@ -166,7 +145,7 @@ createRowsView resources =
 applicationsView: Model -> Html Msg
 applicationsView  model =
      Grid.container []
-        [ Button.linkButton [ Button.primary, Button.block, Button.large, Button.attrs [href (Route.toString Route.ApplicationSelection)] ] [ text "Add new"] 
+        [ Button.linkButton [ Button.primary, Button.block, Button.large, Button.attrs [href (Gen.Route.toHref Gen.Route.ApplicationSelection)] ] [ text "Add new"]
         , h1 [] [ text "Registered applications" ]
         , Table.table 
             { options = [ Table.striped, Table.hover ]

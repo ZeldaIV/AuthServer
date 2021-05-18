@@ -12,6 +12,7 @@
 
 module Request.Account exposing (accountIsSignedInGet, accountLogoutPost, accountPost, accountUserGet)
 
+import Data.UserDto as UserDto exposing (UserDto)
 import Data.LoginRequest as LoginRequest exposing (LoginRequest)
 import Dict
 import Http
@@ -96,7 +97,7 @@ accountPost params =
 
 
 accountUserGet :
-    { onSend : Result Http.Error String -> msg
+    { onSend : Result Http.Error UserDto -> msg
 
 
 
@@ -112,7 +113,7 @@ accountUserGet params =
             ["Account", "user"]
             (List.filterMap identity [])
         , body = Http.emptyBody
-        , expect = Http.expectJson params.onSend Decode.string
+        , expect = Http.expectJson params.onSend UserDto.decoder
         , timeout = Just 30000
         , tracker = Nothing
         }
