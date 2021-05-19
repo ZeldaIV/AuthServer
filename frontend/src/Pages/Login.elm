@@ -6,6 +6,7 @@ import Bootstrap.Form as Form
 import Bootstrap.Form.Input as Input
 import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
+import Bootstrap.Grid.Row as Row
 import Data.LoginRequest exposing (LoginRequest)
 import Data.UserDto exposing (UserDto)
 import Domain.User exposing (User)
@@ -136,9 +137,9 @@ subscriptions _ =
 view : Model -> View Msg
 view model =
     { title = "Login"
-    , body = [Grid.container []
-                  [ Grid.row []
-                      [ Grid.col [Col.xs2]
+    , body = [ Grid.container []
+                  [ Grid.row [Row.middleXs, Row.centerXs]
+                      [ Grid.col [Col.md5]
                           [ Card.config [ Card.outlinePrimary ]
                               |> Card.headerH4 [] [ text "Log In" ]
                               |> Card.block []

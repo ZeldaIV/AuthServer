@@ -1,4 +1,4 @@
-module Pages.Users exposing (Params, Model, Msg, page)
+module Pages.Users exposing (Model, Msg, page)
 
 import Page exposing (Page)
 import Request exposing (Request)
@@ -12,12 +12,12 @@ import Shared
 import View exposing (View)
 
 
-page : Shared.Model -> Request.With Params -> Page.With Model Msg
-page shared req =
+page : Shared.Model -> Request -> Page.With Model Msg
+page _ _ =
     Page.protected.element
         (\_ ->
-           { init = init shared req
-           , update = update req
+           { init = init
+           , update = update
            , view = view
            , subscriptions = subscriptions
            })
@@ -25,31 +25,32 @@ page shared req =
 
 -- INIT
 
-
-type alias Params =
-    ()
-
-
 type alias Model =
-    {}
+    { displayNewUserForm: Bool
+    }
 
 
-init : Shared.Model -> Request.With Params -> ( Model, Cmd Msg )
-init _ { params } =
-    ( {}, Cmd.none )
+init : ( Model, Cmd Msg )
+init =
+    ( {displayNewUserForm = False}, Cmd.none )
 
 -- UPDATE
 
 
 type Msg
-    = ClickMe
+    = CreateNew
+    | ClickMe
 
 
-update : Request.With Params -> Msg -> Model -> ( Model, Cmd Msg )
-update  _ msg model =
+update :Msg -> Model -> ( Model, Cmd Msg )
+update  msg model =
     case msg of
         ClickMe ->
             ( model, Cmd.none )
+
+        CreateNew ->
+            ({model | displayNewUserForm = True}, Cmd.none)
+
 
 
 subscriptions : Model -> Sub Msg
@@ -70,6 +71,7 @@ view _ =
 usersView: List (Html Msg)
 usersView =
     [ h1 [] [ text "Registered users"]
+    , Button.button [Button.primary, Button.onClick CreateNew] [ text "Create new user"]
     , Table.table 
         { options = [ Table.striped, Table.hover ]
       , thead = Table.simpleThead 

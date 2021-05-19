@@ -8,6 +8,7 @@ module Shared exposing
     , view
     )
 
+import Bootstrap.Button as Button
 import Bootstrap.Navbar as Navbar
 import Data.ApiResourceDto exposing (ApiResourceDto)
 import Gen.Route
@@ -75,15 +76,12 @@ view : Request
 view _ { page, toMsg } model =
     { title = page.title
     , body =
-        [ Html.map toMsg (menu model)
-        , div [ class "page" ] page.body
-        ]
-        --if model.storage.user /= Nothing then
-        --    [ Html.map toMsg (menu model)
-        --        , div [ class "page" ] page.body
-        --    ]
-        --else
-        --    page.body
+        if model.storage.user /= Nothing then
+            [ Html.map toMsg (menu model)
+                , div [ class "page" ] page.body
+            ]
+        else
+            page.body
     }
 
 menu : Model -> Html Msg
@@ -94,6 +92,9 @@ menu model =
         |> Navbar.items
             [ Navbar.itemLink [ href (Gen.Route.toHref Gen.Route.Applications) ] [ text "Applications" ]
             , Navbar.itemLink [ href (Gen.Route.toHref Gen.Route.Users) ] [ text "Users" ]
+            ]
+        |> Navbar.customItems
+            [ Navbar.customItem (Button.button [Button.secondary, Button.onClick SignOut] [text "Sign out"])
             ]
         |> Navbar.view model.navBarState
 

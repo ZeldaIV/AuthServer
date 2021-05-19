@@ -15,6 +15,7 @@ https.createServer(options, (req, res) => {
     console.log('\tUrl: ', req.url);
     console.log('\tMethod: ', req.method);
     res.setHeader('Access-Control-Allow-Origin', 'https://127.0.0.1:3001');
+    res.setHeader('Access-Control-Allow-Origin', 'https://localhost:3001');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
     res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
 
