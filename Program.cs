@@ -52,8 +52,10 @@ namespace AuthServer
                         {
                             config.AddCommandLine(args);
                             config.AddJsonFile("appsettings.json");
-                            config.AddJsonFile("appsettings.Development.json", true, true);
-                            config.AddJsonFile("appsettings.Local.json", true, true);
+                            if (context.HostingEnvironment.IsDevelopment())
+                                config.AddJsonFile("appsettings.Development.json", true, true);
+                            if (context.HostingEnvironment.IsEnvironment("Local"))
+                                config.AddJsonFile("appsettings.Local.json", true, true);
 
                             if (context.HostingEnvironment.IsDevelopment() || context.HostingEnvironment.IsEnvironment("Local"))
                             {

@@ -24,7 +24,7 @@ import Url.Builder as Url
 
 basePath : String
 basePath =
-    "https://localhost:5001"
+    "https://localhost"
 
 
 accountIsSignedInGet :

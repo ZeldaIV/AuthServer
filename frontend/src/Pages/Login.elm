@@ -163,3 +163,10 @@ loginForm form =
             , Button.button [ Button.primary, Button.onClick (OnLogin form)  ] [ text "Submit" ]
             ]
         ]
+
+--view: Form -> Html Msg
+--view form =
+--    layout [] <| loginFormV2 form
+--
+--loginFormV2: Form -> Element Msg
+--loginFormV2 form =
