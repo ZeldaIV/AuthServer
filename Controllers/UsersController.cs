@@ -1,7 +1,12 @@
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using AuthServer.Dtos;
 using AuthServer.Utilities;
+using IdentityServer4.EntityFramework.Entities;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AuthServer.Controllers
@@ -21,8 +26,9 @@ namespace AuthServer.Controllers
 
         [HttpPut]
         [Authorize(Policy = "Administrator")]
-        public bool AddUser(UserDto user)
+        public async Task<bool> AddUser(UserDto user, CancellationToken cancellationToken)
         {
+            await DbContext.AddUser(user.Adapt<IdentityUser>(), cancellationToken);
             return true;
         }
     }

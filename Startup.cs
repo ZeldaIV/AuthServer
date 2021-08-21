@@ -51,10 +51,12 @@ namespace AuthServer
             //     options.CheckConsentNeeded = context => true;
             //     options.MinimumSameSitePolicy = SameSiteMode.None;
             // });
-
+            
+            AuthServerTypeAdapterConfig.Configure();
+            
             var mysqlConnectionString = Configuration.GetConnectionString("MysqlConnectionString");
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
-            var dbServerVersion = new MariaDbServerVersion(new Version(10, 3, 9));
+            var dbServerVersion = new MariaDbServerVersion(new Version(10, 6, 4));
 
             services.AddDbContextPool<ApplicationDbContext>(
                 options =>

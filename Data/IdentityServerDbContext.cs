@@ -3,26 +3,31 @@ using System.Threading;
 using System.Threading.Tasks;
 using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.EntityFramework.Entities;
+using Microsoft.AspNetCore.Identity;
 
 namespace AuthServer.Data
 {
     public interface IIdentityServerDbContext
     {
-        public IEnumerable<ApiResource> GetAllApiResources();
-        public Task AddApiResourceAsync(ApiResource resource, CancellationToken cancellationToken);
-        public Task UpdateApiResourceAsync(ApiResource update, CancellationToken cancellationToken);
-        public IEnumerable<Client> GetAllClients();
+        IEnumerable<ApiResource> GetAllApiResources();
+        Task AddApiResourceAsync(ApiResource resource, CancellationToken cancellationToken);
+        Task UpdateApiResourceAsync(ApiResource update, CancellationToken cancellationToken);
+        IEnumerable<Client> GetAllClients();
         Task AddClient(Client client, CancellationToken cancellationToken);
         Task UpdateClient(Client update, CancellationToken cancellationToken);
+        Task AddUser(IdentityUser user, CancellationToken cancellationToken);
+        IEnumerable<IdentityUser> GetUsers(CancellationToken cancellationToken);
     }
     
     public sealed class IdentityServerDbContext : IIdentityServerDbContext
     {
         private readonly ConfigurationDbContext _context;
+        private readonly ApplicationDbContext _appDbContext;
 
-        public IdentityServerDbContext(ConfigurationDbContext context)
+        public IdentityServerDbContext(ConfigurationDbContext context, ApplicationDbContext appDbContext)
         {
             _context = context;
+            _appDbContext = appDbContext;
         }
 
         public IEnumerable<ApiResource> GetAllApiResources()
@@ -85,6 +90,17 @@ namespace AuthServer.Data
             }
             
             await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task AddUser(IdentityUser user, CancellationToken cancellationToken)
+        {
+            await _appDbContext.Users.AddAsync(user, cancellationToken);
+            await _appDbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        public IEnumerable<IdentityUser> GetUsers(CancellationToken cancellationToken)
+        {
+            return _appDbContext.Users;
         }
     }
 }
