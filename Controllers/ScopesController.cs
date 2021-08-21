@@ -12,7 +12,7 @@ namespace AuthServer.Controllers
 {
     public class ScopesController: ControllerBase
     {
-        protected ScopesController(IControllerUtils utils) : base(utils)
+        public ScopesController(IControllerUtils utils) : base(utils)
         {
         }
 

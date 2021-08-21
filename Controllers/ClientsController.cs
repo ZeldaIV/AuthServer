@@ -13,7 +13,7 @@ namespace AuthServer.Controllers
 {
     public class ClientsController: ControllerBase
     {
-        protected ClientsController(IControllerUtils utils) : base(utils)
+        public ClientsController(IControllerUtils utils) : base(utils)
         {
         }
 

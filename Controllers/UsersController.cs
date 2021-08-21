@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AuthServer.Dtos;
 using AuthServer.Utilities;
-using IdentityServer4.EntityFramework.Entities;
 using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -13,7 +12,7 @@ namespace AuthServer.Controllers
 {
     public class UsersController: ControllerBase
     {
-        protected UsersController(IControllerUtils utils) : base(utils)
+        public UsersController(IControllerUtils utils) : base(utils)
         {
         }
 
