@@ -19,12 +19,12 @@ import Json.Encode as Encode
 
 
 type alias UserDto =
-    { userName : Maybe String
-    , email : Maybe String
-    , emailConfirmed : Maybe Bool
-    , phoneNumber : Maybe String
-    , phoneNumberConfirmed : Maybe Bool
-    , twoFactorEnabled : Maybe Bool
+    { userName : (Maybe String)
+    , email : (Maybe String)
+    , emailConfirmed : Maybe (Bool)
+    , phoneNumber : (Maybe String)
+    , phoneNumberConfirmed : Maybe (Bool)
+    , twoFactorEnabled : Maybe (Bool)
     }
 
 
@@ -39,17 +39,18 @@ decoder =
         |> optional "twoFactorEnabled" (Decode.nullable Decode.bool) Nothing
 
 
+
 encode : UserDto -> Encode.Value
 encode =
     Encode.object << encodePairs
 
 
 encodeWithTag : ( String, String ) -> UserDto -> Encode.Value
-encodeWithTag ( tagField, tag ) model =
+encodeWithTag (tagField, tag) model =
     Encode.object <| encodePairs model ++ [ ( tagField, Encode.string tag ) ]
 
 
-encodePairs : UserDto -> List ( String, Encode.Value )
+encodePairs : UserDto -> List (String, Encode.Value)
 encodePairs model =
     [ ( "userName", Maybe.withDefault Encode.null (Maybe.map Encode.string model.userName) )
     , ( "email", Maybe.withDefault Encode.null (Maybe.map Encode.string model.email) )
@@ -60,6 +61,11 @@ encodePairs model =
     ]
 
 
+
 toString : UserDto -> String
 toString =
     Encode.encode 0 << encode
+
+
+
+

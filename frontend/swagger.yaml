@@ -4,9 +4,9 @@ info:
   description: AuthServer Idp
   version: v1
 servers:
-  - url: https://localhost
+  - url: https://localhost/api
 paths:
-  /Account:
+  /api/Account:
     post:
       tags:
         - Account
@@ -27,7 +27,7 @@ paths:
       responses:
         '200':
           description: Success
-  /Account/logout:
+  /api/Account/logout:
     post:
       tags:
         - Account
@@ -39,7 +39,7 @@ paths:
       responses:
         '200':
           description: Success
-  /Account/user:
+  /api/Account/user:
     get:
       tags:
         - Account
@@ -56,7 +56,7 @@ paths:
             text/json:
               schema:
                 $ref: '#/components/schemas/UserDto'
-  /Account/isSignedIn:
+  /api/Account/isSignedIn:
     get:
       tags:
         - Account
@@ -73,7 +73,7 @@ paths:
             text/json:
               schema:
                 type: boolean
-  /ApiResource:
+  /api/ApiResource:
     get:
       tags:
         - ApiResource
@@ -136,7 +136,7 @@ paths:
       responses:
         '200':
           description: Success
-  /Clients:
+  /api/Clients:
     get:
       tags:
         - Clients
@@ -199,7 +199,7 @@ paths:
       responses:
         '200':
           description: Success
-  /Scopes:
+  /api/Scopes:
     get:
       tags:
         - Scopes
@@ -225,15 +225,20 @@ paths:
     put:
       tags:
         - Scopes
-      parameters:
-        - name: Name
-          in: query
-          schema:
-            type: string
-        - name: DisplayName
-          in: query
-          schema:
-            type: string
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/ScopeDto'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScopeDto'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/ScopeDto'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/ScopeDto'
       responses:
         '200':
           description: Success
@@ -247,7 +252,7 @@ paths:
             text/json:
               schema:
                 type: boolean
-  /Users:
+  /api/Users:
     get:
       tags:
         - Users

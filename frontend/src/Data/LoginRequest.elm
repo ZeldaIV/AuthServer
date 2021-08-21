@@ -19,9 +19,9 @@ import Json.Encode as Encode
 
 
 type alias LoginRequest =
-    { username : Maybe String
-    , password : Maybe String
-    , returnUrl : Maybe String
+    { username : (Maybe String)
+    , password : (Maybe String)
+    , returnUrl : (Maybe String)
     }
 
 
@@ -33,17 +33,18 @@ decoder =
         |> optional "returnUrl" (Decode.nullable Decode.string) Nothing
 
 
+
 encode : LoginRequest -> Encode.Value
 encode =
     Encode.object << encodePairs
 
 
 encodeWithTag : ( String, String ) -> LoginRequest -> Encode.Value
-encodeWithTag ( tagField, tag ) model =
+encodeWithTag (tagField, tag) model =
     Encode.object <| encodePairs model ++ [ ( tagField, Encode.string tag ) ]
 
 
-encodePairs : LoginRequest -> List ( String, Encode.Value )
+encodePairs : LoginRequest -> List (String, Encode.Value)
 encodePairs model =
     [ ( "username", Maybe.withDefault Encode.null (Maybe.map Encode.string model.username) )
     , ( "password", Maybe.withDefault Encode.null (Maybe.map Encode.string model.password) )
@@ -51,6 +52,11 @@ encodePairs model =
     ]
 
 
+
 toString : LoginRequest -> String
 toString =
     Encode.encode 0 << encode
+
+
+
+

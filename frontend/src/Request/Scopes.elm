@@ -10,7 +10,7 @@
 -}
 
 
-module Request.Scopes exposing (scopesGet, scopesPut)
+module Request.Scopes exposing (apiScopesGet, apiScopesPut)
 
 import Data.ScopeDto as ScopeDto exposing (ScopeDto)
 import Dict
@@ -19,23 +19,29 @@ import Json.Decode as Decode
 import Url.Builder as Url
 
 
+
+
 basePath : String
 basePath =
-    "https://localhost"
+    "https://localhost/api"
 
 
-scopesGet :
+apiScopesGet :
     { onSend : Result Http.Error (List ScopeDto) -> msg
+
+
+
+
+
     }
     -> Cmd msg
-scopesGet params =
+apiScopesGet params =
     Http.request
         { method = "GET"
         , headers = List.filterMap identity []
-        , url =
-            Url.crossOrigin basePath
-                [ "Scopes" ]
-                (List.filterMap identity [])
+        , url = Url.crossOrigin basePath
+            ["api", "Scopes"]
+            (List.filterMap identity [])
         , body = Http.emptyBody
         , expect = Http.expectJson params.onSend (Decode.list ScopeDto.decoder)
         , timeout = Just 30000
@@ -43,21 +49,23 @@ scopesGet params =
         }
 
 
-scopesPut :
+apiScopesPut :
     { onSend : Result Http.Error Bool -> msg
-    , name : Maybe String
-    , displayName : Maybe String
+
+
+    , body : Maybe ScopeDto
+
+
     }
     -> Cmd msg
-scopesPut params =
+apiScopesPut params =
     Http.request
         { method = "PUT"
         , headers = List.filterMap identity []
-        , url =
-            Url.crossOrigin basePath
-                [ "Scopes" ]
-                (List.filterMap identity [ Maybe.map (Url.string "Name" << identity) params.name, Maybe.map (Url.string "DisplayName" << identity) params.displayName ])
-        , body = Http.emptyBody
+        , url = Url.crossOrigin basePath
+            ["api", "Scopes"]
+            (List.filterMap identity [])
+        , body = Maybe.withDefault Http.emptyBody <| Maybe.map (Http.jsonBody << ScopeDto.encode) params.body
         , expect = Http.expectJson params.onSend Decode.bool
         , timeout = Just 30000
         , tracker = Nothing
