@@ -1,5 +1,6 @@
 module Pages.Users exposing (Model, Msg, page)
 
+import Data.UserDto as UserDto exposing (UserDto)
 import Element exposing (..)
 import Element.Border as Border
 import Element.Font as Font
@@ -28,31 +29,55 @@ page _ _ =
 
 
 -- INIT
+-- type alias Form =
+--     { userName : String
+--     , email : String
+--     , phoneNumber : Maybe Int
+--     , twoFactorEnabled : Bool
+--     }
 
 
-type alias Form =
+type alias User =
     { userName : String
     , email : String
-    , phoneNumber : Maybe Int
+    , phoneNumber : String
     , twoFactorEnabled : Bool
     }
 
 
 type alias Model =
     { displayNewUserForm : Bool
-    , form : Form
+    , form : User
     , formValid : Bool
+    , userList : List User
     }
 
 
-initialForm : Form
+initialForm : User
 initialForm =
-    Form "" "" Nothing False
+    User "" "" "" False
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { displayNewUserForm = False, form = initialForm, formValid = True }, Cmd.none )
+    ( { displayNewUserForm = False
+      , form = initialForm
+      , formValid = True
+      , userList =
+            [ { userName = "David"
+              , email = "Bowie"
+              , phoneNumber = "23445"
+              , twoFactorEnabled = False
+              }
+            , { userName = "David"
+              , email = "Bowie"
+              , phoneNumber = "23445"
+              , twoFactorEnabled = True
+              }
+            ]
+      }
+    , Cmd.none
+    )
 
 
 
@@ -62,8 +87,8 @@ init =
 type Msg
     = CreateNew
     | ClickMe
-    | Update Form
-    | Add
+    | Update User
+    | Add User
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -78,8 +103,8 @@ update msg model =
         Update form ->
             ( { model | form = form }, Cmd.none )
 
-        Add ->
-            ( { displayNewUserForm = False, form = initialForm, formValid = True }, Cmd.none )
+        Add newUser ->
+            ( { displayNewUserForm = False, form = initialForm, formValid = True, userList = newUser :: model.userList }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -98,27 +123,8 @@ view model =
     }
 
 
-type alias UserType =
-    Form
-
-
-users : List UserType
-users =
-    [ { userName = "David"
-      , email = "Bowie"
-      , phoneNumber = Just 234345
-      , twoFactorEnabled = False
-      }
-    , { userName = "David"
-      , email = "Bowie"
-      , phoneNumber = Just 234345
-      , twoFactorEnabled = True
-      }
-    ]
-
-
-usersTable : Element msg
-usersTable =
+usersTable : Model -> Element msg
+usersTable model =
     let
         headerAttrs =
             [ Font.bold
@@ -127,7 +133,7 @@ usersTable =
             ]
     in
     table [ width <| maximum 1000 <| minimum 600 fill, spacingXY 0 10 ]
-        { data = users
+        { data = model.userList
         , columns =
             [ { header = el headerAttrs <| Element.text "User name"
               , width = fill
@@ -145,7 +151,7 @@ usersTable =
               , width = fill
               , view =
                     \user ->
-                        Element.text (maybeNumberToString user.phoneNumber)
+                        Element.text user.phoneNumber
               }
             , { header = el headerAttrs <| Element.text "Two factor"
               , width = fill
@@ -214,9 +220,9 @@ addUserForm model =
             }
         , Input.text
             [ width <| maximum 400 fill ]
-            { text = maybeNumberToString form.phoneNumber
+            { text = form.phoneNumber
             , placeholder = Nothing
-            , onChange = \new -> Update { form | phoneNumber = stringToNumber new }
+            , onChange = \new -> Update { form | phoneNumber = new }
             , label = Input.labelLeft [ width (px 150), centerY ] (text "Phone number:")
             }
         , Input.checkbox
@@ -226,7 +232,7 @@ addUserForm model =
             , label = Input.labelRight [ centerY ] (text "Use two factor authentication")
             , icon = Input.defaultCheckbox
             }
-        , button { msg = Add, textContent = "Add user", enabled = model.formValid }
+        , button { msg = Add form, textContent = "Add user", enabled = model.formValid }
         ]
 
 
@@ -244,6 +250,6 @@ usersView model =
         column [ width fill, spacing 40 ]
             [ el [ centerX ] <| button { msg = CreateNew, textContent = "Create new user", enabled = not model.displayNewUserForm }
             , displayForm
-            , el [ centerX ] usersTable
+            , el [ centerX ] (usersTable model)
             ]
     ]
