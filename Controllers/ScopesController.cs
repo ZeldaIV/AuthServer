@@ -1,6 +1,10 @@
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using AuthServer.Dtos;
 using AuthServer.Utilities;
+using IdentityServer4.EntityFramework.Entities;
+using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,15 +18,16 @@ namespace AuthServer.Controllers
 
         [HttpGet]
         [Authorize(Policy = "Administrator")]
-        public List<ScopeDto> GetScopes()
+        public List<ScopeDto> GetScopes(CancellationToken cancellationToken)
         {
-            return new List<ScopeDto>();
+            return DbContext.GetScopes().Adapt<List<ScopeDto>>();
         }
 
         [HttpPut]
         [Authorize(Policy = "Administrator")]
-        public bool AddScope(ScopeDto scope)
+        public async Task<bool> AddScope([FromBody] ScopeDto scope, CancellationToken cancellationToken)
         {
+            await DbContext.AddScope(scope.Adapt<ApiScope>(), cancellationToken);
             return true;
         }
     }

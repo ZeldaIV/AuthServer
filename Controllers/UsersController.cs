@@ -21,7 +21,7 @@ namespace AuthServer.Controllers
         [Authorize(Policy = "Administrator")]
         public List<UserDto> GetUsers()
         {
-            return new List<UserDto>();
+            return DbContext.GetUsers().Adapt<List<UserDto>>();
         }
 
         [HttpPut]

@@ -16,7 +16,9 @@ namespace AuthServer.Data
         Task AddClient(Client client, CancellationToken cancellationToken);
         Task UpdateClient(Client update, CancellationToken cancellationToken);
         Task AddUser(IdentityUser user, CancellationToken cancellationToken);
-        IEnumerable<IdentityUser> GetUsers(CancellationToken cancellationToken);
+        IEnumerable<IdentityUser> GetUsers();
+        IEnumerable<ApiScope> GetScopes();
+        Task AddScope(ApiScope scope, CancellationToken cancellationToken);
     }
     
     public sealed class IdentityServerDbContext : IIdentityServerDbContext
@@ -98,9 +100,20 @@ namespace AuthServer.Data
             await _appDbContext.SaveChangesAsync(cancellationToken);
         }
 
-        public IEnumerable<IdentityUser> GetUsers(CancellationToken cancellationToken)
+        public IEnumerable<IdentityUser> GetUsers()
         {
             return _appDbContext.Users;
+        }
+
+        public IEnumerable<ApiScope> GetScopes()
+        {
+            return _context.ApiScopes;
+        }
+
+        public async Task AddScope(ApiScope scope, CancellationToken cancellationToken)
+        {
+            await _context.AddAsync(scope, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
         }
     }
 }
