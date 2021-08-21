@@ -10,10 +10,8 @@
 -}
 
 
-module Data.ClientDto exposing (ClientDto, AllowedGrantTypes(..), decoder, encode, encodeWithTag, toString)
+module Data.ClientDto exposing (AllowedGrantTypes(..), ClientDto, decoder, encode, encodeWithTag, toString)
 
-import DateTime exposing (DateTime)
-import DateTime exposing (DateTime)
 import DateTime exposing (DateTime)
 import Dict exposing (Dict)
 import Json.Decode as Decode exposing (Decoder)
@@ -22,21 +20,21 @@ import Json.Encode as Encode
 
 
 type alias ClientDto =
-    { id : (Maybe Int)
-    , clientId : (Maybe String)
-    , enabled : Maybe (Bool)
-    , clientName : (Maybe String)
-    , description : (Maybe String)
-    , clientUri : (Maybe String)
-    , logoUri : (Maybe String)
-    , clientSecrets : (Maybe (List String))
-    , allowedGrantTypes : (Maybe (List AllowedGrantTypes))
-    , redirectUris : (Maybe (List String))
-    , allowedScopes : (Maybe (List String))
-    , postLogoutRedirectUris : (Maybe (List String))
-    , created : Maybe (DateTime)
-    , updated : (Maybe DateTime)
-    , lastAccessed : (Maybe DateTime)
+    { id : Maybe Int
+    , clientId : Maybe String
+    , enabled : Maybe Bool
+    , clientName : Maybe String
+    , description : Maybe String
+    , clientUri : Maybe String
+    , logoUri : Maybe String
+    , clientSecrets : Maybe (List String)
+    , allowedGrantTypes : Maybe (List AllowedGrantTypes)
+    , redirectUris : Maybe (List String)
+    , allowedScopes : Maybe (List String)
+    , postLogoutRedirectUris : Maybe (List String)
+    , created : Maybe DateTime
+    , updated : Maybe DateTime
+    , lastAccessed : Maybe DateTime
     }
 
 
@@ -52,7 +50,6 @@ type AllowedGrantTypes
     | ResourceOwnerPassword
     | ResourceOwnerPasswordAndClientCredentials
     | DeviceFlow
-
 
 
 decoder : Decoder ClientDto
@@ -75,18 +72,17 @@ decoder =
         |> optional "lastAccessed" (Decode.nullable DateTime.decoder) Nothing
 
 
-
 encode : ClientDto -> Encode.Value
 encode =
     Encode.object << encodePairs
 
 
 encodeWithTag : ( String, String ) -> ClientDto -> Encode.Value
-encodeWithTag (tagField, tag) model =
+encodeWithTag ( tagField, tag ) model =
     Encode.object <| encodePairs model ++ [ ( tagField, Encode.string tag ) ]
 
 
-encodePairs : ClientDto -> List (String, Encode.Value)
+encodePairs : ClientDto -> List ( String, Encode.Value )
 encodePairs model =
     [ ( "id", Maybe.withDefault Encode.null (Maybe.map Encode.int model.id) )
     , ( "clientId", Maybe.withDefault Encode.null (Maybe.map Encode.string model.clientId) )
@@ -106,12 +102,9 @@ encodePairs model =
     ]
 
 
-
 toString : ClientDto -> String
 toString =
     Encode.encode 0 << encode
-
-
 
 
 allowedGrantTypesDecoder : Decoder AllowedGrantTypes
@@ -158,7 +151,6 @@ allowedGrantTypesDecoder =
             )
 
 
-
 encodeAllowedGrantTypes : AllowedGrantTypes -> Encode.Value
 encodeAllowedGrantTypes model =
     case model of
@@ -194,7 +186,3 @@ encodeAllowedGrantTypes model =
 
         DeviceFlow ->
             Encode.string "DeviceFlow"
-
-
-
-

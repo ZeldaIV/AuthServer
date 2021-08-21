@@ -16,8 +16,10 @@ import Gen.Route exposing (Route)
 import Request exposing (Request)
 import Shared
 
+
 type alias User =
     Domain.User.User
+
 
 beforeProtectedInit : Shared.Model -> Request -> ElmSpa.Protected User Route
 beforeProtectedInit { storage } _ =

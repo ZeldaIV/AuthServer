@@ -19,8 +19,6 @@ import Json.Decode as Decode
 import Url.Builder as Url
 
 
-
-
 basePath : String
 basePath =
     "https://localhost"
@@ -28,20 +26,16 @@ basePath =
 
 usersGet :
     { onSend : Result Http.Error (List UserDto) -> msg
-
-
-
-
-
     }
     -> Cmd msg
 usersGet params =
     Http.request
         { method = "GET"
         , headers = List.filterMap identity []
-        , url = Url.crossOrigin basePath
-            ["Users"]
-            (List.filterMap identity [])
+        , url =
+            Url.crossOrigin basePath
+                [ "Users" ]
+                (List.filterMap identity [])
         , body = Http.emptyBody
         , expect = Http.expectJson params.onSend (Decode.list UserDto.decoder)
         , timeout = Just 30000
@@ -51,20 +45,60 @@ usersGet params =
 
 usersPut :
     { onSend : Result Http.Error Bool -> msg
-
-
-
-
-    , userName : Maybe (String)    , email : Maybe (String)    , emailConfirmed : Maybe (Bool)    , phoneNumber : Maybe (String)    , phoneNumberConfirmed : Maybe (Bool)    , twoFactorEnabled : Maybe (Bool)
+    , userName : Maybe String
+    , email : Maybe String
+    , emailConfirmed : Maybe Bool
+    , phoneNumber : Maybe String
+    , phoneNumberConfirmed : Maybe Bool
+    , twoFactorEnabled : Maybe Bool
     }
     -> Cmd msg
 usersPut params =
     Http.request
         { method = "PUT"
         , headers = List.filterMap identity []
-        , url = Url.crossOrigin basePath
-            ["Users"]
-            (List.filterMap identity [Maybe.map (Url.string "UserName" << identity) params.userName, Maybe.map (Url.string "Email" << identity) params.email, Maybe.map (Url.string "EmailConfirmed" << (\val -> if val then "true" else "false")) params.emailConfirmed, Maybe.map (Url.string "PhoneNumber" << identity) params.phoneNumber, Maybe.map (Url.string "PhoneNumberConfirmed" << (\val -> if val then "true" else "false")) params.phoneNumberConfirmed, Maybe.map (Url.string "TwoFactorEnabled" << (\val -> if val then "true" else "false")) params.twoFactorEnabled])
+        , url =
+            Url.crossOrigin basePath
+                [ "Users" ]
+                (List.filterMap identity
+                    [ Maybe.map (Url.string "UserName" << identity) params.userName
+                    , Maybe.map (Url.string "Email" << identity) params.email
+                    , Maybe.map
+                        (Url.string "EmailConfirmed"
+                            << (\val ->
+                                    if val then
+                                        "true"
+
+                                    else
+                                        "false"
+                               )
+                        )
+                        params.emailConfirmed
+                    , Maybe.map (Url.string "PhoneNumber" << identity) params.phoneNumber
+                    , Maybe.map
+                        (Url.string "PhoneNumberConfirmed"
+                            << (\val ->
+                                    if val then
+                                        "true"
+
+                                    else
+                                        "false"
+                               )
+                        )
+                        params.phoneNumberConfirmed
+                    , Maybe.map
+                        (Url.string "TwoFactorEnabled"
+                            << (\val ->
+                                    if val then
+                                        "true"
+
+                                    else
+                                        "false"
+                               )
+                        )
+                        params.twoFactorEnabled
+                    ]
+                )
         , body = Http.emptyBody
         , expect = Http.expectJson params.onSend Decode.bool
         , timeout = Just 30000

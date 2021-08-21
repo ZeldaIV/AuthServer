@@ -20,14 +20,18 @@ import Storage exposing (Storage)
 import View exposing (View)
 
 
+
 -- INIT
+
+
 type alias Flags =
     Decode.Value
 
+
 type alias Model =
     { navBarState : Navbar.State
-    , storage: Storage
-    , apiResources: Maybe (List ApiResourceDto)
+    , storage : Storage
+    , apiResources : Maybe (List ApiResourceDto)
     }
 
 
@@ -35,7 +39,7 @@ init : Request -> Flags -> ( Model, Cmd Msg )
 init req flags =
     let
         ( navbarState, navbarCmd ) =
-                    Navbar.initialState NavMsg
+            Navbar.initialState NavMsg
 
         model =
             { navBarState = navbarState
@@ -45,12 +49,17 @@ init req flags =
     in
     ( model
     , if model.storage.user /= Nothing && req.route == Gen.Route.Login then
-       Request.replaceRoute Gen.Route.Login req
+        Request.replaceRoute Gen.Route.Login req
+
       else
-       navbarCmd
-     )
+        navbarCmd
+    )
+
+
 
 -- UPDATE
+
+
 type Msg
     = NavMsg Navbar.State
     | SignOut
@@ -59,17 +68,23 @@ type Msg
 
 update : Request -> Msg -> Model -> ( Model, Cmd Msg )
 update _ msg model =
-    case msg of    
+    case msg of
         NavMsg state ->
             ( { model | navBarState = state }, Cmd.none )
+
         SignOut ->
             ( model, Storage.signOut model.storage )
+
         StorageUpdated storage ->
-            ( {model | storage = storage} , Cmd.none)
-            
+            ( { model | storage = storage }, Cmd.none )
+
+
 
 -- VIEW
-view : Request
+
+
+view :
+    Request
     -> { page : View msg, toMsg : Msg -> msg }
     -> Model
     -> View msg
@@ -78,11 +93,13 @@ view _ { page, toMsg } model =
     , body =
         if model.storage.user /= Nothing then
             [ Html.map toMsg (menu model)
-                , div [ class "page" ] page.body
+            , div [ class "page" ] page.body
             ]
+
         else
             page.body
     }
+
 
 menu : Model -> Html Msg
 menu model =
@@ -94,9 +111,10 @@ menu model =
             , Navbar.itemLink [ href (Gen.Route.toHref Gen.Route.Users) ] [ text "Users" ]
             ]
         |> Navbar.customItems
-            [ Navbar.customItem (Button.button [Button.secondary, Button.onClick SignOut] [text "Sign out"])
+            [ Navbar.customItem (Button.button [ Button.secondary, Button.onClick SignOut ] [ text "Sign out" ])
             ]
         |> Navbar.view model.navBarState
+
 
 subscriptions : Request -> Model -> Sub Msg
 subscriptions _ _ =

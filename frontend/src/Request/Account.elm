@@ -12,14 +12,12 @@
 
 module Request.Account exposing (accountIsSignedInGet, accountLogoutPost, accountPost, accountUserGet)
 
-import Data.UserDto as UserDto exposing (UserDto)
 import Data.LoginRequest as LoginRequest exposing (LoginRequest)
+import Data.UserDto as UserDto exposing (UserDto)
 import Dict
 import Http
 import Json.Decode as Decode
 import Url.Builder as Url
-
-
 
 
 basePath : String
@@ -29,20 +27,16 @@ basePath =
 
 accountIsSignedInGet :
     { onSend : Result Http.Error Bool -> msg
-
-
-
-
-
     }
     -> Cmd msg
 accountIsSignedInGet params =
     Http.request
         { method = "GET"
         , headers = List.filterMap identity []
-        , url = Url.crossOrigin basePath
-            ["Account", "isSignedIn"]
-            (List.filterMap identity [])
+        , url =
+            Url.crossOrigin basePath
+                [ "Account", "isSignedIn" ]
+                (List.filterMap identity [])
         , body = Http.emptyBody
         , expect = Http.expectJson params.onSend Decode.bool
         , timeout = Just 30000
@@ -52,20 +46,17 @@ accountIsSignedInGet params =
 
 accountLogoutPost :
     { onSend : Result Http.Error () -> msg
-
-
-
-
-    , logoutId : Maybe (String)
+    , logoutId : Maybe String
     }
     -> Cmd msg
 accountLogoutPost params =
     Http.request
         { method = "POST"
         , headers = List.filterMap identity []
-        , url = Url.crossOrigin basePath
-            ["Account", "logout"]
-            (List.filterMap identity [Maybe.map (Url.string "LogoutId" << identity) params.logoutId])
+        , url =
+            Url.crossOrigin basePath
+                [ "Account", "logout" ]
+                (List.filterMap identity [ Maybe.map (Url.string "LogoutId" << identity) params.logoutId ])
         , body = Http.emptyBody
         , expect = Http.expectWhatever params.onSend
         , timeout = Just 30000
@@ -75,20 +66,17 @@ accountLogoutPost params =
 
 accountPost :
     { onSend : Result Http.Error () -> msg
-
-
     , body : Maybe LoginRequest
-
-
     }
     -> Cmd msg
 accountPost params =
     Http.request
         { method = "POST"
         , headers = List.filterMap identity []
-        , url = Url.crossOrigin basePath
-            ["Account"]
-            (List.filterMap identity [])
+        , url =
+            Url.crossOrigin basePath
+                [ "Account" ]
+                (List.filterMap identity [])
         , body = Maybe.withDefault Http.emptyBody <| Maybe.map (Http.jsonBody << LoginRequest.encode) params.body
         , expect = Http.expectWhatever params.onSend
         , timeout = Just 30000
@@ -98,20 +86,16 @@ accountPost params =
 
 accountUserGet :
     { onSend : Result Http.Error UserDto -> msg
-
-
-
-
-
     }
     -> Cmd msg
 accountUserGet params =
     Http.request
         { method = "GET"
         , headers = List.filterMap identity []
-        , url = Url.crossOrigin basePath
-            ["Account", "user"]
-            (List.filterMap identity [])
+        , url =
+            Url.crossOrigin basePath
+                [ "Account", "user" ]
+                (List.filterMap identity [])
         , body = Http.emptyBody
         , expect = Http.expectJson params.onSend UserDto.decoder
         , timeout = Just 30000

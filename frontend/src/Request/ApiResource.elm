@@ -19,8 +19,6 @@ import Json.Decode as Decode
 import Url.Builder as Url
 
 
-
-
 basePath : String
 basePath =
     "https://localhost"
@@ -28,20 +26,16 @@ basePath =
 
 apiResourceGet :
     { onSend : Result Http.Error (List ApiResourceDto) -> msg
-
-
-
-
-
     }
     -> Cmd msg
 apiResourceGet params =
     Http.request
         { method = "GET"
         , headers = List.filterMap identity []
-        , url = Url.crossOrigin basePath
-            ["ApiResource"]
-            (List.filterMap identity [])
+        , url =
+            Url.crossOrigin basePath
+                [ "ApiResource" ]
+                (List.filterMap identity [])
         , body = Http.emptyBody
         , expect = Http.expectJson params.onSend (Decode.list ApiResourceDto.decoder)
         , timeout = Just 30000
@@ -51,20 +45,17 @@ apiResourceGet params =
 
 apiResourcePatch :
     { onSend : Result Http.Error () -> msg
-
-
     , body : Maybe ApiResourceDto
-
-
     }
     -> Cmd msg
 apiResourcePatch params =
     Http.request
         { method = "PATCH"
         , headers = List.filterMap identity []
-        , url = Url.crossOrigin basePath
-            ["ApiResource"]
-            (List.filterMap identity [])
+        , url =
+            Url.crossOrigin basePath
+                [ "ApiResource" ]
+                (List.filterMap identity [])
         , body = Maybe.withDefault Http.emptyBody <| Maybe.map (Http.jsonBody << ApiResourceDto.encode) params.body
         , expect = Http.expectWhatever params.onSend
         , timeout = Just 30000
@@ -74,20 +65,17 @@ apiResourcePatch params =
 
 apiResourcePut :
     { onSend : Result Http.Error () -> msg
-
-
     , body : Maybe ApiResourceDto
-
-
     }
     -> Cmd msg
 apiResourcePut params =
     Http.request
         { method = "PUT"
         , headers = List.filterMap identity []
-        , url = Url.crossOrigin basePath
-            ["ApiResource"]
-            (List.filterMap identity [])
+        , url =
+            Url.crossOrigin basePath
+                [ "ApiResource" ]
+                (List.filterMap identity [])
         , body = Maybe.withDefault Http.emptyBody <| Maybe.map (Http.jsonBody << ApiResourceDto.encode) params.body
         , expect = Http.expectWhatever params.onSend
         , timeout = Just 30000

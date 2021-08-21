@@ -1,7 +1,9 @@
 port module Storage exposing
-    ( Storage, load
-    , signIn, signOut
+    ( Storage
     , fromJson
+    , load
+    , signIn
+    , signOut
     )
 
 import Domain.User as User exposing (User)
@@ -10,10 +12,14 @@ import Json.Encode as Encode
 
 
 type alias Storage =
-    { user: Maybe User }
+    { user : Maybe User }
+
+
 
 -- Convert from json
-fromJson: Json.Value -> Storage
+
+
+fromJson : Json.Value -> Storage
 fromJson value =
     value
         |> Json.decodeValue decoder
@@ -25,10 +31,12 @@ decoder =
     Json.map Storage
         (Json.field "user" (Json.maybe User.decoder))
 
+
 init : Storage
 init =
-  { user = Nothing
-  }
+    { user = Nothing
+    }
+
 
 save : Storage -> Json.Value
 save storage =
@@ -40,7 +48,11 @@ save storage =
           )
         ]
 
+
+
 -- UPDATING STORAGE
+
+
 signIn : User -> Storage -> Cmd msg
 signIn user storage =
     saveToLocalStorage { storage | user = Just user }
@@ -51,7 +63,10 @@ signOut storage =
     saveToLocalStorage { storage | user = Nothing }
 
 
+
 -- PORTS
+
+
 saveToLocalStorage : Storage -> Cmd msg
 saveToLocalStorage =
     save >> save_

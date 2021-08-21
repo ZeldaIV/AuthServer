@@ -17,7 +17,11 @@ page _ req =
         { view = view req
         }
 
+
+
 -- VIEW
+
+
 view : Request -> View Msg
 view { params } =
     { title = "404"

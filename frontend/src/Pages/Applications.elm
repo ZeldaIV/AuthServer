@@ -8,7 +8,6 @@ import DateTime exposing (DateTime)
 import Gen.Route
 import Html exposing (Html, h1, text)
 import Html.Attributes exposing (href)
-
 import Html.Events exposing (onClick)
 import Http exposing (Error)
 import Page
@@ -20,28 +19,33 @@ import View exposing (View)
 
 
 page : Shared.Model -> Request -> Page.With Model Msg
-page _ req=
+page _ req =
     Page.protected.element
         (\_ ->
             { init = init
             , update = update req
             , view = view
             , subscriptions = subscriptions
-            })
+            }
+        )
+
+
 
 -- INIT
+
+
 type alias Model =
-    { apiResources: List ApiResourceDto
-    , error: String
+    { apiResources : List ApiResourceDto
+    , error : String
     }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( { apiResources = [], error = ""}, ApiResource.apiResourceGet { onSend = gotResources} )
+    ( { apiResources = [], error = "" }, ApiResource.apiResourceGet { onSend = gotResources } )
 
 
-gotResources: Result Http.Error (List ApiResourceDto) -> Msg
+gotResources : Result Http.Error (List ApiResourceDto) -> Msg
 gotResources result =
     case result of
         Ok value ->
@@ -49,6 +53,8 @@ gotResources result =
 
         Err error ->
             ErrorGettingResources error
+
+
 
 -- UPDATE
 
@@ -63,22 +69,20 @@ update : Request -> Msg -> Model -> ( Model, Cmd Msg )
 update req msg model =
     case msg of
         GotApiResources apiResources ->
-            ({ model | apiResources = apiResources}, Cmd.none)
+            ( { model | apiResources = apiResources }, Cmd.none )
 
         ErrorGettingResources _ ->
-            (model, Cmd.none)
+            ( model, Cmd.none )
 
         GoToApplication maybeString ->
-            (model, case maybeString of
+            ( model
+            , case maybeString of
                 Just a ->
-                    Request.replaceRoute (Gen.Route.Appliaction__Name_ {name = a}) req
+                    Request.replaceRoute (Gen.Route.Appliaction__Name_ { name = a }) req
+
                 Nothing ->
                     Cmd.none
             )
-            
-                    
-            
-        
 
 
 subscriptions : Model -> Sub Msg
@@ -93,68 +97,83 @@ subscriptions _ =
 view : Model -> View Msg
 view model =
     { title = "Applications"
-    , body = [applicationsView model]
+    , body = [ applicationsView model ]
     }
-    
-fromMaybeString: Maybe String -> String
-fromMaybeString value = 
+
+
+fromMaybeString : Maybe String -> String
+fromMaybeString value =
     case value of
-        Just a ->        
-            a
-        Nothing ->
-            ""
-fromMaybeUuid: Maybe Uuid -> String
-fromMaybeUuid val =
-    case val of
-        Just a ->     
-            Uuid.toString a
-        Nothing ->
-            ""
-            
-fromMaybeDateTime: Maybe DateTime -> String
-fromMaybeDateTime val =
-    case val of
         Just a ->
-            DateTime.toString a        
+            a
 
         Nothing ->
             ""
-            
-fromMaybeBool: Maybe Bool -> String
+
+
+fromMaybeUuid : Maybe Uuid -> String
+fromMaybeUuid val =
+    case val of
+        Just a ->
+            Uuid.toString a
+
+        Nothing ->
+            ""
+
+
+fromMaybeDateTime : Maybe DateTime -> String
+fromMaybeDateTime val =
+    case val of
+        Just a ->
+            DateTime.toString a
+
+        Nothing ->
+            ""
+
+
+fromMaybeBool : Maybe Bool -> String
 fromMaybeBool val =
     case val of
         Just a ->
-            if (a) then "Yes" else "No"            
+            if a then
+                "Yes"
+
+            else
+                "No"
+
         Nothing ->
             ""
-    
-rowView: ApiResourceDto -> Row Msg
+
+
+rowView : ApiResourceDto -> Row Msg
 rowView resource =
-    Table.tr [Table.rowAttr (onClick (GoToApplication resource.name))  ] 
-        [ Table.td [] [text (fromMaybeString resource.name)]
-        , Table.td [] [text (fromMaybeString resource.displayName)]
-        , Table.td [] [text (fromMaybeString resource.description)]
-        , Table.td [] [text (fromMaybeBool resource.enabled)]
+    Table.tr [ Table.rowAttr (onClick (GoToApplication resource.name)) ]
+        [ Table.td [] [ text (fromMaybeString resource.name) ]
+        , Table.td [] [ text (fromMaybeString resource.displayName) ]
+        , Table.td [] [ text (fromMaybeString resource.description) ]
+        , Table.td [] [ text (fromMaybeBool resource.enabled) ]
         ]
-        
-createRowsView: (List ApiResourceDto) -> List (Row Msg)
+
+
+createRowsView : List ApiResourceDto -> List (Row Msg)
 createRowsView resources =
-     (List.map rowView) resources
-    
-            
-applicationsView: Model -> Html Msg
-applicationsView  model =
-     Grid.container []
-        [ Button.linkButton [ Button.primary, Button.block, Button.large, Button.attrs [href (Gen.Route.toHref Gen.Route.ApplicationSelection)] ] [ text "Add new"]
+    List.map rowView resources
+
+
+applicationsView : Model -> Html Msg
+applicationsView model =
+    Grid.container []
+        [ Button.linkButton [ Button.primary, Button.block, Button.large, Button.attrs [ href (Gen.Route.toHref Gen.Route.ApplicationSelection) ] ] [ text "Add new" ]
         , h1 [] [ text "Registered applications" ]
-        , Table.table 
+        , Table.table
             { options = [ Table.striped, Table.hover ]
-            , thead = Table.simpleThead 
-                [ Table.th [] [ text "Name"]
-                , Table.th [] [ text "DisplayName"]
-                , Table.th [] [ text "Description"]
-                , Table.th [] [ text "Enabled"]
-                ]
-            , tbody = Table.tbody []  (createRowsView model.apiResources)
-            } 
+            , thead =
+                Table.simpleThead
+                    [ Table.th [] [ text "Name" ]
+                    , Table.th [] [ text "DisplayName" ]
+                    , Table.th [] [ text "Description" ]
+                    , Table.th [] [ text "Enabled" ]
+                    ]
+            , tbody = Table.tbody [] (createRowsView model.apiResources)
+            }
         ]

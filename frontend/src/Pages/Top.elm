@@ -1,9 +1,9 @@
 module Pages.Top exposing (Msg, page)
 
 import Html exposing (..)
-import Shared
 import Page exposing (Page)
 import Request exposing (Request)
+import Shared
 import View exposing (View)
 
 
@@ -16,6 +16,8 @@ page _ req =
     Page.static
         { view = view req
         }
+
+
 
 -- VIEW
 

@@ -19,8 +19,8 @@ import Json.Encode as Encode
 
 
 type alias ScopeDto =
-    { name : (Maybe String)
-    , displayName : (Maybe String)
+    { name : Maybe String
+    , displayName : Maybe String
     }
 
 
@@ -31,29 +31,23 @@ decoder =
         |> optional "displayName" (Decode.nullable Decode.string) Nothing
 
 
-
 encode : ScopeDto -> Encode.Value
 encode =
     Encode.object << encodePairs
 
 
 encodeWithTag : ( String, String ) -> ScopeDto -> Encode.Value
-encodeWithTag (tagField, tag) model =
+encodeWithTag ( tagField, tag ) model =
     Encode.object <| encodePairs model ++ [ ( tagField, Encode.string tag ) ]
 
 
-encodePairs : ScopeDto -> List (String, Encode.Value)
+encodePairs : ScopeDto -> List ( String, Encode.Value )
 encodePairs model =
     [ ( "name", Maybe.withDefault Encode.null (Maybe.map Encode.string model.name) )
     , ( "displayName", Maybe.withDefault Encode.null (Maybe.map Encode.string model.displayName) )
     ]
 
 
-
 toString : ScopeDto -> String
 toString =
     Encode.encode 0 << encode
-
-
-
-

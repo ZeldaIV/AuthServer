@@ -6,7 +6,7 @@ import Json.Encode as Encode
 
 type alias User =
     { name : String
-    , email: String
+    , email : String
     }
 
 
@@ -20,6 +20,6 @@ decoder =
 encode : User -> Json.Value
 encode user =
     Encode.object
-        [ ( "name", Encode.string user.name),
-          ("email", Encode.string user.email)
+        [ ( "name", Encode.string user.name )
+        , ( "email", Encode.string user.email )
         ]
