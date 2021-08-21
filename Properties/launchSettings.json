@@ -21,7 +21,8 @@
         "ASPNETCORE_ENVIRONMENT": "Local",
         "ASPNETCORE_URLS": "https://+",
         "AuthServerAdministrator": "Admin",
-        "AuthServerSigningCertificatePath": "./Certificates/SigningCertificate.pfx"
+        "AuthServerSigningCertificatePath": "./Certificates/SigningCertificate.pfx",
+        "AuthServerSigningCertificatePassword": "Pm5Phrase"
       }
     }
   }

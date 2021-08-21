@@ -7,11 +7,14 @@ import Element.Font as Font
 import Element.Input as Input
 import Element.Region as Region
 import Html exposing (Html)
+import Http exposing (Error)
 import Page exposing (Page)
 import Request exposing (Request)
+import Request.Users as UserResource
 import Shared
 import UI.Button exposing (button)
 import UI.Color exposing (color)
+import Utility exposing (fromMaybe)
 import View exposing (View)
 
 
@@ -89,6 +92,49 @@ type Msg
     | ClickMe
     | Update User
     | Add User
+    | Success
+    | UsersLoaded (List User)
+    | ApiError String
+
+
+fromFormToModel : User -> UserDto
+fromFormToModel user =
+    { userName = Just user.userName
+    , email = Just user.email
+    , emailConfirmed = Just False
+    , phoneNumber = Just user.phoneNumber
+    , phoneNumberConfirmed = Just False
+    , twoFactorEnabled = Just False
+    }
+
+
+fromModelToForm : UserDto -> User
+fromModelToForm userDto =
+    { userName = fromMaybe userDto.userName ""
+    , email = fromMaybe userDto.email ""
+    , phoneNumber = fromMaybe userDto.phoneNumber ""
+    , twoFactorEnabled = fromMaybe userDto.twoFactorEnabled False
+    }
+
+
+addedNewUser : Result Error Bool -> Msg
+addedNewUser result =
+    case result of
+        Ok _ ->
+            Success
+
+        Err _ ->
+            Success
+
+
+usersLoaded : Result Http.Error (List UserDto) -> Msg
+usersLoaded result =
+    case result of
+        Ok users ->
+            UsersLoaded (List.map (\user -> fromModelToForm user) users)
+
+        Err _ ->
+            ApiError "Api call failed"
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -104,7 +150,16 @@ update msg model =
             ( { model | form = form }, Cmd.none )
 
         Add newUser ->
-            ( { displayNewUserForm = False, form = initialForm, formValid = True, userList = newUser :: model.userList }, Cmd.none )
+            ( { displayNewUserForm = False, form = initialForm, formValid = True, userList = newUser :: model.userList }, UserResource.usersPut { onSend = addedNewUser, body = Just (newUser |> fromFormToModel) } )
+
+        Success ->
+            ( model, UserResource.usersGet { onSend = usersLoaded } )
+
+        UsersLoaded users ->
+            ( { model | userList = users }, Cmd.none )
+
+        ApiError _ ->
+            ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -132,7 +187,7 @@ usersTable model =
             , Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
             ]
     in
-    table [ width <| maximum 1000 <| minimum 600 fill, spacingXY 0 10 ]
+    table [ width <| maximum 1200 <| minimum 1000 fill, spacingXY 0 10 ]
         { data = model.userList
         , columns =
             [ { header = el headerAttrs <| Element.text "User name"
