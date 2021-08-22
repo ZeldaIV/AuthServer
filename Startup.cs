@@ -225,6 +225,11 @@ namespace AuthServer
                 FileProvider = new PhysicalFileProvider(distFolder)
             });
             app.UseSpaStaticFiles(staticFileOptions);
+            app.UseSpa(spa =>
+            {
+                spa.Options.SourcePath = "wwwroot";
+                spa.Options.DefaultPageStaticFileOptions = staticFileOptions;
+            });
             app.UseSwagger();
         }
     }
