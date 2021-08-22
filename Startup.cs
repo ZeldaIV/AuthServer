@@ -156,6 +156,8 @@ namespace AuthServer
 
             });
 
+            services.AddSwaggerGenNewtonsoftSupport();
+            
             services.AddControllers(o =>
             {
                 var policy = new AuthorizationPolicyBuilder()
