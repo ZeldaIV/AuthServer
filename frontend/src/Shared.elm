@@ -109,6 +109,7 @@ menu model =
         |> Navbar.items
             [ Navbar.itemLink [ href (Gen.Route.toHref Gen.Route.Applications) ] [ text "Applications" ]
             , Navbar.itemLink [ href (Gen.Route.toHref Gen.Route.Users) ] [ text "Users" ]
+            , Navbar.itemLink [ href (Gen.Route.toHref Gen.Route.Scopes) ] [ text "Scopes" ]
             ]
         |> Navbar.customItems
             [ Navbar.customItem (Button.button [ Button.secondary, Button.onClick SignOut ] [ text "Sign out" ])
