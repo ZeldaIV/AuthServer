@@ -6,7 +6,7 @@ info:
 servers:
   - url: https://localhost/api
 paths:
-  /api/Account:
+  /Account:
     post:
       tags:
         - Account
@@ -27,19 +27,28 @@ paths:
       responses:
         '200':
           description: Success
-  /api/Account/logout:
+  /Account/logout:
     post:
       tags:
         - Account
-      parameters:
-        - name: LogoutId
-          in: query
-          schema:
-            type: string
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/LogoutInputModel'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutInputModel'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/LogoutInputModel'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/LogoutInputModel'
       responses:
         '200':
           description: Success
-  /api/Account/user:
+  /Account/user:
     get:
       tags:
         - Account
@@ -56,7 +65,7 @@ paths:
             text/json:
               schema:
                 $ref: '#/components/schemas/UserDto'
-  /api/Account/isSignedIn:
+  /Account/isSignedIn:
     get:
       tags:
         - Account
@@ -73,7 +82,7 @@ paths:
             text/json:
               schema:
                 type: boolean
-  /api/ApiResource:
+  /ApiResource:
     get:
       tags:
         - ApiResource
@@ -136,7 +145,7 @@ paths:
       responses:
         '200':
           description: Success
-  /api/Clients:
+  /Clients:
     get:
       tags:
         - Clients
@@ -199,7 +208,7 @@ paths:
       responses:
         '200':
           description: Success
-  /api/Scopes:
+  /Scopes:
     get:
       tags:
         - Scopes
@@ -252,7 +261,7 @@ paths:
             text/json:
               schema:
                 type: boolean
-  /api/Users:
+  /Users:
     get:
       tags:
         - Users
@@ -278,31 +287,20 @@ paths:
     put:
       tags:
         - Users
-      parameters:
-        - name: UserName
-          in: query
-          schema:
-            type: string
-        - name: Email
-          in: query
-          schema:
-            type: string
-        - name: EmailConfirmed
-          in: query
-          schema:
-            type: boolean
-        - name: PhoneNumber
-          in: query
-          schema:
-            type: string
-        - name: PhoneNumberConfirmed
-          in: query
-          schema:
-            type: boolean
-        - name: TwoFactorEnabled
-          in: query
-          schema:
-            type: boolean
+      requestBody:
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: '#/components/schemas/UserDto'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDto'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/UserDto'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/UserDto'
       responses:
         '200':
           description: Success
@@ -380,18 +378,19 @@ components:
           type: array
           items:
             enum:
-              - NotSet
-              - Implicit
-              - ImplicitAndClientCredentials
-              - Code
-              - CodeAndClientCredentials
-              - Hybrid
-              - HybridAndClientCredentials
-              - ClientCredentials
-              - ResourceOwnerPassword
-              - ResourceOwnerPasswordAndClientCredentials
-              - DeviceFlow
-            type: string
+              - 0
+              - 1
+              - 2
+              - 3
+              - 4
+              - 5
+              - 6
+              - 7
+              - 8
+              - 9
+              - 10
+            type: integer
+            format: int32
           nullable: true
         redirectUris:
           type: array
@@ -430,6 +429,13 @@ components:
           type: string
           nullable: true
         returnUrl:
+          type: string
+          nullable: true
+      additionalProperties: false
+    LogoutInputModel:
+      type: object
+      properties:
+        logoutId:
           type: string
           nullable: true
       additionalProperties: false

@@ -7,7 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace AuthServer.Controllers
 {
     [Route("api/[controller]")]
-    public class ControllerBase: Controller
+    [ApiController]
+    public class ApiBaseController: ControllerBase
     {
         private IControllerUtils Utils { get; }
         public IMapper Mapper { get; }
@@ -16,7 +17,7 @@ namespace AuthServer.Controllers
         public IStores Stores { get; }
         public IEventService Events { get; }
 
-        protected ControllerBase(IControllerUtils utils)
+        protected ApiBaseController(IControllerUtils utils)
         {
             Utils = utils;
             Mapper = utils.Mapper;

@@ -11,7 +11,7 @@ using Client = IdentityServer4.EntityFramework.Entities.Client;
 
 namespace AuthServer.Controllers
 {
-    public class ClientsController: ControllerBase
+    public class ClientsController: ApiBaseController
     {
         public ClientsController(IControllerUtils utils) : base(utils)
         {

@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AuthServer.Controllers
 {
-    public class UsersController: ControllerBase
+    public class UsersController: ApiBaseController
     {
         public UsersController(IControllerUtils utils) : base(utils)
         {

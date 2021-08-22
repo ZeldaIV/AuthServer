@@ -10,10 +10,11 @@
 -}
 
 
-module Request.Account exposing (apiAccountIsSignedInGet, apiAccountLogoutPost, apiAccountPost, apiAccountUserGet)
+module Request.Account exposing (accountIsSignedInGet, accountLogoutPost, accountPost, accountUserGet)
 
 import Data.UserDto as UserDto exposing (UserDto)
 import Data.LoginRequest as LoginRequest exposing (LoginRequest)
+import Data.LogoutInputModel as LogoutInputModel exposing (LogoutInputModel)
 import Dict
 import Http
 import Json.Decode as Decode
@@ -27,7 +28,7 @@ basePath =
     "https://localhost/api"
 
 
-apiAccountIsSignedInGet :
+accountIsSignedInGet :
     { onSend : Result Http.Error Bool -> msg
 
 
@@ -36,12 +37,12 @@ apiAccountIsSignedInGet :
 
     }
     -> Cmd msg
-apiAccountIsSignedInGet params =
+accountIsSignedInGet params =
     Http.request
         { method = "GET"
         , headers = List.filterMap identity []
         , url = Url.crossOrigin basePath
-            ["api", "Account", "isSignedIn"]
+            ["Account", "isSignedIn"]
             (List.filterMap identity [])
         , body = Http.emptyBody
         , expect = Http.expectJson params.onSend Decode.bool
@@ -50,30 +51,30 @@ apiAccountIsSignedInGet params =
         }
 
 
-apiAccountLogoutPost :
+accountLogoutPost :
     { onSend : Result Http.Error () -> msg
 
 
+    , body : Maybe LogoutInputModel
 
 
-    , logoutId : Maybe (String)
     }
     -> Cmd msg
-apiAccountLogoutPost params =
+accountLogoutPost params =
     Http.request
         { method = "POST"
         , headers = List.filterMap identity []
         , url = Url.crossOrigin basePath
-            ["api", "Account", "logout"]
-            (List.filterMap identity [Maybe.map (Url.string "LogoutId" << identity) params.logoutId])
-        , body = Http.emptyBody
+            ["Account", "logout"]
+            (List.filterMap identity [])
+        , body = Maybe.withDefault Http.emptyBody <| Maybe.map (Http.jsonBody << LogoutInputModel.encode) params.body
         , expect = Http.expectWhatever params.onSend
         , timeout = Just 30000
         , tracker = Nothing
         }
 
 
-apiAccountPost :
+accountPost :
     { onSend : Result Http.Error () -> msg
 
 
@@ -82,12 +83,12 @@ apiAccountPost :
 
     }
     -> Cmd msg
-apiAccountPost params =
+accountPost params =
     Http.request
         { method = "POST"
         , headers = List.filterMap identity []
         , url = Url.crossOrigin basePath
-            ["api", "Account"]
+            ["Account"]
             (List.filterMap identity [])
         , body = Maybe.withDefault Http.emptyBody <| Maybe.map (Http.jsonBody << LoginRequest.encode) params.body
         , expect = Http.expectWhatever params.onSend
@@ -96,7 +97,7 @@ apiAccountPost params =
         }
 
 
-apiAccountUserGet :
+accountUserGet :
     { onSend : Result Http.Error UserDto -> msg
 
 
@@ -105,12 +106,12 @@ apiAccountUserGet :
 
     }
     -> Cmd msg
-apiAccountUserGet params =
+accountUserGet params =
     Http.request
         { method = "GET"
         , headers = List.filterMap identity []
         , url = Url.crossOrigin basePath
-            ["api", "Account", "user"]
+            ["Account", "user"]
             (List.filterMap identity [])
         , body = Http.emptyBody
         , expect = Http.expectJson params.onSend UserDto.decoder

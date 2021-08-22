@@ -19,7 +19,7 @@ import Json.Encode as Encode
 
 
 type alias LogoutInputModel =
-    { logoutId : Maybe String
+    { logoutId : (Maybe String)
     }
 
 
@@ -29,22 +29,28 @@ decoder =
         |> optional "logoutId" (Decode.nullable Decode.string) Nothing
 
 
+
 encode : LogoutInputModel -> Encode.Value
 encode =
     Encode.object << encodePairs
 
 
 encodeWithTag : ( String, String ) -> LogoutInputModel -> Encode.Value
-encodeWithTag ( tagField, tag ) model =
+encodeWithTag (tagField, tag) model =
     Encode.object <| encodePairs model ++ [ ( tagField, Encode.string tag ) ]
 
 
-encodePairs : LogoutInputModel -> List ( String, Encode.Value )
+encodePairs : LogoutInputModel -> List (String, Encode.Value)
 encodePairs model =
     [ ( "logoutId", Maybe.withDefault Encode.null (Maybe.map Encode.string model.logoutId) )
     ]
 
 
+
 toString : LogoutInputModel -> String
 toString =
     Encode.encode 0 << encode
+
+
+
+

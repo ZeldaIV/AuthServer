@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using AuthServer.Authorization;
@@ -12,6 +13,7 @@ using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -148,23 +150,19 @@ namespace AuthServer
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "AuthServer API", Version = "v1", Description = "AuthServer Idp"});
-                
                 c.DocumentFilter<DocumentFiler>();
                 c.DocumentFilter<ModelFilter>();
                 c.UseInlineDefinitionsForEnums();
 
             });
 
-            services.AddSwaggerGenNewtonsoftSupport();
-            
-
-            services.AddMvc(o =>
+            services.AddControllers(o =>
             {
                 var policy = new AuthorizationPolicyBuilder()
                     .RequireAuthenticatedUser()
                     .Build();
                 o.Filters.Add(new AuthorizeFilter(policy));
-                o.EnableEndpointRouting = false;
+                o.EnableEndpointRouting = true;
 
             }).AddNewtonsoftJson(o => 
                 o.SerializerSettings.Converters.Add(new StringEnumConverter())
@@ -224,16 +222,8 @@ namespace AuthServer
             {
                 FileProvider = new PhysicalFileProvider(distFolder)
             });
-            app.UseStaticFiles(staticFileOptions);
             app.UseSpaStaticFiles(staticFileOptions);
-            app.UseSpa(spa =>
-            {
-                spa.Options.SourcePath = "wwwroot";
-                spa.Options.DefaultPageStaticFileOptions = staticFileOptions;
-            });
-
             app.UseSwagger();
-            app.UseMvc();
         }
     }
 
@@ -242,6 +232,13 @@ namespace AuthServer
         public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
         {
             swaggerDoc.Servers = new List<OpenApiServer>{ new() { Url = "https://localhost/api"}};
+            var oldPaths = swaggerDoc.Paths.ToDictionary(entry => entry.Key,
+                entry => entry.Value);
+            foreach(var (key, value) in oldPaths)
+            {
+                swaggerDoc.Paths.Remove(key);
+                swaggerDoc.Paths.Add(key.Replace("/api", ""), value);
+            }
         }
     }
 

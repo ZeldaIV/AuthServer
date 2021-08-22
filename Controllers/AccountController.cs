@@ -14,7 +14,7 @@ using Serilog;
 namespace AuthServer.Controllers
 {
     [AllowAnonymous]
-    public class AccountController: ControllerBase
+    public class AccountController: ApiBaseController
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;

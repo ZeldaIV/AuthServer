@@ -10,7 +10,7 @@
 -}
 
 
-module Request.Clients exposing (apiClientsGet, apiClientsPatch, apiClientsPut)
+module Request.Clients exposing (clientsGet, clientsPatch, clientsPut)
 
 import Data.ClientDto as ClientDto exposing (ClientDto)
 import Dict
@@ -26,7 +26,7 @@ basePath =
     "https://localhost/api"
 
 
-apiClientsGet :
+clientsGet :
     { onSend : Result Http.Error (List ClientDto) -> msg
 
 
@@ -35,12 +35,12 @@ apiClientsGet :
 
     }
     -> Cmd msg
-apiClientsGet params =
+clientsGet params =
     Http.request
         { method = "GET"
         , headers = List.filterMap identity []
         , url = Url.crossOrigin basePath
-            ["api", "Clients"]
+            ["Clients"]
             (List.filterMap identity [])
         , body = Http.emptyBody
         , expect = Http.expectJson params.onSend (Decode.list ClientDto.decoder)
@@ -49,7 +49,7 @@ apiClientsGet params =
         }
 
 
-apiClientsPatch :
+clientsPatch :
     { onSend : Result Http.Error () -> msg
 
 
@@ -58,12 +58,12 @@ apiClientsPatch :
 
     }
     -> Cmd msg
-apiClientsPatch params =
+clientsPatch params =
     Http.request
         { method = "PATCH"
         , headers = List.filterMap identity []
         , url = Url.crossOrigin basePath
-            ["api", "Clients"]
+            ["Clients"]
             (List.filterMap identity [])
         , body = Maybe.withDefault Http.emptyBody <| Maybe.map (Http.jsonBody << ClientDto.encode) params.body
         , expect = Http.expectWhatever params.onSend
@@ -72,7 +72,7 @@ apiClientsPatch params =
         }
 
 
-apiClientsPut :
+clientsPut :
     { onSend : Result Http.Error () -> msg
 
 
@@ -81,12 +81,12 @@ apiClientsPut :
 
     }
     -> Cmd msg
-apiClientsPut params =
+clientsPut params =
     Http.request
         { method = "PUT"
         , headers = List.filterMap identity []
         , url = Url.crossOrigin basePath
-            ["api", "Clients"]
+            ["Clients"]
             (List.filterMap identity [])
         , body = Maybe.withDefault Http.emptyBody <| Maybe.map (Http.jsonBody << ClientDto.encode) params.body
         , expect = Http.expectWhatever params.onSend

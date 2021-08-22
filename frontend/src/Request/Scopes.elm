@@ -10,7 +10,7 @@
 -}
 
 
-module Request.Scopes exposing (apiScopesGet, apiScopesPut)
+module Request.Scopes exposing (scopesGet, scopesPut)
 
 import Data.ScopeDto as ScopeDto exposing (ScopeDto)
 import Dict
@@ -26,7 +26,7 @@ basePath =
     "https://localhost/api"
 
 
-apiScopesGet :
+scopesGet :
     { onSend : Result Http.Error (List ScopeDto) -> msg
 
 
@@ -35,12 +35,12 @@ apiScopesGet :
 
     }
     -> Cmd msg
-apiScopesGet params =
+scopesGet params =
     Http.request
         { method = "GET"
         , headers = List.filterMap identity []
         , url = Url.crossOrigin basePath
-            ["api", "Scopes"]
+            ["Scopes"]
             (List.filterMap identity [])
         , body = Http.emptyBody
         , expect = Http.expectJson params.onSend (Decode.list ScopeDto.decoder)
@@ -49,7 +49,7 @@ apiScopesGet params =
         }
 
 
-apiScopesPut :
+scopesPut :
     { onSend : Result Http.Error Bool -> msg
 
 
@@ -58,12 +58,12 @@ apiScopesPut :
 
     }
     -> Cmd msg
-apiScopesPut params =
+scopesPut params =
     Http.request
         { method = "PUT"
         , headers = List.filterMap identity []
         , url = Url.crossOrigin basePath
-            ["api", "Scopes"]
+            ["Scopes"]
             (List.filterMap identity [])
         , body = Maybe.withDefault Http.emptyBody <| Maybe.map (Http.jsonBody << ScopeDto.encode) params.body
         , expect = Http.expectJson params.onSend Decode.bool

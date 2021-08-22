@@ -10,7 +10,7 @@
 -}
 
 
-module Request.ApiResource exposing (apiApiResourceGet, apiApiResourcePatch, apiApiResourcePut)
+module Request.ApiResource exposing (apiResourceGet, apiResourcePatch, apiResourcePut)
 
 import Data.ApiResourceDto as ApiResourceDto exposing (ApiResourceDto)
 import Dict
@@ -26,7 +26,7 @@ basePath =
     "https://localhost/api"
 
 
-apiApiResourceGet :
+apiResourceGet :
     { onSend : Result Http.Error (List ApiResourceDto) -> msg
 
 
@@ -35,12 +35,12 @@ apiApiResourceGet :
 
     }
     -> Cmd msg
-apiApiResourceGet params =
+apiResourceGet params =
     Http.request
         { method = "GET"
         , headers = List.filterMap identity []
         , url = Url.crossOrigin basePath
-            ["api", "ApiResource"]
+            ["ApiResource"]
             (List.filterMap identity [])
         , body = Http.emptyBody
         , expect = Http.expectJson params.onSend (Decode.list ApiResourceDto.decoder)
@@ -49,7 +49,7 @@ apiApiResourceGet params =
         }
 
 
-apiApiResourcePatch :
+apiResourcePatch :
     { onSend : Result Http.Error () -> msg
 
 
@@ -58,12 +58,12 @@ apiApiResourcePatch :
 
     }
     -> Cmd msg
-apiApiResourcePatch params =
+apiResourcePatch params =
     Http.request
         { method = "PATCH"
         , headers = List.filterMap identity []
         , url = Url.crossOrigin basePath
-            ["api", "ApiResource"]
+            ["ApiResource"]
             (List.filterMap identity [])
         , body = Maybe.withDefault Http.emptyBody <| Maybe.map (Http.jsonBody << ApiResourceDto.encode) params.body
         , expect = Http.expectWhatever params.onSend
@@ -72,7 +72,7 @@ apiApiResourcePatch params =
         }
 
 
-apiApiResourcePut :
+apiResourcePut :
     { onSend : Result Http.Error () -> msg
 
 
@@ -81,12 +81,12 @@ apiApiResourcePut :
 
     }
     -> Cmd msg
-apiApiResourcePut params =
+apiResourcePut params =
     Http.request
         { method = "PUT"
         , headers = List.filterMap identity []
         , url = Url.crossOrigin basePath
-            ["api", "ApiResource"]
+            ["ApiResource"]
             (List.filterMap identity [])
         , body = Maybe.withDefault Http.emptyBody <| Maybe.map (Http.jsonBody << ApiResourceDto.encode) params.body
         , expect = Http.expectWhatever params.onSend

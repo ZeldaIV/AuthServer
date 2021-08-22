@@ -41,17 +41,17 @@ type alias ClientDto =
 
 
 type AllowedGrantTypes
-    = NotSet
-    | Implicit
-    | ImplicitAndClientCredentials
-    | Code
-    | CodeAndClientCredentials
-    | Hybrid
-    | HybridAndClientCredentials
-    | ClientCredentials
-    | ResourceOwnerPassword
-    | ResourceOwnerPasswordAndClientCredentials
-    | DeviceFlow
+    = N0
+    | N1
+    | N2
+    | N3
+    | N4
+    | N5
+    | N6
+    | N7
+    | N8
+    | N9
+    | N10
 
 
 
@@ -120,38 +120,38 @@ allowedGrantTypesDecoder =
         |> Decode.andThen
             (\str ->
                 case str of
-                    "NotSet" ->
-                        Decode.succeed NotSet
+                    "0" ->
+                        Decode.succeed N0
 
-                    "Implicit" ->
-                        Decode.succeed Implicit
+                    "1" ->
+                        Decode.succeed N1
 
-                    "ImplicitAndClientCredentials" ->
-                        Decode.succeed ImplicitAndClientCredentials
+                    "2" ->
+                        Decode.succeed N2
 
-                    "Code" ->
-                        Decode.succeed Code
+                    "3" ->
+                        Decode.succeed N3
 
-                    "CodeAndClientCredentials" ->
-                        Decode.succeed CodeAndClientCredentials
+                    "4" ->
+                        Decode.succeed N4
 
-                    "Hybrid" ->
-                        Decode.succeed Hybrid
+                    "5" ->
+                        Decode.succeed N5
 
-                    "HybridAndClientCredentials" ->
-                        Decode.succeed HybridAndClientCredentials
+                    "6" ->
+                        Decode.succeed N6
 
-                    "ClientCredentials" ->
-                        Decode.succeed ClientCredentials
+                    "7" ->
+                        Decode.succeed N7
 
-                    "ResourceOwnerPassword" ->
-                        Decode.succeed ResourceOwnerPassword
+                    "8" ->
+                        Decode.succeed N8
 
-                    "ResourceOwnerPasswordAndClientCredentials" ->
-                        Decode.succeed ResourceOwnerPasswordAndClientCredentials
+                    "9" ->
+                        Decode.succeed N9
 
-                    "DeviceFlow" ->
-                        Decode.succeed DeviceFlow
+                    "10" ->
+                        Decode.succeed N10
 
                     other ->
                         Decode.fail <| "Unknown type: " ++ other
@@ -162,38 +162,38 @@ allowedGrantTypesDecoder =
 encodeAllowedGrantTypes : AllowedGrantTypes -> Encode.Value
 encodeAllowedGrantTypes model =
     case model of
-        NotSet ->
-            Encode.string "NotSet"
+        N0 ->
+            Encode.string "0"
 
-        Implicit ->
-            Encode.string "Implicit"
+        N1 ->
+            Encode.string "1"
 
-        ImplicitAndClientCredentials ->
-            Encode.string "ImplicitAndClientCredentials"
+        N2 ->
+            Encode.string "2"
 
-        Code ->
-            Encode.string "Code"
+        N3 ->
+            Encode.string "3"
 
-        CodeAndClientCredentials ->
-            Encode.string "CodeAndClientCredentials"
+        N4 ->
+            Encode.string "4"
 
-        Hybrid ->
-            Encode.string "Hybrid"
+        N5 ->
+            Encode.string "5"
 
-        HybridAndClientCredentials ->
-            Encode.string "HybridAndClientCredentials"
+        N6 ->
+            Encode.string "6"
 
-        ClientCredentials ->
-            Encode.string "ClientCredentials"
+        N7 ->
+            Encode.string "7"
 
-        ResourceOwnerPassword ->
-            Encode.string "ResourceOwnerPassword"
+        N8 ->
+            Encode.string "8"
 
-        ResourceOwnerPasswordAndClientCredentials ->
-            Encode.string "ResourceOwnerPasswordAndClientCredentials"
+        N9 ->
+            Encode.string "9"
 
-        DeviceFlow ->
-            Encode.string "DeviceFlow"
+        N10 ->
+            Encode.string "10"
 
 
 

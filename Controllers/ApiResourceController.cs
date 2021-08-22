@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AuthServer.Controllers
 {
     
-    public class ApiResourceController : ControllerBase
+    public class ApiResourceController : ApiBaseController
     {
         
         public ApiResourceController(IControllerUtils utils) : base(utils)
