@@ -14,6 +14,7 @@ import Page
 import Request exposing (Request)
 import Request.ApiResource as ApiResource
 import Shared
+import Utility exposing (fromMaybe)
 import Uuid exposing (Uuid)
 import View exposing (View)
 
@@ -101,36 +102,6 @@ view model =
     }
 
 
-fromMaybeString : Maybe String -> String
-fromMaybeString value =
-    case value of
-        Just a ->
-            a
-
-        Nothing ->
-            ""
-
-
-fromMaybeUuid : Maybe Uuid -> String
-fromMaybeUuid val =
-    case val of
-        Just a ->
-            Uuid.toString a
-
-        Nothing ->
-            ""
-
-
-fromMaybeDateTime : Maybe DateTime -> String
-fromMaybeDateTime val =
-    case val of
-        Just a ->
-            DateTime.toString a
-
-        Nothing ->
-            ""
-
-
 fromMaybeBool : Maybe Bool -> String
 fromMaybeBool val =
     case val of
@@ -148,9 +119,9 @@ fromMaybeBool val =
 rowView : ApiResourceDto -> Row Msg
 rowView resource =
     Table.tr [ Table.rowAttr (onClick (GoToApplication resource.name)) ]
-        [ Table.td [] [ text (fromMaybeString resource.name) ]
-        , Table.td [] [ text (fromMaybeString resource.displayName) ]
-        , Table.td [] [ text (fromMaybeString resource.description) ]
+        [ Table.td [] [ text (fromMaybe resource.name "") ]
+        , Table.td [] [ text (fromMaybe resource.displayName "") ]
+        , Table.td [] [ text (fromMaybe resource.description "") ]
         , Table.td [] [ text (fromMaybeBool resource.enabled) ]
         ]
 
