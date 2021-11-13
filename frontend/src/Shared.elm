@@ -10,13 +10,14 @@ module Shared exposing
 
 import Bootstrap.Button as Button
 import Bootstrap.Navbar as Navbar
-import Data.ApiResourceDto exposing (ApiResourceDto)
 import Gen.Route
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, href)
 import Json.Decode as Decode exposing (Decoder)
+import Random
 import Request exposing (Request)
 import Storage exposing (Storage)
+import Uuid
 import View exposing (View)
 
 
@@ -31,7 +32,8 @@ type alias Flags =
 type alias Model =
     { navBarState : Navbar.State
     , storage : Storage
-    , apiResources : Maybe (List ApiResourceDto)
+    , seed : Random.Seed
+    , uuid : String
     }
 
 
@@ -44,7 +46,8 @@ init req flags =
         model =
             { navBarState = navbarState
             , storage = Storage.fromJson flags
-            , apiResources = Nothing
+            , seed = Random.initialSeed 431234234 -- so we dont have to deal with Maybe
+            , uuid = ""
             }
     in
     ( model
@@ -52,7 +55,7 @@ init req flags =
         Request.replaceRoute Gen.Route.Login req
 
       else
-        navbarCmd
+        Cmd.batch [ navbarCmd, Random.generate GenerateNewUuid Random.independentSeed ]
     )
 
 
@@ -64,6 +67,7 @@ type Msg
     = NavMsg Navbar.State
     | SignOut
     | StorageUpdated Storage
+    | GenerateNewUuid Random.Seed
 
 
 update : Request -> Msg -> Model -> ( Model, Cmd Msg )
@@ -77,6 +81,13 @@ update _ msg model =
 
         StorageUpdated storage ->
             ( { model | storage = storage }, Cmd.none )
+
+        GenerateNewUuid seed ->
+            let
+                ( newId, newSeed ) =
+                    Random.step Uuid.uuidGenerator seed
+            in
+            ( { model | seed = newSeed, uuid = Uuid.toString newId }, Cmd.none )
 
 
 

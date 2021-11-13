@@ -1,13 +1,15 @@
-using IdentityServer4.Stores;
+using AuthServer.Data.Models;
+using OpenIddict.Abstractions;
 
 namespace AuthServer.Utilities
 {
-    public class Stores: IStores
+    public class Stores : IStores
     {
-        public IClientStore ClientStore { get; set; }
-        public IResourceStore ResourceStore { get; set; }
-        
-        public Stores(IClientStore clientStore, IResourceStore resourceStore)
+        public IOpenIddictApplicationStore<ApplicationClient> ClientStore { get; set; }
+        public IOpenIddictAuthorizationStore<ApplicationAuthorization> ResourceStore { get; set; }
+
+        public Stores(IOpenIddictApplicationStore<ApplicationClient> clientStore,
+            IOpenIddictAuthorizationStore<ApplicationAuthorization> resourceStore)
         {
             ClientStore = clientStore;
             ResourceStore = resourceStore;

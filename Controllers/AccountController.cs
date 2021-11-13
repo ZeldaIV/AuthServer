@@ -2,9 +2,6 @@ using System;
 using System.Threading.Tasks;
 using AuthServer.Dtos;
 using AuthServer.Utilities;
-using IdentityServer4.Events;
-using IdentityServer4.Extensions;
-using IdentityServer4.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -43,9 +40,8 @@ namespace AuthServer.Controllers
         // [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login([FromBody]LoginRequest model)
         {
-            var t = new IdentityResource();
-            var context = await Interaction.GetAuthorizationContextAsync(model.ReturnUrl);
-            Log.Information($"===> Found context: {context}");
+            //var context = await Interaction.GetAuthorizationContextAsync(model.ReturnUrl);
+           // Log.Information($"===> Found context: {context}");
             // the user clicked the "cancel" button
             // if (button != "login")
             // {
@@ -78,19 +74,19 @@ namespace AuthServer.Controllers
             {
                 Log.Information($"===> Successfull login");
                 var user = await _userManager.FindByNameAsync(model.Username);
-                await Events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName, clientId: context?.Client.ClientId));
-                if (context != null)
-                {
-                //    if (await _clientStore.IsPkceClientAsync(context.ClientId))
-                //    {
-                        // if the client is PKCE then we assume it's native, so this change in how to
-                        // return the response is for better UX for the end user.
-                //        return View("Redirect", new RedirectViewModel { RedirectUrl = model.ReturnUrl });
-                //    }
-
-                    // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
-                return Redirect(model.ReturnUrl);
-                }
+                //await Events.RaiseAsync(new UserLoginSuccessEvent(user.UserName, user.Id, user.UserName, clientId: context?.Client.ClientId));
+                // if (context != null)
+                // {
+                // //    if (await _clientStore.IsPkceClientAsync(context.ClientId))
+                // //    {
+                //         // if the client is PKCE then we assume it's native, so this change in how to
+                //         // return the response is for better UX for the end user.
+                // //        return View("Redirect", new RedirectViewModel { RedirectUrl = model.ReturnUrl });
+                // //    }
+                //
+                //     // we can trust model.ReturnUrl since GetAuthorizationContextAsync returned non-null
+                // return Redirect(model.ReturnUrl);
+                // }
 
                 // request for a local page
                 if (Url.IsLocalUrl(model.ReturnUrl))
@@ -110,7 +106,7 @@ namespace AuthServer.Controllers
                 
             }
 
-            await Events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials", clientId:context?.Client.ClientId));
+            //await Events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials", clientId:context?.Client.ClientId));
             // ModelState.AddModelError(string.Empty, AccountOptions.InvalidCredentialsErrorMessage);
 
             
@@ -127,14 +123,12 @@ namespace AuthServer.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout(LogoutInputModel model)
         {
-            if (User?.Identity.IsAuthenticated == true)
-            {
-                // delete local authentication cookie
-                await _signInManager.SignOutAsync();
+            if (User.Identity?.IsAuthenticated != true) return Redirect("~/");
+            // delete local authentication cookie
+            await _signInManager.SignOutAsync();
 
-                // raise the logout event
-                await Events.RaiseAsync(new UserLogoutSuccessEvent(User.GetSubjectId(), User.GetDisplayName()));
-            }
+            // raise the logout event
+            //await Events.RaiseAsync(new UserLogoutSuccessEvent(User.GetSubjectId(), User.GetDisplayName()));
 
 
             return Redirect("~/");
@@ -146,14 +140,14 @@ namespace AuthServer.Controllers
         // [ValidateAntiForgeryToken]
         public UserDto GetUser()
         {
-            return User?.Identity?.IsAuthenticated == true ? new UserDto { UserName = User.Identity.Name } : null;
+            return User.Identity?.IsAuthenticated == true ? new UserDto { UserName = User.Identity.Name } : null;
         }
 
         [HttpGet]
         [Route("isSignedIn")]
         public bool IsSignedIn()
         {
-            return User?.Identity?.IsAuthenticated ?? false;
+            return User.Identity?.IsAuthenticated ?? false;
         }
         
 

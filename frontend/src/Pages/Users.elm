@@ -1,26 +1,37 @@
 module Pages.Users exposing (Model, Msg, page)
 
-import Data.UserDto as UserDto exposing (UserDto)
+import Api.InputObject exposing (UserInput, UserInputRequiredFields, buildUserInput)
+import Api.Mutation exposing (CreateUserRequiredArguments, createUser)
+import Api.Object exposing (CreateUserPayload, UserDto)
+import Api.Object.CreateUserPayload as CreateUserPayload
+import Api.Object.UserDto as UserDto
+import Api.Query as Query
+import Effect exposing (Effect)
 import Element exposing (..)
+import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import Element.Region as Region
+import Graphql.Http
+import Graphql.Operation exposing (RootMutation, RootQuery)
+import Graphql.OptionalArgument exposing (OptionalArgument(..))
+import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Html exposing (Html)
 import Http exposing (Error)
 import Page exposing (Page)
+import RemoteData exposing (RemoteData)
 import Request exposing (Request)
-import Request.Users as UserResource
 import Shared
-import UI.Button exposing (button)
+import UI.Button exposing (cancelButton, confirmButton)
 import UI.Color exposing (color)
-import Utility exposing (fromMaybe)
+import Utility exposing (RequestState(..), makeGraphQLMutation, makeGraphQLQuery)
 import View exposing (View)
 
 
 page : Shared.Model -> Request -> Page.With Model Msg
 page _ _ =
-    Page.protected.element
+    Page.protected.advanced
         (\_ ->
             { init = init
             , update = update
@@ -28,24 +39,6 @@ page _ _ =
             , subscriptions = subscriptions
             }
         )
-
-
-
--- INIT
--- type alias Form =
---     { userName : String
---     , email : String
---     , phoneNumber : Maybe Int
---     , twoFactorEnabled : Bool
---     }
-
-
-type alias User =
-    { userName : String
-    , email : String
-    , phoneNumber : String
-    , twoFactorEnabled : Bool
-    }
 
 
 type alias Model =
@@ -56,30 +49,122 @@ type alias Model =
     }
 
 
+type alias User =
+    { userName : String
+    , email : String
+    , emailConfirmed : Bool
+    , phoneNumber : String
+    , phoneNumberConfirmed : Bool
+    , twoFactorEnabled : Bool
+    }
+
+
+type alias MutationResponse =
+    { user : UserDto
+    }
+
+
+selectUser : SelectionSet User UserDto
+selectUser =
+    SelectionSet.map6 User
+        UserDto.userName
+        UserDto.email
+        UserDto.emailConfirmed
+        (SelectionSet.withDefault "" UserDto.phoneNumber)
+        UserDto.phoneNumberConfirmed
+        UserDto.twoFactorEnabled
+
+
+fetchUsers : SelectionSet (List User) RootQuery
+fetchUsers =
+    Query.users selectUser
+
+
+makeRequest : Cmd Msg
+makeRequest =
+    (Graphql.Http.withSimpleHttpError >> RemoteData.fromResult >> usersResponse) |> makeGraphQLQuery fetchUsers
+
+
+usersResponse : RemoteData (Graphql.Http.RawError (List User) Http.Error) (List User) -> Msg
+usersResponse result =
+    case Utility.response result of
+        RequestSuccess a ->
+            UsersLoaded a
+
+        State state ->
+            RequestState state
+
+        RequestError err ->
+            RequestFailed err
+
+
+insertUserObject : User -> UserInput
+insertUserObject user =
+    buildUserInput
+        (UserInputRequiredFields user.userName user.twoFactorEnabled)
+        (\args ->
+            { args
+                | email = Present user.email
+                , phoneNumber = Present user.phoneNumber
+            }
+        )
+
+
+insertArgs : User -> CreateUserRequiredArguments
+insertArgs user =
+    CreateUserRequiredArguments (insertUserObject user)
+
+
+getUserInsertObject : User -> SelectionSet (Maybe User) RootMutation
+getUserInsertObject user =
+    createUser (insertArgs user) mutationResponse
+
+
+mutationResponse : SelectionSet (Maybe User) CreateUserPayload
+mutationResponse =
+    CreateUserPayload.user selectUser
+
+
+makeMutation : SelectionSet (Maybe User) RootMutation -> Cmd Msg
+makeMutation mutation =
+    (Graphql.Http.withSimpleHttpError >> RemoteData.fromResult >> gotUser) |> makeGraphQLMutation mutation
+
+
+gotUser : RemoteData (Graphql.Http.RawError (Maybe User) Http.Error) (Maybe User) -> Msg
+gotUser result =
+    case Utility.response result of
+        RequestSuccess a ->
+            case a of
+                Just user ->
+                    Success user
+
+                Nothing ->
+                    CouldNotAddUser
+
+        State state ->
+            RequestState state
+
+        RequestError err ->
+            RequestFailed err
+
+
+
+-- INIT
+
+
 initialForm : User
 initialForm =
-    User "" "" "" False
+    User "" "" False "" False False
 
 
-init : ( Model, Cmd Msg )
+init : ( Model, Effect Msg )
 init =
     ( { displayNewUserForm = False
       , form = initialForm
-      , formValid = True
-      , userList =
-            [ { userName = "David"
-              , email = "Bowie"
-              , phoneNumber = "23445"
-              , twoFactorEnabled = False
-              }
-            , { userName = "David"
-              , email = "Bowie"
-              , phoneNumber = "23445"
-              , twoFactorEnabled = True
-              }
-            ]
+      , formValid = False
+      , userList = []
       }
-    , Cmd.none
+    , Effect.fromCmd makeRequest
     )
 
 
@@ -92,74 +177,59 @@ type Msg
     | ClickMe
     | Update User
     | Add User
-    | Success
+    | CouldNotAddUser
+    | Success User
     | UsersLoaded (List User)
     | ApiError String
+    | CancelAddUser
+    | RequestState String
+    | RequestFailed String
 
 
-fromFormToModel : User -> UserDto
-fromFormToModel user =
-    { userName = Just user.userName
-    , email = Just user.email
-    , emailConfirmed = Just False
-    , phoneNumber = Just user.phoneNumber
-    , phoneNumberConfirmed = Just False
-    , twoFactorEnabled = Just False
-    }
+checkValidUser : User -> Bool
+checkValidUser user =
+    String.length user.email > 5 && String.length user.userName > 5
 
 
-fromModelToForm : UserDto -> User
-fromModelToForm userDto =
-    { userName = fromMaybe userDto.userName ""
-    , email = fromMaybe userDto.email ""
-    , phoneNumber = fromMaybe userDto.phoneNumber ""
-    , twoFactorEnabled = fromMaybe userDto.twoFactorEnabled False
-    }
-
-
-addedNewUser : Result Error Bool -> Msg
-addedNewUser result =
-    case result of
-        Ok _ ->
-            Success
-
-        Err _ ->
-            Success
-
-
-usersLoaded : Result Http.Error (List UserDto) -> Msg
-usersLoaded result =
-    case result of
-        Ok users ->
-            UsersLoaded (List.map (\user -> fromModelToForm user) users)
-
-        Err _ ->
-            ApiError "Api call failed"
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
         ClickMe ->
-            ( model, Cmd.none )
+            ( model, Effect.none )
 
         CreateNew ->
-            ( { model | displayNewUserForm = True }, Cmd.none )
+            ( { model | displayNewUserForm = True }, Effect.none )
 
         Update form ->
-            ( { model | form = form }, Cmd.none )
+            ( { model | form = form, formValid = checkValidUser form }, Effect.none )
 
         Add newUser ->
-            ( { displayNewUserForm = False, form = initialForm, formValid = True, userList = newUser :: model.userList }, UserResource.usersPut { onSend = addedNewUser, body = Just (newUser |> fromFormToModel) } )
-
-        Success ->
-            ( model, UserResource.usersGet { onSend = usersLoaded } )
+            let
+                mutationObject =
+                    getUserInsertObject newUser
+            in
+            ( { displayNewUserForm = False, form = initialForm, formValid = False, userList = newUser :: model.userList }, Effect.fromCmd (makeMutation mutationObject) )
 
         UsersLoaded users ->
-            ( { model | userList = users }, Cmd.none )
+            ( { model | userList = users }, Effect.none )
 
         ApiError _ ->
-            ( model, Cmd.none )
+            ( model, Effect.none )
+
+        CancelAddUser ->
+            ( { model | displayNewUserForm = False }, Effect.none )
+
+        RequestState _ ->
+            ( model, Effect.none )
+
+        RequestFailed _ ->
+            ( model, Effect.none )
+
+        Success _ ->
+            ( model, Effect.none )
+
+        CouldNotAddUser ->
+            ( model, Effect.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -224,21 +294,6 @@ usersTable model =
         }
 
 
-maybeNumberToString : Maybe Int -> String
-maybeNumberToString n =
-    case n of
-        Just j ->
-            String.fromInt j
-
-        Nothing ->
-            ""
-
-
-stringToNumber : String -> Maybe Int
-stringToNumber s =
-    String.toInt s
-
-
 addUserForm : Model -> Element Msg
 addUserForm model =
     let
@@ -252,6 +307,7 @@ addUserForm model =
         , padding 10
         , Border.rounded 5
         , Border.shadow { offset = ( 1, 1 ), size = 0.5, blur = 10, color = color.black }
+        , Background.color color.white
         ]
         [ el
             [ Region.heading 1
@@ -259,14 +315,14 @@ addUserForm model =
             , Font.size 24
             ]
             (text "Add a new user")
-        , Input.text
+        , Input.email
             [ width <| maximum 400 fill ]
             { text = form.email
             , placeholder = Nothing
             , onChange = \new -> Update { form | email = new }
             , label = Input.labelLeft [ width (px 150), centerY ] (text "Email:")
             }
-        , Input.text
+        , Input.username
             [ width <| maximum 400 fill ]
             { text = form.userName
             , placeholder = Nothing
@@ -287,7 +343,10 @@ addUserForm model =
             , label = Input.labelRight [ centerY ] (text "Use two factor authentication")
             , icon = Input.defaultCheckbox
             }
-        , button { msg = Add form, textContent = "Add user", enabled = model.formValid }
+        , row [ width fill, spaceEvenly ]
+            [ cancelButton { msg = CancelAddUser, label = "Cancel", enabled = True }
+            , confirmButton { msg = Add form, label = "Add user", enabled = model.formValid }
+            ]
         ]
 
 
@@ -303,8 +362,8 @@ usersView model =
     in
     [ layout [ width fill, height fill, padding 50 ] <|
         column [ width fill, spacing 40 ]
-            [ el [ centerX ] <| button { msg = CreateNew, textContent = "Create new user", enabled = not model.displayNewUserForm }
-            , displayForm
-            , el [ centerX ] (usersTable model)
+            [ el [ centerX ] <| confirmButton { msg = CreateNew, label = "Create new user", enabled = not model.displayNewUserForm }
+            , el [ centerX, Element.inFront displayForm ]
+                (usersTable model)
             ]
     ]

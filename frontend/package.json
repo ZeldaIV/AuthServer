@@ -20,16 +20,18 @@
     "generateApi": "run-s genSwagger genElmCode",
     "genSwagger": "ASPNETCORE_ENVIRONMENT=SwaggerGen dotnet build ../",
     "genElmCode": "openapi-generator-cli generate -i ./swagger.yaml -g elm -o ./",
-    "publish": "cp -r ./public/ ../wwwroot"
+    "publish": "cp -r ./public/ ../wwwroot",
+    "api": "elm-graphql http://localhost/graphql --output src/GraphQl"
   },
   "keywords": [],
   "license": "ISC",
   "devDependencies": {
-    "@openapitools/openapi-generator-cli": "^2.2.6",
-    "chokidar-cli": "2.1.0",
-    "elm-live": "4.0.2",
-    "elm-spa": "6.0.4",
-    "elm-test": "0.19.1-revision6",
-    "npm-run-all": "4.1.5"
+    "@dillonkearns/elm-graphql": "^4.2.2",
+    "@openapitools/openapi-generator-cli": "^2.3.10",
+    "chokidar-cli": "^3.0.0",
+    "elm-live": "^4.0.2",
+    "elm-spa": "^6.0.4",
+    "elm-test": "^0.19.1-revision7",
+    "npm-run-all": "^4.1.5"
   }
 }

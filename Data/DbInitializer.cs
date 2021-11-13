@@ -1,6 +1,5 @@
 using System.Data.Common;
 using System.Threading.Tasks;
-using IdentityServer4.EntityFramework.DbContexts;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuthServer.Data
@@ -8,14 +7,6 @@ namespace AuthServer.Data
     public static class DbInitializer
     {
         public static async Task<bool> Initialize(ApplicationDbContext context)
-        {
-            var connection = context.Database.GetDbConnection();
-            var result = await InitilizeDb(connection);
-            if (result) await context.Database.MigrateAsync();
-            return result;
-        }
-
-        public static async Task<bool> Initialize(ConfigurationDbContext context)
         {
             var connection = context.Database.GetDbConnection();
             var result = await InitilizeDb(connection);

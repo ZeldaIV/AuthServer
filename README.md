@@ -1,7 +1,7 @@
 # AuthServer
-An implementation of authorization and authentication based on IdentityServer and custom UI.
+An implementation of authorization and authentication based on OpenIdDict and custom UI written in Elm.
 
-AuthServer is meant to provide a web user interface for adding users, clients and resources
+AuthServer is meant to provide a web user interface for adding users, clients and custom scopes
 to provide authorization and authentication for any app, api or other client.
 
 There are a few things you need to configure before running:
@@ -35,27 +35,12 @@ The basic file will work whn following the example setup.
 
 This will add the administrator to the database, and you can use that as login to add other users, clients and resources.
 
-### Creating Self-Signed certificates for testing
-
-You will also have to create a certificate or get a certificate from a third party for https, 
-and create a signing certificate for the tokens and update the location of your
-certificates.
-
-To generate such certificates have a look in the <code> docker/OpenSsl </code> folder. These commands
-will generate the necessary certificates and put them in the Certificates folder in the root dir.
-
-This will work out of the box for testing locally
-```
-volumes: 
-   - "../Certificates:/certificates"
-   - "../Certificates:/https"
-```
+### Certificates for production
 
 If you allready have other certificates or you are in you production environment you might want 
 to use a differnt certificate location like:
 ```
 volumes:
-   - "${HOME}/.aspnet/https:/certificates"
    - "${HOME}/.aspnet/https:/https"
 ```
 

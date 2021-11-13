@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Security.Claims;
 using AuthServer.Configuration;
-using IdentityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +14,6 @@ namespace AuthServer.Data
         public static async void EnsureSeedData(IServiceProvider serviceProvider)
         {
             using var scope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            var context = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
             var configuration = scope.ServiceProvider.GetService<IConfiguration>();
             var adminConfigration = configuration.Get<AdministrationConfiguration>();
@@ -31,7 +29,7 @@ namespace AuthServer.Data
                 if (!result.Succeeded) throw new Exception(result.Errors.First().Description);
                 result = userMgr.AddClaimsAsync(admin, new[]
                 {
-                    new Claim(JwtClaimTypes.Name, administrator),
+                    new Claim(ClaimTypes.Name, administrator),
                     new Claim(ClaimTypes.Role, "Administrator")
                 }).Result;
                 if (!result.Succeeded) throw new Exception(result.Errors.First().Description);

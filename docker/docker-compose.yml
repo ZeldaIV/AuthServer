@@ -34,7 +34,7 @@ services:
     restart: unless-stopped
 
   db:
-    image: mariadb:10.3.9
+    image: mariadb:10.6.4
     expose:
       - 3306
     volumes:

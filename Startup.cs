@@ -7,13 +7,21 @@ using System.Security.Cryptography.X509Certificates;
 using AuthServer.Authorization;
 using AuthServer.Configuration;
 using AuthServer.Data;
-using AuthServer.Swagger;
+using AuthServer.Data.Models;
+using AuthServer.Extensions.Services;
+using AuthServer.GraphQL.ApiResource;
+using AuthServer.GraphQL.Client;
+using AuthServer.GraphQL.Scope;
+using AuthServer.GraphQL.User;
 using AuthServer.Utilities;
+using AuthServer.Utilities.Swagger;
+using HotChocolate.AspNetCore;
+using HotChocolate.Execution.Options;
+using HotChocolate.Types;
 using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -23,8 +31,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Converters;
+using OpenIddict.Abstractions;
 using Serilog;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -32,8 +42,8 @@ namespace AuthServer
 {
     public class Startup
     {
-        private readonly IHostEnvironment _env;
         private const string Cors = "local";
+        private readonly IHostEnvironment _env;
 
         public Startup(IConfiguration configuration, IHostEnvironment env)
         {
@@ -53,111 +63,72 @@ namespace AuthServer
             //     options.CheckConsentNeeded = context => true;
             //     options.MinimumSameSitePolicy = SameSiteMode.None;
             // });
-            
             AuthServerTypeAdapterConfig.Configure();
-            
+
             var mysqlConnectionString = Configuration.GetConnectionString("MysqlConnectionString");
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
             var dbServerVersion = new MariaDbServerVersion(new Version(10, 6, 4));
 
-            services.AddDbContextPool<ApplicationDbContext>(
-                options =>
-                {
-                    options.UseMySql(mysqlConnectionString, dbServerVersion,
-                        mysqlOptions =>
-                        {
-                            mysqlOptions.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> {1, 2, 3, 4});
-                        }
-                    );
-                });
-            
+            Action<DbContextOptionsBuilder> dbOptions = options =>
+            {
+                options.UseMySql(mysqlConnectionString, dbServerVersion,
+                    builder =>
+                    {
+                        builder.MigrationsAssembly(migrationsAssembly);
+                        builder.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> { 1, 2, 3, 4 });
+                    }
+                );
+                options.UseOpenIddict<ApplicationClient, ApplicationAuthorization, ApplicationScope, ApplicationToken, Guid>();
+            };
+            services.AddDbContext<ApplicationDbContext>(dbOptions);
+            services.AddPooledDbContextFactory<ApplicationDbContext>(dbOptions);
+
             services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
-
-            services.ConfigureApplicationCookie(o =>
+            
+            services.Configure<IdentityOptions>(options =>
             {
-                o.LoginPath = "/login";
+                options.ClaimsIdentity.UserNameClaimType = OpenIddictConstants.Claims.Name;
+                options.ClaimsIdentity.UserIdClaimType = OpenIddictConstants.Claims.Subject;
+                options.ClaimsIdentity.RoleClaimType = OpenIddictConstants.Claims.Role;
             });
 
-            if (!_env.IsEnvironment("SwaggerGen"))
-            {
-                var tokenSigning = Configuration.Get<TokenSigningConfiguration>();
-                var signingCertificate = new X509Certificate2(tokenSigning.AuthServerSigningCertificatePath,
-                    tokenSigning.AuthServerSigningCertificatePassword);
-                services.AddIdentityServer(options =>
-                    {
-                        options.Events.RaiseErrorEvents = true;
-                        options.Events.RaiseInformationEvents = true;
-                        options.Events.RaiseFailureEvents = true;
-                        options.Events.RaiseSuccessEvents = true;
-                        // options.IssuerUri = "https://authserver.com";
-                    })
-                    .AddAspNetIdentity<IdentityUser>()
-                    .AddSigningCredential(signingCertificate)
-                    .AddConfigurationStore(options =>
-                    {
-                        options.ConfigureDbContext = builder =>
-                            builder.UseMySql(mysqlConnectionString, dbServerVersion,
-                                sql =>
-                                {
-                                    sql.MigrationsAssembly(migrationsAssembly);
-                                    sql.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> {1, 2, 3, 4});
-                                });
-                    }).AddOperationalStore(options =>
-                    {
-                        options.ConfigureDbContext = builder =>
-                        {
-                            builder.UseMySql(mysqlConnectionString, dbServerVersion,
-                                sql =>
-                                {
-                                    sql.MigrationsAssembly(migrationsAssembly);
-                                    sql.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> {1, 2, 3, 4});
-                                });
-                        };
-                    });
-            }
-            
-            var config = new TypeAdapterConfig();
-            services.AddSingleton(config);
-            services.AddScoped<IMapper, ServiceMapper>();
-            
+            services.ConfigureApplicationCookie(o => { o.LoginPath = "/login"; });
+
+            services.AddDbServices();
+
+            services.AddGraphQlServices();
+
             services.AddSingleton<IAuthorizationHandler, AdministratorHandler>()
-                .AddScoped<IIdentityServerDbContext, IdentityServerDbContext>()
                 .AddScoped<IStores, Stores>()
                 .AddScoped<IControllerUtils, ControllerUtils>();
 
-            
-            
-            
+            services.AddOpenIdDictServices(_env);
+
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("Administrator",
                     policy => { policy.Requirements.Add(new AdministratorRequirement()); });
             });
             services.AddAuthentication();
-            services.AddCors(o =>
-            {
-                o.AddPolicy(Cors, builder => { builder.WithOrigins("https://localhost"); });
-            });
-            
+            services.AddCors(o => { o.AddPolicy(Cors, builder => { builder.WithOrigins("https://localhost"); }); });
 
-            services.AddSpaStaticFiles(configuration =>
-            {
-                configuration.RootPath = "wwwroot";
-            });
+            services.AddSpaStaticFiles(configuration => { configuration.RootPath = "wwwroot"; });
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "AuthServer API", Version = "v1", Description = "AuthServer Idp"});
+                c.SwaggerDoc("v1",
+                    new OpenApiInfo { Title = "AuthServer API", Version = "v1", Description = "AuthServer Idp" });
                 c.DocumentFilter<DocumentFiler>();
                 c.DocumentFilter<ModelFilter>();
                 c.UseInlineDefinitionsForEnums();
-
             });
 
             services.AddSwaggerGenNewtonsoftSupport();
-            
+
+            services.AddGraphQL();
+
             services.AddControllers(o =>
             {
                 var policy = new AuthorizationPolicyBuilder()
@@ -165,10 +136,9 @@ namespace AuthServer
                     .Build();
                 o.Filters.Add(new AuthorizeFilter(policy));
                 o.EnableEndpointRouting = true;
-
-            }).AddNewtonsoftJson(o => 
+            }).AddNewtonsoftJson(o =>
                 o.SerializerSettings.Converters.Add(new StringEnumConverter())
-                );
+            );
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -184,21 +154,21 @@ namespace AuthServer
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();
             }
-            
+
 
             app.UseForwardedHeaders(new ForwardedHeadersOptions
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
             });
-            
-            app.UseHttpsRedirection();
+
+
+            //app.UseHttpsRedirection();
             app.UseSerilogRequestLogging();
-            
+
 
             // app.UseCookiePolicy();
+
             
-            
-            app.UseIdentityServer();
             app.UseRouting();
             app.UseAuthorization();
             app.UseCors(Cors);
@@ -206,10 +176,22 @@ namespace AuthServer
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
-                    name: "default",
-                    pattern: "api/{controller}/{action=Index}/{id?}");
+                    "default",
+                    "api/{controller}/{action=Index}/{id?}");
+
+                endpoints.MapGraphQL()
+                    .WithOptions(new GraphQLServerOptions
+                    {
+                        // Enable Introspection
+                        EnableSchemaRequests = true,
+                        // Enable Banana Cake Pop
+                        Tool =
+                        {
+                            Enable = _env.IsDevelopment()
+                        }
+                    });
             });
-            
+
 
             var appSubPath = "wwwroot";
             var distFolder = Path.Combine(Directory.GetCurrentDirectory(), appSubPath);
@@ -238,10 +220,10 @@ namespace AuthServer
     {
         public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
         {
-            swaggerDoc.Servers = new List<OpenApiServer>{ new() { Url = "https://localhost/api"}};
+            swaggerDoc.Servers = new List<OpenApiServer> { new() { Url = "https://localhost/api" } };
             var oldPaths = swaggerDoc.Paths.ToDictionary(entry => entry.Key,
                 entry => entry.Value);
-            foreach(var (key, value) in oldPaths)
+            foreach (var (key, value) in oldPaths)
             {
                 swaggerDoc.Paths.Remove(key);
                 swaggerDoc.Paths.Add(key.Replace("/api", ""), value);
@@ -253,14 +235,10 @@ namespace AuthServer
     {
         public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
         {
-            foreach (var type in Assembly.GetExecutingAssembly().GetTypes()) 
+            foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
                 if (type.IsClass || type.IsInterface)
-                {
                     if (type.GetCustomAttribute(typeof(GenerateModelAttribute)) != null)
-                    {
                         context.SchemaGenerator.GenerateSchema(type, context.SchemaRepository);
-                    }
-                }
         }
     }
 }

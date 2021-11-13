@@ -1,6 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
 using AuthServer.Data;
-using IdentityServer4.EntityFramework.DbContexts;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,12 +14,19 @@ namespace AuthServer
     {
         public static void Main(string[] args)
         {
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
+                .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Local"}.json", true)
+                .Build();
+            
             Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(configuration)
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
                 .WriteTo.Seq("http://localhost:5341")
                 .CreateLogger();
-            
+
             var host = CreateHostBuilder(args).Build();
             using (var scope = host.Services.CreateScope())
             {
@@ -31,12 +39,6 @@ namespace AuthServer
                         Log.Information("Db app migrations initialized");
                     else
                         Log.Error("Could not initialize app db after 5 attempts");
-                    var configurationDbContext = services.GetRequiredService<ConfigurationDbContext>();
-                    var identityDbSuccess = await DbInitializer.Initialize(configurationDbContext);
-                    if (identityDbSuccess)
-                        Log.Information("Db identity migrations initialized");
-                    else
-                        Log.Error("Could not initialize identity db after 5 attempts");
                     SeedData.EnsureSeedData(services);
                 }).GetAwaiter().GetResult();
             }
@@ -44,8 +46,10 @@ namespace AuthServer
             host.Run();
         }
 
-        private static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
+        private static IHostBuilder CreateHostBuilder(string[] args)
+        {
+            return Host.CreateDefaultBuilder(args)
+                .UseSerilog()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.ConfigureAppConfiguration((context, config) =>
@@ -57,15 +61,12 @@ namespace AuthServer
                             if (context.HostingEnvironment.IsEnvironment("Local"))
                                 config.AddJsonFile("appsettings.Local.json", true, true);
 
-                            if (context.HostingEnvironment.IsDevelopment() || context.HostingEnvironment.IsEnvironment("Local"))
-                            {
-                                config.AddUserSecrets<Program>();
-                            }
+                            if (context.HostingEnvironment.IsDevelopment() ||
+                                context.HostingEnvironment.IsEnvironment("Local")) config.AddUserSecrets<Program>();
                         })
-                        
                         .UseWebRoot("wwwroot")
                         .UseStartup<Startup>();
-                })
-                .UseSerilog();
+                });
+        }
     }
 }

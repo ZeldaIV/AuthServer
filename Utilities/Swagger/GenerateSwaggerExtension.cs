@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AuthServer.Swagger
+namespace AuthServer.Utilities.Swagger
 {
     public static class GenerateSwaggerExtension
     {

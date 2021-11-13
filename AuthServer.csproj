@@ -1,61 +1,71 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>netcoreapp5.0</TargetFramework>
-    <UserSecretsId>aspnet-AuthServer-8EF46753-CFA6-4E31-AB61-6B8A5EFDE748</UserSecretsId>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <LangVersion>Latest</LangVersion>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <UserSecretsId>aspnet-AuthServer-8EF46753-CFA6-4E31-AB61-6B8A5EFDE748</UserSecretsId>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <LangVersion>Latest</LangVersion>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="IdentityServer4.AspNetIdentity" Version="4.1.2" />
-    <PackageReference Include="IdentityServer4.EntityFramework" Version="4.1.2" />
-    <PackageReference Include="Mapster" Version="7.2.0" />
-    <PackageReference Include="Mapster.DependencyInjection" Version="1.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="2.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.9" />
-    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="5.0.9" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.9">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="5.0.2" PrivateAssets="All" />
-    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.1" />
-    <PackageReference Include="Serilog.AspNetCore" Version="4.1.0" />
-    <PackageReference Include="Serilog.Sinks.Seq" Version="5.0.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.5" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="6.1.5" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.1.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.9" />
-  </ItemGroup>
-  
+    <ItemGroup>
+        <PackageReference Include="HotChocolate.Abstractions" Version="12.3.0" />
+        <PackageReference Include="HotChocolate.AspNetCore" Version="12.2.1" />
+        <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="12.2.1" />
+        <PackageReference Include="HotChocolate.Data" Version="12.2.1" />
+        <PackageReference Include="HotChocolate.Data.EntityFramework" Version="12.2.1" />
+        <PackageReference Include="HotChocolate.Types" Version="12.2.1" />
+        <PackageReference Include="HotChocolate.Types.Scalars" Version="12.2.1" />
+        <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
+        <PackageReference Include="Mapster" Version="7.2.0" />
+        <PackageReference Include="Mapster.DependencyInjection" Version="1.0.0" />
+        <PackageReference Include="Mapster.JsonNet" Version="1.1.0" />
+        <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="2.2.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="6.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.0" PrivateAssets="All" />
+        <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.0" />
+        <PackageReference Include="Serilog.AspNetCore" Version="4.1.0" />
+        <PackageReference Include="Serilog.Sinks.Seq" Version="5.1.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+        <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="6.2.3" />
+        <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.2.3" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.0" />
+        <PackageReference Include="OpenIddict.AspNetCore" Version="3.1.1" />
+        <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="3.1.1" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="frontend/**" />
-  </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Remove="frontend/**" />
-  </ItemGroup>
+    <ItemGroup>
+        <Compile Remove="frontend/**" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <None Remove="frontend/**" />
-  </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Remove="frontend/**" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <Content Remove="frontend/**" />
-    <Content Include="frontend\README.md" />
-    <_ContentIncludedByDefault Remove="frontend/elm.json" />
-    <_ContentIncludedByDefault Remove="frontend/package.json" />
-    <Content Remove="Properties\launchSettings.json" />
-  </ItemGroup>
+    <ItemGroup>
+        <None Remove="frontend/**" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="wwwroot" />
-  </ItemGroup>
+    <ItemGroup>
+        <Content Remove="frontend/**" />
+        <Content Include="frontend\README.md" />
+        <_ContentIncludedByDefault Remove="frontend/elm.json" />
+        <_ContentIncludedByDefault Remove="frontend/package.json" />
+        <Content Remove="Properties\launchSettings.json" />
+    </ItemGroup>
 
-  <Target Name="SwaggerToFile" AfterTargets="AfterBuild" Condition=" '$(ASPNETCORE_ENVIRONMENT)' == 'SwaggerGen' ">
-    <Exec Command="dotnet swagger tofile --output ./frontend/swagger.yaml --yaml $(OutputPath)$(AssemblyName).dll v1" />
-  </Target>
-  
+    <ItemGroup>
+        <Folder Include="Data\Migrations" />
+        <Folder Include="wwwroot" />
+    </ItemGroup>
+
+    <Target Name="SwaggerToFile" AfterTargets="AfterBuild" Condition=" '$(ASPNETCORE_ENVIRONMENT)' == 'SwaggerGen' ">
+        <Exec Command="dotnet swagger tofile --output ./frontend/swagger.yaml --yaml $(OutputPath)$(AssemblyName).dll v1" />
+    </Target>
+
 </Project>

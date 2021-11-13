@@ -1,29 +1,38 @@
 module Pages.Applications exposing (Model, Msg, page)
 
+import Api.Object exposing (ClientDto)
+import Api.Object.ClientDto as ClientDto
+import Api.Query as Query
 import Bootstrap.Button as Button
 import Bootstrap.Grid as Grid
 import Bootstrap.Table as Table exposing (Row)
-import Data.ApiResourceDto exposing (ApiResourceDto)
-import DateTime exposing (DateTime)
+import Effect exposing (Effect)
+import Element exposing (Element, el, fill, maximum, minimum, rgb255, spacingXY, table, width)
+import Element.Border as Border
+import Element.Font as Font
 import Gen.Route
+import Graphql.Http
+import Graphql.Operation exposing (RootQuery)
+import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Html exposing (Html, h1, text)
 import Html.Attributes exposing (href)
 import Html.Events exposing (onClick)
-import Http exposing (Error)
-import Page
+import Http exposing (Error(..))
+import Page exposing (Page)
+import Random
+import RemoteData exposing (RemoteData(..))
 import Request exposing (Request)
-import Request.ApiResource as ApiResource
 import Shared
-import Utility exposing (fromMaybe)
-import Uuid exposing (Uuid)
+import Utility exposing (RequestState(..), makeGraphQLQuery)
+import Uuid
 import View exposing (View)
 
 
 page : Shared.Model -> Request -> Page.With Model Msg
-page _ req =
-    Page.protected.element
+page sharedModel req =
+    Page.protected.advanced
         (\_ ->
-            { init = init
+            { init = init sharedModel
             , update = update req
             , view = view
             , subscriptions = subscriptions
@@ -31,29 +40,65 @@ page _ req =
         )
 
 
+type alias Model =
+    { client :
+        List Client
+    , error : String
+    , seed : Random.Seed
+    }
+
+
+type alias Client =
+    { id : String
+    , displayName : String
+    , clientType : String
+    }
+
+
+mapToApiResource : SelectionSet Client ClientDto
+mapToApiResource =
+    SelectionSet.map3 Client
+        (SelectionSet.map Utility.uuidToString ClientDto.id)
+        ClientDto.displayName
+        ClientDto.type_
+
+
 
 -- INIT
 
 
-type alias Model =
-    { apiResources : List ApiResourceDto
-    , error : String
-    }
+init : Shared.Model -> ( Model, Effect Msg )
+init sharedModel =
+    ( { client =
+            []
+      , error = ""
+      , seed = sharedModel.seed
+      }
+    , Effect.fromCmd makeRequest
+    )
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( { apiResources = [], error = "" }, ApiResource.apiResourceGet { onSend = gotResources } )
+query : SelectionSet (List Client) RootQuery
+query =
+    Query.clients mapToApiResource
 
 
-gotResources : Result Http.Error (List ApiResourceDto) -> Msg
+makeRequest : Cmd Msg
+makeRequest =
+    (Graphql.Http.withSimpleHttpError >> RemoteData.fromResult >> gotResources) |> makeGraphQLQuery query
+
+
+gotResources : RemoteData (Graphql.Http.RawError (List Client) Http.Error) (List Client) -> Msg
 gotResources result =
-    case result of
-        Ok value ->
-            GotApiResources value
+    case Utility.response result of
+        RequestSuccess a ->
+            GotApiResources a
 
-        Err error ->
-            ErrorGettingResources error
+        State state ->
+            RequestState state
+
+        RequestError err ->
+            ErrorGettingResources err
 
 
 
@@ -61,28 +106,43 @@ gotResources result =
 
 
 type Msg
-    = GotApiResources (List ApiResourceDto)
-    | GoToApplication (Maybe String)
-    | ErrorGettingResources Error
+    = GotApiResources (List Client)
+    | GoToApplication String
+    | ErrorGettingResources String
+    | RequestState String
+    | AddNewApplication
 
 
-update : Request -> Msg -> Model -> ( Model, Cmd Msg )
+update : Request -> Msg -> Model -> ( Model, Effect Msg )
 update req msg model =
     case msg of
-        GotApiResources apiResources ->
-            ( { model | apiResources = apiResources }, Cmd.none )
+        GotApiResources client ->
+            ( { model
+                | client =
+                    client
+              }
+            , Effect.none
+            )
 
         ErrorGettingResources _ ->
-            ( model, Cmd.none )
+            ( model, Effect.none )
 
-        GoToApplication maybeString ->
+        GoToApplication a ->
+            ( model, Effect.fromCmd (Request.replaceRoute (Gen.Route.Application__Id___Status_ { id = a, status = "d" }) req) )
+
+        RequestState _ ->
+            ( model, Effect.none )
+
+        AddNewApplication ->
+            let
+                ( newUuid, newSeed ) =
+                    Random.step Uuid.uuidGenerator model.seed
+            in
             ( model
-            , case maybeString of
-                Just a ->
-                    Request.replaceRoute (Gen.Route.Appliaction__Name_ { name = a }) req
-
-                Nothing ->
-                    Cmd.none
+            , Effect.batch
+                [ Effect.fromCmd (Request.replaceRoute (Gen.Route.Application__Id___Status_ { id = Uuid.toString newUuid, status = "new" }) req)
+                , Effect.fromShared (Shared.GenerateNewUuid newSeed)
+                ]
             )
 
 
@@ -102,31 +162,16 @@ view model =
     }
 
 
-fromMaybeBool : Maybe Bool -> String
-fromMaybeBool val =
-    case val of
-        Just a ->
-            if a then
-                "Yes"
-
-            else
-                "No"
-
-        Nothing ->
-            ""
-
-
-rowView : ApiResourceDto -> Row Msg
-rowView resource =
-    Table.tr [ Table.rowAttr (onClick (GoToApplication resource.name)) ]
-        [ Table.td [] [ text (fromMaybe resource.name "") ]
-        , Table.td [] [ text (fromMaybe resource.displayName "") ]
-        , Table.td [] [ text (fromMaybe resource.description "") ]
-        , Table.td [] [ text (fromMaybeBool resource.enabled) ]
+rowView : Client -> Row Msg
+rowView client =
+    Table.tr [ Table.rowAttr (onClick (GoToApplication client.id)) ]
+        [ Table.td [] [ text client.displayName ]
+        , Table.td [] [ text client.id ]
+        , Table.td [] [ text client.clientType ]
         ]
 
 
-createRowsView : List ApiResourceDto -> List (Row Msg)
+createRowsView : List Client -> List (Row Msg)
 createRowsView resources =
     List.map rowView resources
 
@@ -134,17 +179,18 @@ createRowsView resources =
 applicationsView : Model -> Html Msg
 applicationsView model =
     Grid.container []
-        [ Button.linkButton [ Button.primary, Button.block, Button.large, Button.attrs [ href (Gen.Route.toHref Gen.Route.ApplicationSelection) ] ] [ text "Add new" ]
+        [ Button.button [ Button.primary, Button.block, Button.large, Button.attrs [ onClick AddNewApplication ] ] [ text "Add new" ]
         , h1 [] [ text "Registered applications" ]
         , Table.table
             { options = [ Table.striped, Table.hover ]
             , thead =
                 Table.simpleThead
-                    [ Table.th [] [ text "Name" ]
-                    , Table.th [] [ text "DisplayName" ]
-                    , Table.th [] [ text "Description" ]
-                    , Table.th [] [ text "Enabled" ]
+                    [ Table.th [] [ text "Display name" ]
+                    , Table.th [] [ text "Id" ]
+                    , Table.th [] [ text "Type" ]
                     ]
-            , tbody = Table.tbody [] (createRowsView model.apiResources)
+            , tbody =
+                Table.tbody []
+                    (createRowsView model.client)
             }
         ]

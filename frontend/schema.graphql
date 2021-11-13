@@ -1,0 +1,27 @@
+﻿# This file was generated based on ".graphqlconfig". Do not edit manually.
+
+schema {
+    query: Query
+}
+
+type ApiResource {
+    "The secrets registered for the resource"
+    apiSecrets: [String]
+    "The description of the api resource"
+    description: String
+    "The display name used in consent screens"
+    displayName: String
+    "Is the resource enabled"
+    enabled: String
+    "The Id of the api resource"
+    id: Int
+    "The name of the resource"
+    name: String
+    "The scopes registered for this resource"
+    scopes: [String]
+}
+
+type Query {
+    apiResource(id: Int!): ApiResource
+    apiResources: [ApiResource!]!
+}

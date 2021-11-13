@@ -1,4 +1,4 @@
-namespace AuthServer.Swagger
+namespace AuthServer.Utilities.Swagger
 {
     public class SwaggerSetup
     {
