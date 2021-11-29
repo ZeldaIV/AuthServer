@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AuthServer.DbServices.Interfaces;
@@ -17,15 +18,31 @@ namespace AuthServer.GraphQL.User
         {
             var user = input.Adapt<UserDto>();
 
-            await context.AddUser(user, cancellationToken);
+            await context.CreateAsync(user, cancellationToken);
 
             return new CreateUserPayload
             {
                 User = user
             };
         }
+
+        public async Task<AddClaimsPayload> AddClaimsToUser([Service] IUserService context, UserClaimsInput input,
+            CancellationToken cancellationToken)
+        {
+            return new AddClaimsPayload
+            {
+                Success = await context.AddUserClaims(input.UserId, input.ClaimIds)
+            };
+        }
         
-        public async Task<DeleteEntityByIdPayload> DeleteUserAsync([Service] IUserService service, string id, CancellationToken cancellationToken)
+        public async Task<bool> RemoveClaimFromUser([Service] IUserService context, Guid userId, Guid claimId,
+            CancellationToken cancellationToken)
+        {
+            return await context.RemoveClaimFromUser(userId, claimId, cancellationToken);
+        }
+
+        public async Task<DeleteEntityByIdPayload> DeleteUserAsync([Service] IUserService service, Guid id,
+            CancellationToken cancellationToken)
         {
             return new DeleteEntityByIdPayload
             {

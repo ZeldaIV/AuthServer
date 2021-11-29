@@ -1,4 +1,6 @@
 using System;
+using System.Security.Cryptography.X509Certificates;
+using AuthServer.Configuration;
 using AuthServer.Data;
 using AuthServer.Data.Models;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,55 +10,27 @@ namespace AuthServer.Extensions.Services
 {
     public static class OpenIdDictExtensions
     {
-        public static void AddOpenIdDictServices(this IServiceCollection services, IHostEnvironment env)
+        public static void AddOpenIdDictServices(this IServiceCollection services, IHostEnvironment env,
+            TokenSigningConfiguration tokenSigningConfiguration)
         {
             services.AddOpenIddict()
-
                 .AddCore(options =>
                 {
                     // Configure OpenIddict to use the Entity Framework Core stores and models.
                     // Note: call ReplaceDefaultEntities() to replace the default entities.
                     options.UseEntityFrameworkCore()
                         .UseDbContext<ApplicationDbContext>()
-                        .ReplaceDefaultEntities<ApplicationClient, ApplicationAuthorization, ApplicationScope, ApplicationToken, Guid>();
+                        .ReplaceDefaultEntities<ApplicationClient, ApplicationAuthorization, ApplicationScope,
+                            ApplicationToken, Guid>();
                 })
 
                 // Register the OpenIddict server components.
                 .AddServer(options =>
                 {
-                    options.SetTokenEndpointUris("/connect/token");
-
-                    options.AllowClientCredentialsFlow();
-
-                    options.AddDevelopmentEncryptionCertificate()
-                        .AddDevelopmentSigningCertificate();
-
-                    options.UseAspNetCore()
-                        .EnableTokenEndpointPassthrough();
-                    
-                    options.SetAuthorizationEndpointUris("/connect/authorize")
-                        .SetLogoutEndpointUris("/connect/logout")
-                        .SetTokenEndpointUris("/connect/token")
-                        .SetIntrospectionEndpointUris("/connect/introspect")
-                        .SetUserinfoEndpointUris("/connect/userinfo");
-                    
                     options.AllowAuthorizationCodeFlow()
+                        .RequireProofKeyForCodeExchange()
+                        .AllowClientCredentialsFlow()
                         .AllowRefreshTokenFlow();
-                    
-                    if (env.IsEnvironment("Local"))
-                    {
-                        // Register the signing and encryption credentials.
-                        options.AddDevelopmentEncryptionCertificate()
-                            .AddDevelopmentSigningCertificate();
-                    }
-                    else
-                    {
-                        options.AddEphemeralEncryptionKey()
-                            .AddEphemeralSigningKey();
-                    }
-
-                    // Force client applications to use Proof Key for Code Exchange (PKCE).
-                    options.RequireProofKeyForCodeExchange();
 
                     // Register the ASP.NET Core host and configure the ASP.NET Core-specific options.
                     options.UseAspNetCore()
@@ -65,6 +39,34 @@ namespace AuthServer.Extensions.Services
                         .EnableLogoutEndpointPassthrough()
                         .EnableTokenEndpointPassthrough()
                         .EnableUserinfoEndpointPassthrough();
+
+                    options.SetAuthorizationEndpointUris("/connect/authorize")
+                        .SetLogoutEndpointUris("/connect/logout")
+                        .SetTokenEndpointUris("/connect/token")
+                        .SetIntrospectionEndpointUris("/connect/introspect")
+                        .SetUserinfoEndpointUris("/connect/userinfo");
+
+                    if (!env.IsEnvironment("Local"))
+                    {
+                        ;
+                        var signingCertificate = new X509Certificate2(
+                            tokenSigningConfiguration.AuthServerSigningCertificatePath,
+                            tokenSigningConfiguration.AuthServerSigningCertificatePassword);
+                        // Register the signing and encryption credentials.
+                        options.AddEncryptionCertificate(signingCertificate)
+                            .AddSigningCertificate(signingCertificate)
+                            .DisableAccessTokenEncryption();
+                        // options.AddDevelopmentEncryptionCertificate()
+                        //     .AddDevelopmentSigningCertificate();
+                    }
+                    else
+                    {
+                        options.AddEphemeralEncryptionKey()
+                            .AddEphemeralSigningKey()
+                            .DisableAccessTokenEncryption();
+                    }
+
+                    options.RegisterScopes("api");
                 })
 
                 // Register the OpenIddict validation components.

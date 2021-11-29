@@ -14,19 +14,21 @@ namespace AuthServer.GraphQL.Scope
 {
     public class ScopeMutation
     {
-        public async Task<CreateScopePayload> CreateScopeAsync([Service] IScopeService service, ScopeInput input, CancellationToken cancellationToken)
+        public async Task<CreateScopePayload> CreateScopeAsync([Service] IScopeService service, ScopeInput input,
+            CancellationToken cancellationToken)
         {
             var scope = input.Adapt<ApplicationScope>();
 
-            await service.AddScope(scope, cancellationToken);
+            await service.CreateAsync(scope, cancellationToken);
 
             return new CreateScopePayload
             {
                 Scope = scope.Adapt<ScopeDto>()
             };
         }
-        
-        public async Task<DeleteEntityByIdPayload> DeleteScopeAsync([Service] IScopeService service, Guid id, CancellationToken cancellationToken)
+
+        public async Task<DeleteEntityByIdPayload> DeleteScopeAsync([Service] IScopeService service, Guid id,
+            CancellationToken cancellationToken)
         {
             return new DeleteEntityByIdPayload
             {

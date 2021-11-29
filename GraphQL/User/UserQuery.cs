@@ -1,7 +1,11 @@
+using System;
 using System.Collections.Generic;
+using System.Threading;
+using AuthServer.Data.Models;
 using AuthServer.DbServices.Interfaces;
 using AuthServer.Dtos;
 using HotChocolate;
+using Mapster;
 
 namespace AuthServer.GraphQL.User
 {
@@ -9,12 +13,17 @@ namespace AuthServer.GraphQL.User
     {
         public List<UserDto> GetUsers([Service] IUserService context)
         {
-            return context.GetUsers();
+            return context.GetAll().Adapt<List<UserDto>>();
         }
 
-        public UserDto GetUserById(string id, [Service] IUserService context)
+        public UserDto GetUserById(Guid id, [Service] IUserService context)
         {
-            return context.GetUserById(id);
+            return context.GetById(id);
+        }
+
+        public List<ClaimDto> GetUserClaims(Guid id, [Service] IUserService context, CancellationToken cancellationToken)
+        {
+            return context.GetUserClaims(id, cancellationToken).Adapt<List<ClaimDto>>();
         }
     }
 }

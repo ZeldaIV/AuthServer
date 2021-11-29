@@ -12,13 +12,13 @@ namespace AuthServer.GraphQL.ApiResource
     {
         public List<AuthorizationDto> GetAuthorization([Service] IApplicationAuthorizationService context)
         {
-            return context.GetAllAuthorizations().ToList().Adapt<List<AuthorizationDto>>();
+            return context.GetAll().ToList().Adapt<List<AuthorizationDto>>();
         }
 
         // [Authorize(Policy = "Administrator")]
         public AuthorizationDto GetAuthorizationById(Guid id, [Service] IApplicationAuthorizationService context)
         {
-            return context.GetAuthorizationById(id).Adapt<AuthorizationDto>();
+            return context.GetById(id).Adapt<AuthorizationDto>();
         }
 
         // [Authorize(Policy = "Administrator")]

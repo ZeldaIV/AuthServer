@@ -6,7 +6,7 @@ namespace AuthServer.GraphQL.Common.Payloads
     {
         public bool Success { get; set; }
     }
-    
+
     public class DeleteEntityPayloadType : ObjectType<DeleteEntityByIdPayload>
     {
         protected override void Configure(IObjectTypeDescriptor<DeleteEntityByIdPayload> descriptor)

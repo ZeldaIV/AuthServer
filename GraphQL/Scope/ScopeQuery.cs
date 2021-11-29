@@ -11,12 +11,12 @@ namespace AuthServer.GraphQL.Scope
     {
         public List<ScopeDto> GetScopes([Service] IScopeService context)
         {
-            return context.GetScopes().Adapt<List<ScopeDto>>();
+            return context.GetAll().Adapt<List<ScopeDto>>();
         }
 
         public ScopeDto GetScopeById(Guid id, [Service] IScopeService context)
         {
-            return context.GetScopeById(id).Adapt<ScopeDto>();
+            return context.GetById(id).Adapt<ScopeDto>();
         }
     }
 }

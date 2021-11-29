@@ -16,7 +16,7 @@ services:
     networks:
       - auth-server-frontend
     restart: unless-stopped
-    
+
   seqsink:
     image: datalust/seq
     expose:

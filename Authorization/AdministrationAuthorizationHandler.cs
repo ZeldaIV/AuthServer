@@ -8,7 +8,6 @@ namespace AuthServer.Authorization
 {
     public class AdministratorHandler : AuthorizationHandler<AdministratorRequirement>
     {
-
         protected override Task HandleRequirementAsync(AuthorizationHandlerContext context,
             AdministratorRequirement requirement)
         {

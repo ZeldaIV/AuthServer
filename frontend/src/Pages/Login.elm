@@ -27,7 +27,7 @@ import View exposing (View)
 page : Shared.Model -> Request.With Params -> Page.With Model Msg
 page shared req =
     Page.element
-        { init = init
+        { init = init shared
         , update = update shared.storage req
         , view = view
         , subscriptions = subscriptions
@@ -46,19 +46,20 @@ type alias Model =
 type alias Form =
     { username : String
     , password : String
+    , returnUrl : String
     }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( { form = Form "" "" }, Cmd.none )
+init : Shared.Model -> ( Model, Cmd Msg )
+init shared =
+    ( { form = Form "" "" shared.returnUrl }, Cmd.none )
 
 
 mapModelToLoginRequest : Form -> LoginRequest
 mapModelToLoginRequest login =
     { username = Just login.username
     , password = Just login.password
-    , returnUrl = Just ""
+    , returnUrl = Just login.returnUrl
     }
 
 

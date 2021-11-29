@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AuthServer.Data.Models;
 using AuthServer.DbServices.Interfaces;
-using AuthServer.Dtos;
 using AuthServer.GraphQL.ApiResource.Types.Inputs;
 using AuthServer.GraphQL.ApiResource.Types.Payloads;
 using AuthServer.GraphQL.Common.Payloads;
@@ -15,7 +14,9 @@ namespace AuthServer.GraphQL.ApiResource
 {
     public class AuthorizationMutation
     {
-        public async Task<CreateAuthorizationPayload> CreateAuthorizationAsync([Service] IOpenIddictApplicationStore<ApplicationAuthorization> service, AuthorizationInput input, CancellationToken cancellationToken)
+        public async Task<CreateAuthorizationPayload> CreateAuthorizationAsync(
+            [Service] IOpenIddictApplicationStore<ApplicationAuthorization> service, AuthorizationInput input,
+            CancellationToken cancellationToken)
         {
             var apiResource = input.Adapt<ApplicationAuthorization>();
 
@@ -27,7 +28,8 @@ namespace AuthServer.GraphQL.ApiResource
             };
         }
 
-        public async Task<DeleteEntityByIdPayload> DeleteAuthorizationAsync([Service] IApplicationAuthorizationService service, Guid id, CancellationToken cancellationToken)
+        public async Task<DeleteEntityByIdPayload> DeleteAuthorizationAsync(
+            [Service] IApplicationAuthorizationService service, Guid id, CancellationToken cancellationToken)
         {
             return new DeleteEntityByIdPayload
             {

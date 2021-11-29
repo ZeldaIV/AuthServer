@@ -3,23 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
 using AuthServer.Authorization;
 using AuthServer.Configuration;
 using AuthServer.Data;
 using AuthServer.Data.Models;
 using AuthServer.Extensions.Services;
-using AuthServer.GraphQL.ApiResource;
-using AuthServer.GraphQL.Client;
-using AuthServer.GraphQL.Scope;
-using AuthServer.GraphQL.User;
 using AuthServer.Utilities;
 using AuthServer.Utilities.Swagger;
 using HotChocolate.AspNetCore;
-using HotChocolate.Execution.Options;
-using HotChocolate.Types;
-using Mapster;
-using MapsterMapper;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -31,7 +23,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Converters;
 using OpenIddict.Abstractions;
@@ -78,15 +69,19 @@ namespace AuthServer
                         builder.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> { 1, 2, 3, 4 });
                     }
                 );
-                options.UseOpenIddict<ApplicationClient, ApplicationAuthorization, ApplicationScope, ApplicationToken, Guid>();
+                options
+                    .UseOpenIddict<ApplicationClient, ApplicationAuthorization, ApplicationScope, ApplicationToken,
+                        Guid>();
             };
             services.AddDbContext<ApplicationDbContext>(dbOptions);
             services.AddPooledDbContextFactory<ApplicationDbContext>(dbOptions);
 
-            services.AddIdentity<IdentityUser, IdentityRole>()
+            services.AddHostedService<TestData>();
+
+            services.AddIdentity<ApplicationUser, ApplicationRole>()
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
-            
+
             services.Configure<IdentityOptions>(options =>
             {
                 options.ClaimsIdentity.UserNameClaimType = OpenIddictConstants.Claims.Name;
@@ -94,7 +89,7 @@ namespace AuthServer
                 options.ClaimsIdentity.RoleClaimType = OpenIddictConstants.Claims.Role;
             });
 
-            services.ConfigureApplicationCookie(o => { o.LoginPath = "/login"; });
+            // services.ConfigureApplicationCookie(o => { o.LoginPath = "/login"; });
 
             services.AddDbServices();
 
@@ -104,14 +99,15 @@ namespace AuthServer
                 .AddScoped<IStores, Stores>()
                 .AddScoped<IControllerUtils, ControllerUtils>();
 
-            services.AddOpenIdDictServices(_env);
+            services.AddOpenIdDictServices(_env, Configuration.Get<TokenSigningConfiguration>());
 
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("Administrator",
                     policy => { policy.Requirements.Add(new AdministratorRequirement()); });
             });
-            services.AddAuthentication();
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, opts => { opts.LoginPath = "/login"; });
             services.AddCors(o => { o.AddPolicy(Cors, builder => { builder.WithOrigins("https://localhost"); }); });
 
             services.AddSpaStaticFiles(configuration => { configuration.RootPath = "wwwroot"; });
@@ -166,18 +162,22 @@ namespace AuthServer
             app.UseSerilogRequestLogging();
 
 
-            // app.UseCookiePolicy();
+            app.UseCookiePolicy();
 
-            
+
             app.UseRouting();
-            app.UseAuthorization();
             app.UseCors(Cors);
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
-                    "default",
-                    "api/{controller}/{action=Index}/{id?}");
+                    "api",
+                    "api/{controller=Account}/{action=Index}/{id?}");
+                endpoints.MapControllerRoute(
+                    "connect",
+                    "connect/{controller=Authorization}/{action=Index}/{id?}");
 
                 endpoints.MapGraphQL()
                     .WithOptions(new GraphQLServerOptions

@@ -15,11 +15,10 @@ namespace AuthServer.GraphQL.ApiResource
             descriptor.Field(o => o.CreateAuthorizationAsync(default!, default!, new CancellationToken()))
                 .Argument("input", x => x.Type<NonNullType<AuthorizationInputType>>())
                 .Type<NonNullType<CreateAuthorizationPayloadType>>();
-         
+
             descriptor.Field(o => o.DeleteAuthorizationAsync(default!, default!, new CancellationToken()))
                 .Argument("id", x => x.Type<NonNullType<IntType>>())
                 .Type<NonNullType<DeleteEntityPayloadType>>();
-
         }
     }
 }

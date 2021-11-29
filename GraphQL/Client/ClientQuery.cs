@@ -11,12 +11,12 @@ namespace AuthServer.GraphQL.Client
     {
         public List<ClientDto> GetClients([Service] IClientService context)
         {
-            return context.GetAllClients().Adapt<List<ClientDto>>();
+            return context.GetAll().Adapt<List<ClientDto>>();
         }
 
         public ClientDto GetClientById(Guid id, [Service] IClientService context)
         {
-            var clientById = context.GetClientById(id).Adapt<ClientDto>();
+            var clientById = context.GetById(id).Adapt<ClientDto>();
             return clientById;
         }
 

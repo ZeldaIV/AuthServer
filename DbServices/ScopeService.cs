@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using AuthServer.Data;
 using AuthServer.Data.Models;
 using AuthServer.DbServices.Interfaces;
-using AuthServer.Dtos;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
+using OpenIddict.Abstractions;
 using Serilog;
 
 namespace AuthServer.DbServices
@@ -16,9 +16,11 @@ namespace AuthServer.DbServices
     public sealed class ScopeService : IScopeService, IAsyncDisposable
     {
         private readonly ApplicationDbContext _context;
+        private readonly IOpenIddictScopeManager _scopeManager;
 
-        public ScopeService(IDbContextFactory<ApplicationDbContext> context)
+        public ScopeService(IDbContextFactory<ApplicationDbContext> context, IOpenIddictScopeManager scopeManager)
         {
+            _scopeManager = scopeManager;
             _context = context.CreateDbContext();
         }
 
@@ -27,27 +29,29 @@ namespace AuthServer.DbServices
             return _context.DisposeAsync();
         }
 
-        public List<ApplicationScope> GetScopes()
+        public IEnumerable<ApplicationScope> GetAll()
         {
             return _context.ApplicationScopes.Adapt<List<ApplicationScope>>().ToList();
         }
 
-        public async Task AddScope(ApplicationScope scope, CancellationToken cancellationToken)
+        public async Task CreateAsync(ApplicationScope scope, CancellationToken cancellationToken)
         {
-            var newScope = scope;
-            try
+            if (scope == null) throw new ArgumentNullException(nameof(scope));
+
+            var entity = await _scopeManager.FindByIdAsync(scope.Id.ToString(), cancellationToken);
+            if (entity == null) await _scopeManager.CreateAsync(scope, cancellationToken);
+        }
+
+        public async Task UpdateAsync(ApplicationScope update, CancellationToken cancellationToken)
+        {
+            var entity = await _scopeManager.FindByIdAsync(update.Id.ToString(), cancellationToken);
+            if (entity != null)
             {
-                await _context.ApplicationScopes.AddAsync(newScope, cancellationToken);
-                await _context.SaveChangesAsync(cancellationToken);
-            }
-            catch (DbUpdateException e)
-            {
-                Log.Logger.Error(e.Message);
-                throw;
+                await _scopeManager.UpdateAsync(entity, cancellationToken);
             }
         }
 
-        public ApplicationScope GetScopeById(Guid id)
+        public ApplicationScope GetById(Guid id)
         {
             try
             {
@@ -62,17 +66,12 @@ namespace AuthServer.DbServices
 
         public async Task<bool> DeleteByIdAsync(Guid id, CancellationToken cancellationToken)
         {
-            try
-            {
-                var result = await _context.ApplicationScopes.SingleAsync(r => r.Id == id, cancellationToken);
-                _context.ApplicationScopes.Remove(result);
-                return true;
-            }
-            catch (InvalidOperationException e)
-            {
-                Log.Logger.Error(e.Message);
+            var entity = await _scopeManager.FindByIdAsync(id.ToString(), cancellationToken);
+            if (entity == null)
                 return false;
-            }
+
+            await _scopeManager.DeleteAsync(entity, cancellationToken);
+            return true;
         }
     }
 }

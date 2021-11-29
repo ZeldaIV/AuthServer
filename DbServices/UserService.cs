@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using AuthServer.Data;
+using AuthServer.Data.Models;
 using AuthServer.DbServices.Interfaces;
 using AuthServer.Dtos;
 using Mapster;
@@ -15,10 +17,12 @@ namespace AuthServer.DbServices
 {
     public sealed class UserService : IUserService, IAsyncDisposable
     {
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
 
-        public UserService(IDbContextFactory<ApplicationDbContext> context)
+        public UserService(IDbContextFactory<ApplicationDbContext> context, UserManager<ApplicationUser> userManager)
         {
+            _userManager = userManager;
             _context = context.CreateDbContext();
         }
 
@@ -27,28 +31,35 @@ namespace AuthServer.DbServices
             return _context.DisposeAsync();
         }
 
-        public async Task AddUser(UserDto user, CancellationToken cancellationToken)
+        public async Task CreateAsync(UserDto user, CancellationToken cancellationToken)
         {
-            var userModel = user.Adapt<IdentityUser>();
+            var userModel = user.Adapt<ApplicationUser>();
 
-            try
+            var entity = await _userManager.FindByIdAsync(user.Id.ToString());
+            if (entity == null)
             {
-                await _context.Users.AddAsync(userModel, cancellationToken);
-                await _context.SaveChangesAsync(cancellationToken);
-            }
-            catch (DbUpdateException e)
-            {
-                Log.Logger.Error(e.Message);
-                throw;
+                await _userManager.CreateAsync(userModel);
             }
         }
 
-        public List<UserDto> GetUsers()
+        public async Task UpdateAsync(UserDto update, CancellationToken cancellationToken)
+        {
+            var userModel = update.Adapt<ApplicationUser>();
+            
+            var entity = await _userManager.FindByIdAsync(update.Id.ToString());
+            if (entity != null)
+            {
+                await _userManager.UpdateAsync(userModel);
+            }
+            
+        }
+
+        public IEnumerable<UserDto> GetAll()
         {
             return _context.Users.Adapt<List<UserDto>>();
         }
 
-        public UserDto GetUserById(string id)
+        public UserDto GetById(Guid id)
         {
             try
             {
@@ -61,19 +72,47 @@ namespace AuthServer.DbServices
             }
         }
 
-        public async Task<bool> DeleteByIdAsync(string id, CancellationToken cancellationToken)
+        public async Task<bool> DeleteByIdAsync(Guid id, CancellationToken cancellationToken)
         {
-            try
-            {
-                var result = await _context.Users.SingleAsync(r => r.Id == id, cancellationToken);
-                _context.Users.Remove(result);
-                return true;
-            }
-            catch (InvalidOperationException e)
-            {
-                Log.Logger.Error(e.Message);
-                return false;
-            }
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user == null) return false;
+            
+            await _userManager.DeleteAsync(user);
+            return true;
+
+        }
+
+        public async Task<bool> AddUserClaims(Guid userId, List<Guid> claimIds)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            var userClaims = _context.UserClaims.Where(c => claimIds.Contains(c.UserId)).Select(c => c.ToClaim());
+            
+            if (user == null || !userClaims.Any()) return false;
+            
+            var result = await _userManager.AddClaimsAsync(user, userClaims);
+            return result.Succeeded;
+        }
+
+        public async Task<bool> RemoveClaimFromUser(Guid userId, Guid claimId, CancellationToken cancellationToken)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            var userClaim = await _context.UserClaims.SingleOrDefaultAsync(c => c.UserId == userId, cancellationToken);
+            if (user == null || userClaim == null) return false;
+
+            var result = await _userManager.RemoveClaimAsync(user, userClaim.ToClaim());
+            return result.Succeeded;
+
+        }
+
+        public async Task<List<Claim>> GetUserClaims(Guid id, CancellationToken cancellationToken)
+        {
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            
+            if (user == null) return new List<Claim>();
+            
+            var result = await _userManager.GetClaimsAsync(user);
+            return result.ToList();
+
         }
     }
 }

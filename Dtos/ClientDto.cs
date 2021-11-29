@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using AuthServer.Data.Models;
 
 namespace AuthServer.Dtos
 {
@@ -15,10 +14,12 @@ namespace AuthServer.Dtos
         public List<string> Permissions { get; set; }
         public List<string> PostLogoutRedirectUris { get; set; }
         public List<string> RedirectUris { get; set; }
+
         /// <summary>
-        /// Impacts the requirements.
+        ///     Impacts the requirements.
         /// </summary>
         public bool RequirePkce { get; set; }
+
         public string Type { get; set; }
         public bool RequireConsent { get; set; }
     }

@@ -3,7 +3,7 @@ using HotChocolate.Types;
 
 namespace AuthServer.GraphQL.Client
 {
-    public class ClientTypeQueryExtension: ObjectTypeExtension<ClientQuery>
+    public class ClientTypeQueryExtension : ObjectTypeExtension<ClientQuery>
     {
         protected override void Configure(IObjectTypeDescriptor<ClientQuery> descriptor)
         {

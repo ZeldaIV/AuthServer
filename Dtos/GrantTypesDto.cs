@@ -1,4 +1,3 @@
-
 namespace AuthServer.Dtos
 {
     public enum GrantTypesDto
@@ -8,6 +7,6 @@ namespace AuthServer.Dtos
         ClientCredentials = 2,
         Implicit = 3,
         Password = 4,
-        RefreshToken = 5,
+        RefreshToken = 5
     }
 }

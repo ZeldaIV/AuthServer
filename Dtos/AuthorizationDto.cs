@@ -8,7 +8,7 @@ namespace AuthServer.Dtos
     {
         public Guid Id { get; set; }
         public ApplicationClient Application { get; set; }
-        public List<String> Scopes { get; set; }
+        public List<string> Scopes { get; set; }
         public string Status { get; set; }
         public string Subject { get; set; }
         public DateTime? CreationDate { get; set; }

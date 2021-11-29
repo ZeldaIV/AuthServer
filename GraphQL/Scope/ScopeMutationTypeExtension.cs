@@ -6,7 +6,7 @@ using HotChocolate.Types;
 
 namespace AuthServer.GraphQL.Scope
 {
-    public class ScopeMutationTypeExtension: ObjectTypeExtension<ScopeMutation>
+    public class ScopeMutationTypeExtension : ObjectTypeExtension<ScopeMutation>
     {
         protected override void Configure(IObjectTypeDescriptor<ScopeMutation> descriptor)
         {
@@ -15,7 +15,7 @@ namespace AuthServer.GraphQL.Scope
             descriptor.Field(o => o.CreateScopeAsync(default!, default!, new CancellationToken()))
                 .Argument("input", x => x.Type<NonNullType<ScopeInputType>>())
                 .Type<NonNullType<CreateScopePayloadType>>();
-            
+
             descriptor.Field(o => o.DeleteScopeAsync(default!, default!, new CancellationToken()))
                 .Argument("id", x => x.Type<NonNullType<UuidType>>())
                 .Type<NonNullType<DeleteEntityPayloadType>>();

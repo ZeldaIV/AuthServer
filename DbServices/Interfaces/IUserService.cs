@@ -1,16 +1,16 @@
+using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using AuthServer.Dtos;
-using Microsoft.AspNetCore.Identity;
 
 namespace AuthServer.DbServices.Interfaces
 {
-    public interface IUserService
+    public interface IUserService: IDbService<UserDto>
     {
-        Task AddUser(UserDto user, CancellationToken cancellationToken);
-        List<UserDto> GetUsers();
-        UserDto GetUserById(string id);
-        Task<bool> DeleteByIdAsync(string id, CancellationToken cancellationToken);
+        Task<bool> AddUserClaims(Guid userId, List<Guid> claimIds);
+        Task<bool> RemoveClaimFromUser(Guid userId, Guid claimId, CancellationToken cancellationToken);
+        Task<List<Claim>> GetUserClaims(Guid id, CancellationToken cancellationToken);
     }
 }

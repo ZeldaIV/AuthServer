@@ -1,4 +1,3 @@
-
 namespace AuthServer.Utilities
 {
     public interface IControllerUtils

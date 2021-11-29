@@ -8,7 +8,7 @@ namespace AuthServer.GraphQL.Client.Types.Payloads
         public ClientDto ApplicationClient { get; set; }
     }
 
-    public class CreateClientPayloadType: ObjectType<CreateClientPayload>
+    public class CreateClientPayloadType : ObjectType<CreateClientPayload>
     {
         protected override void Configure(IObjectTypeDescriptor<CreateClientPayload> descriptor)
         {

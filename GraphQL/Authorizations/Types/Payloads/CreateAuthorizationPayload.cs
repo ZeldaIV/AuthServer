@@ -7,8 +7,8 @@ namespace AuthServer.GraphQL.ApiResource.Types.Payloads
     {
         public ApplicationAuthorization Authorization { get; set; }
     }
-    
-    public class CreateAuthorizationPayloadType: ObjectType<CreateAuthorizationPayload>
+
+    public class CreateAuthorizationPayloadType : ObjectType<CreateAuthorizationPayload>
     {
         protected override void Configure(IObjectTypeDescriptor<CreateAuthorizationPayload> descriptor)
         {

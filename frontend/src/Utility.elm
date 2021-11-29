@@ -6,26 +6,7 @@ import Graphql.Http.GraphqlError exposing (GraphqlError)
 import Graphql.Operation exposing (RootMutation, RootQuery)
 import Graphql.SelectionSet exposing (SelectionSet)
 import Http exposing (Error(..))
-import Random
 import RemoteData exposing (RemoteData(..))
-import Uuid
-
-
-
---toStringDateTime:  DateTime -> String
---toStringDateTime d =
---       case d of
---           DateTime string ->
---               string
---
---toStringFromMaybeDateTime: Maybe DateTime -> String
---toStringFromMaybeDateTime d =
---    case d of
---        Just a ->
---            toStringDateTime a
---
---        Nothing ->
---            ""
 
 
 graphqlErrorToString : GraphqlError -> String

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using AuthServer.Data;
 using AuthServer.Data.Models;
 using AuthServer.DbServices.Interfaces;
-using AuthServer.Dtos;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -22,12 +21,12 @@ namespace AuthServer.DbServices
             _context = context.CreateDbContext();
         }
 
-        public IEnumerable<ApplicationAuthorization> GetAllAuthorizations()
+        public IEnumerable<ApplicationAuthorization> GetAll()
         {
             return _context.ApplicationAuthorizations.Adapt<List<ApplicationAuthorization>>();
         }
 
-        public ApplicationAuthorization GetAuthorizationById(Guid id)
+        public ApplicationAuthorization GetById(Guid id)
         {
             try
             {
@@ -40,11 +39,11 @@ namespace AuthServer.DbServices
             }
         }
 
-        public async Task AddAuthorizationAsync(ApplicationAuthorization resource, CancellationToken cancellationToken)
+        public async Task CreateAsync(ApplicationAuthorization resource, CancellationToken cancellationToken)
         {
             var newResource = resource;
             newResource.CreationDate = DateTime.UtcNow;
-            
+
             try
             {
                 await _context.ApplicationAuthorizations.AddAsync(newResource, cancellationToken);
@@ -57,18 +56,19 @@ namespace AuthServer.DbServices
             }
         }
 
-        public async Task UpdateAuthorizationAsync(ApplicationAuthorization update, CancellationToken cancellationToken)
+        public async Task UpdateAsync(ApplicationAuthorization update, CancellationToken cancellationToken)
         {
             var resource = update;
-            var entity = await _context.ApplicationAuthorizations.FirstOrDefaultAsync(r => r.Id == update.Id, cancellationToken);
+            var entity =
+                await _context.ApplicationAuthorizations.FirstOrDefaultAsync(r => r.Id == update.Id, cancellationToken);
             if (entity != null)
             {
                 entity.Id = resource.Id;
-                entity.    Application = resource.Application;
+                entity.Application = resource.Application;
                 entity.Scopes = resource.Scopes;
-                entity.    Status = resource.Status;
+                entity.Status = resource.Status;
                 entity.Subject = resource.Subject;
-                entity.    CreationDate = resource.CreationDate;
+                entity.CreationDate = resource.CreationDate;
                 entity.Type = resource.Type;
             }
 

@@ -8,7 +8,7 @@ namespace AuthServer.GraphQL.Scope.Types.Payloads
         public ScopeDto Scope { get; set; }
     }
 
-    public class CreateScopePayloadType: ObjectType<CreateScopePayload>
+    public class CreateScopePayloadType : ObjectType<CreateScopePayload>
     {
         protected override void Configure(IObjectTypeDescriptor<CreateScopePayload> descriptor)
         {
@@ -18,7 +18,6 @@ namespace AuthServer.GraphQL.Scope.Types.Payloads
 
             descriptor.Field(x => x.Scope)
                 .Type<ScopeType>();
-
         }
     }
 }

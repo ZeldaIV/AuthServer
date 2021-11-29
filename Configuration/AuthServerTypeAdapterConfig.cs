@@ -4,10 +4,10 @@ using System.Text.Json;
 using AuthServer.Data.Models;
 using AuthServer.Dtos;
 using AuthServer.GraphQL.Client.Types.Inputs;
+using AuthServer.GraphQL.Scope.Types.Inputs;
 using JetBrains.Annotations;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
-using NuGet.Protocol;
 using OpenIddict.Abstractions;
 using Serilog;
 
@@ -19,7 +19,7 @@ namespace AuthServer.Configuration
         {
             var cfg = TypeAdapterConfig.GlobalSettings;
 
-            cfg.NewConfig<IdentityUser, UserDto>()
+            cfg.NewConfig<ApplicationUser, UserDto>()
                 .AddDestinationTransform((string x) => x ?? "");
 
             cfg.NewConfig<ApplicationClient, ClientDto>()
@@ -56,9 +56,13 @@ namespace AuthServer.Configuration
 
 
             cfg.NewConfig<ApplicationScope, ScopeDto>()
+                .Map(s => s.Resources, s => MapFromJsonToListOfStrings(s.Resources))
                 .AddDestinationTransform((string x) => x ?? "")
                 .AddDestinationTransform((Guid x) => x != null ? x : Guid.Empty)
                 .TwoWays();
+
+            cfg.NewConfig<ScopeInput, ApplicationScope>()
+                .Map(d => d.Resources, s => MapToJson(s.Resources));
 
             cfg.NewConfig<ApplicationAuthorization, AuthorizationDto>()
                 .Map(d => d.Id, s => s.Id)
@@ -78,7 +82,6 @@ namespace AuthServer.Configuration
         private static List<string> MapFromJsonToListOfStrings([CanBeNull] string jsonValue)
         {
             if (!string.IsNullOrEmpty(jsonValue))
-            {
                 try
                 {
                     var mapFromJsonToListOfStrings = JsonSerializer.Deserialize<List<string>>(jsonValue);
@@ -88,7 +91,6 @@ namespace AuthServer.Configuration
                 {
                     Log.Error(e, $"Unable to deserialize json: {jsonValue}");
                 }
-            }
 
             Log.Error("We are not supposed to end up here");
             return new List<string>();

@@ -7,7 +7,6 @@ namespace AuthServer.Utilities.Swagger
     {
         public static void AddIdentityServer(this IServiceCollection services, Action<SwaggerSetup> setupAction)
         {
-            
         }
     }
 }

@@ -9,17 +9,18 @@ using Microsoft.Extensions.Configuration;
 
 namespace AuthServer.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>
     {
-        public DbSet<ApplicationClient> ApplicationClients { get; set; }
-        public DbSet<ApplicationAuthorization> ApplicationAuthorizations { get; set; }
-        public DbSet<ApplicationScope> ApplicationScopes { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
         }
+
+        public DbSet<ApplicationClient> ApplicationClients { get; set; }
+        public DbSet<ApplicationAuthorization> ApplicationAuthorizations { get; set; }
+        public DbSet<ApplicationScope> ApplicationScopes { get; set; }
     }
-    
+
     public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
     {
         public ApplicationDbContext CreateDbContext(string[] args)
@@ -37,7 +38,8 @@ namespace AuthServer.Data
                 {
                     mysqlOptions.EnableRetryOnFailure(5, new TimeSpan(0, 0, 10), new List<int> { 1, 2, 3, 4 });
                 });
-            optionsBuilder.UseOpenIddict<ApplicationClient, ApplicationAuthorization, ApplicationScope, ApplicationToken, Guid>();
+            optionsBuilder
+                .UseOpenIddict<ApplicationClient, ApplicationAuthorization, ApplicationScope, ApplicationToken, Guid>();
             return new ApplicationDbContext(optionsBuilder.Options);
         }
     }

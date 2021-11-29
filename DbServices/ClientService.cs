@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 using AuthServer.Data;
 using AuthServer.Data.Models;
 using AuthServer.DbServices.Interfaces;
-using AuthServer.Dtos;
-using Mapster;
 using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
 using Serilog;
@@ -16,10 +14,13 @@ namespace AuthServer.DbServices
 {
     public class ClientService : IClientService, IAsyncDisposable
     {
+        private readonly IOpenIddictApplicationManager _applicationManager;
         private readonly ApplicationDbContext _context;
 
-        public ClientService(IDbContextFactory<ApplicationDbContext> context)
+        public ClientService(IDbContextFactory<ApplicationDbContext> context,
+            IOpenIddictApplicationManager applicationManager)
         {
+            _applicationManager = applicationManager;
             _context = context.CreateDbContext();
         }
 
@@ -28,12 +29,12 @@ namespace AuthServer.DbServices
             return _context.DisposeAsync();
         }
 
-        public List<ApplicationClient> GetAllClients()
+        public IEnumerable<ApplicationClient> GetAll()
         {
             return _context.ApplicationClients.ToList();
         }
 
-        public ApplicationClient GetClientById(Guid id)
+        public ApplicationClient GetById(Guid id)
         {
             try
             {
@@ -46,66 +47,33 @@ namespace AuthServer.DbServices
             }
         }
 
-        public async Task AddClientAsync(ApplicationClient applicationClient, CancellationToken cancellationToken)
+        public async Task CreateAsync(ApplicationClient applicationClient, CancellationToken cancellationToken)
         {
-            var entity = applicationClient;
-            try
-            {
-                await _context.ApplicationClients.AddAsync(entity, cancellationToken);
-                await _context.SaveChangesAsync(cancellationToken);
-            }
-            catch (DbUpdateException e)
-            {
-                Log.Logger.Error(e.Message);
-                throw;
-            }
+            if (applicationClient == null) throw new ArgumentNullException(nameof(applicationClient));
+
+            var entity = await _applicationManager.FindByIdAsync(applicationClient.Id.ToString(), cancellationToken);
+            if (entity == null)
+                await _applicationManager.CreateAsync(applicationClient, applicationClient.ClientSecret,
+                    cancellationToken);
         }
 
-        public async Task UpdateClient(ApplicationClient update, CancellationToken cancellationToken)
+        public async Task UpdateAsync(ApplicationClient update, CancellationToken cancellationToken)
         {
-            try
-            {
-                var entity = await _context.ApplicationClients.FirstOrDefaultAsync(c => c.Id == update.Id, cancellationToken);
-                if (entity != null)
-                {
-                    entity.ClientId = update.ClientId;
-                    entity.ClientSecret = update.ClientSecret;
-                    entity.ConsentType = update.ConsentType;
-                    entity.DisplayName = update.DisplayName;
-                    entity.DisplayNames = update.DisplayNames;
-                    entity.Permissions = update.Permissions;
-                    entity.PostLogoutRedirectUris = update.PostLogoutRedirectUris;
-                    entity.RedirectUris = update.RedirectUris;
-                    entity.Type = update.Type;
-                }
-
-                await _context.SaveChangesAsync(cancellationToken);
-            }
-            catch (ArgumentNullException e)
-            {
-                Log.Logger.Error(e.Message);
-                throw;
-            }
-            catch (DbUpdateException e)
-            {
-                Log.Logger.Error(e.Message);
-                throw;
-            }
+            var entity = await _applicationManager.FindByIdAsync(update.Id.ToString(), cancellationToken);
+            if (entity != null)
+                await _applicationManager.UpdateAsync(update, update.ClientSecret ?? "", cancellationToken);
         }
 
         public async Task<bool> DeleteByIdAsync(Guid id, CancellationToken cancellationToken)
         {
-            try
+            var entity = await _applicationManager.FindByIdAsync(id.ToString(), cancellationToken);
+            if (entity != null)
             {
-                var result = await _context.ApplicationClients.SingleAsync(r => r.Id == id, cancellationToken);
-                _context.ApplicationClients.Remove(result);
+                await _applicationManager.DeleteAsync(entity, cancellationToken);
                 return true;
             }
-            catch (InvalidOperationException e)
-            {
-                Log.Logger.Error(e.Message);
-                return false;
-            }
+
+            return false;
         }
     }
 }

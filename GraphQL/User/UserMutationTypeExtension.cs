@@ -6,7 +6,7 @@ using HotChocolate.Types;
 
 namespace AuthServer.GraphQL.User
 {
-    public class UserMutationTypeExtension: ObjectTypeExtension<UserMutation>
+    public class UserMutationTypeExtension : ObjectTypeExtension<UserMutation>
     {
         protected override void Configure(IObjectTypeDescriptor<UserMutation> descriptor)
         {
@@ -19,7 +19,6 @@ namespace AuthServer.GraphQL.User
             descriptor.Field(o => o.DeleteUserAsync(default!, default!, new CancellationToken()))
                 .Argument("id", x => x.Type<NonNullType<StringType>>())
                 .Type<NonNullType<DeleteEntityPayloadType>>();
-
         }
     }
 }
