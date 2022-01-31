@@ -17,7 +17,7 @@ namespace AuthServer.GraphQL.Claim
         public async Task<CreateClaimPayload> CreateClaimAsync([Service] IClaimsService service, ClaimInput input,
             CancellationToken cancellationToken)
         {
-            var claim = input.Adapt<System.Security.Claims.Claim>();
+            var claim = input.Adapt<ApplicationClaimType>();
 
             await service.CreateAsync(claim, cancellationToken);
 

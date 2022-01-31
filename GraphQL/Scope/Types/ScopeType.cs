@@ -14,6 +14,8 @@ namespace AuthServer.GraphQL.Scope.Types
             descriptor.Field(o => o.Id).Type<NonNullType<UuidType>>();
             descriptor.Field(o => o.Name).Type<NonNullType<StringType>>().Description("");
             descriptor.Field(o => o.DisplayName).Type<NonNullType<StringType>>().Description("");
+            descriptor.Field(o => o.Description).Type<NonNullType<StringType>>();
+            descriptor.Field(o => o.Resources).Type<NonNullType<ListType<NonNullType<StringType>>>>().Description("");
         }
     }
 }

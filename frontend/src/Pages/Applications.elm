@@ -7,15 +7,11 @@ import Bootstrap.Button as Button
 import Bootstrap.Grid as Grid
 import Bootstrap.Table as Table exposing (Row)
 import Effect exposing (Effect)
-import Element exposing (Element, el, fill, maximum, minimum, rgb255, spacingXY, table, width)
-import Element.Border as Border
-import Element.Font as Font
 import Gen.Route
 import Graphql.Http
 import Graphql.Operation exposing (RootQuery)
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Html exposing (Html, h1, text)
-import Html.Attributes exposing (href)
 import Html.Events exposing (onClick)
 import Http exposing (Error(..))
 import Page exposing (Page)
@@ -60,7 +56,7 @@ mapToApiResource =
     SelectionSet.map3 Client
         (SelectionSet.map Utility.uuidToString ClientDto.id)
         ClientDto.displayName
-        ClientDto.type_
+        (SelectionSet.withDefault "" ClientDto.type_)
 
 
 

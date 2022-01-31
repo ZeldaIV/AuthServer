@@ -1,11 +1,15 @@
 using System;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading;
 using AuthServer.Configuration;
+using AuthServer.Constants;
 using AuthServer.Data.Models;
+using AuthServer.DbServices.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OpenIddict.Abstractions;
 using Serilog;
 
 namespace AuthServer.Data
@@ -39,6 +43,15 @@ namespace AuthServer.Data
             {
                 Log.Information($@"Administrator: {administrator} already exists, will not create");
             }
+            
+            // Create the predefined scopes
+            var scopesManager = scope.ServiceProvider.GetRequiredService<IScopeService>();
+            var predefinedScopes = scopesManager.GetAll().Where(s => (!s.Name?.StartsWith("scp:") ?? false) && Predefined.Scopes.Contains(s.Name));
+            foreach (var undefinedScope in Predefined.ApplicationScopes.TakeWhile(s => predefinedScopes.All(p => p.Id != s.Id)))
+            {
+                await scopesManager.CreateAsync(undefinedScope, CancellationToken.None);
+            }
+            await scopesManager.DisposeAsync();
         }
     }
 }

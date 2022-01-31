@@ -1,6 +1,7 @@
 using AuthServer.GraphQL.ApiResource;
 using AuthServer.GraphQL.Claim;
 using AuthServer.GraphQL.Client;
+using AuthServer.GraphQL.Options;
 using AuthServer.GraphQL.Scope;
 using AuthServer.GraphQL.User;
 using AuthServer.Utilities;
@@ -29,6 +30,7 @@ namespace AuthServer.Extensions.Services
                 .AddTypeExtension<UserTypeQueryExtension>()
                 .AddTypeExtension<ScopeTypeQueryExtension>()
                 .AddTypeExtension<ClaimTypeQueryExtension>()
+                .AddTypeExtension<OptionsQueryExtensions>()
 
                 // Mutations
                 .AddMutationType(d => d.Name("Mutation"))

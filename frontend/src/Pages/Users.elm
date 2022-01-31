@@ -13,6 +13,7 @@ import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import Element.Region as Region
+import Gen.Route
 import Graphql.Http
 import Graphql.Operation exposing (RootMutation, RootQuery)
 import Graphql.OptionalArgument exposing (OptionalArgument(..))
@@ -20,21 +21,23 @@ import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Html exposing (Html)
 import Http exposing (Error)
 import Page exposing (Page)
+import Random
 import RemoteData exposing (RemoteData)
 import Request exposing (Request)
 import Shared
 import UI.Button exposing (cancelButton, confirmButton)
 import UI.Color exposing (color)
 import Utility exposing (RequestState(..), makeGraphQLMutation, makeGraphQLQuery)
+import Uuid
 import View exposing (View)
 
 
 page : Shared.Model -> Request -> Page.With Model Msg
-page _ _ =
+page sharedModel req =
     Page.protected.advanced
         (\_ ->
-            { init = init
-            , update = update
+            { init = init sharedModel
+            , update = update req
             , view = view
             , subscriptions = subscriptions
             }
@@ -46,6 +49,7 @@ type alias Model =
     , form : User
     , formValid : Bool
     , userList : List User
+    , seed : Random.Seed
     }
 
 
@@ -98,56 +102,6 @@ usersResponse result =
             RequestFailed err
 
 
-insertUserObject : User -> UserInput
-insertUserObject user =
-    buildUserInput
-        (UserInputRequiredFields user.userName user.twoFactorEnabled)
-        (\args ->
-            { args
-                | email = Present user.email
-                , phoneNumber = Present user.phoneNumber
-            }
-        )
-
-
-insertArgs : User -> CreateUserRequiredArguments
-insertArgs user =
-    CreateUserRequiredArguments (insertUserObject user)
-
-
-getUserInsertObject : User -> SelectionSet (Maybe User) RootMutation
-getUserInsertObject user =
-    createUser (insertArgs user) mutationResponse
-
-
-mutationResponse : SelectionSet (Maybe User) CreateUserPayload
-mutationResponse =
-    CreateUserPayload.user selectUser
-
-
-makeMutation : SelectionSet (Maybe User) RootMutation -> Cmd Msg
-makeMutation mutation =
-    (Graphql.Http.withSimpleHttpError >> RemoteData.fromResult >> gotUser) |> makeGraphQLMutation mutation
-
-
-gotUser : RemoteData (Graphql.Http.RawError (Maybe User) Http.Error) (Maybe User) -> Msg
-gotUser result =
-    case Utility.response result of
-        RequestSuccess a ->
-            case a of
-                Just user ->
-                    Success user
-
-                Nothing ->
-                    CouldNotAddUser
-
-        State state ->
-            RequestState state
-
-        RequestError err ->
-            RequestFailed err
-
-
 
 -- INIT
 
@@ -157,12 +111,13 @@ initialForm =
     User "" "" False "" False False
 
 
-init : ( Model, Effect Msg )
-init =
+init : Shared.Model -> ( Model, Effect Msg )
+init sharedModel =
     ( { displayNewUserForm = False
       , form = initialForm
       , formValid = False
       , userList = []
+      , seed = sharedModel.seed
       }
     , Effect.fromCmd makeRequest
     )
@@ -173,17 +128,13 @@ init =
 
 
 type Msg
-    = CreateNew
-    | ClickMe
-    | Update User
-    | Add User
-    | CouldNotAddUser
-    | Success User
+    = Success User
     | UsersLoaded (List User)
     | ApiError String
     | CancelAddUser
     | RequestState String
     | RequestFailed String
+    | OnAddNewUser
 
 
 checkValidUser : User -> Bool
@@ -191,25 +142,9 @@ checkValidUser user =
     String.length user.email > 5 && String.length user.userName > 5
 
 
-update : Msg -> Model -> ( Model, Effect Msg )
-update msg model =
+update : Request -> Msg -> Model -> ( Model, Effect Msg )
+update req msg model =
     case msg of
-        ClickMe ->
-            ( model, Effect.none )
-
-        CreateNew ->
-            ( { model | displayNewUserForm = True }, Effect.none )
-
-        Update form ->
-            ( { model | form = form, formValid = checkValidUser form }, Effect.none )
-
-        Add newUser ->
-            let
-                mutationObject =
-                    getUserInsertObject newUser
-            in
-            ( { displayNewUserForm = False, form = initialForm, formValid = False, userList = newUser :: model.userList }, Effect.fromCmd (makeMutation mutationObject) )
-
         UsersLoaded users ->
             ( { model | userList = users }, Effect.none )
 
@@ -228,8 +163,17 @@ update msg model =
         Success _ ->
             ( model, Effect.none )
 
-        CouldNotAddUser ->
-            ( model, Effect.none )
+        OnAddNewUser ->
+            let
+                ( newUuid, newSeed ) =
+                    Random.step Uuid.uuidGenerator model.seed
+            in
+            ( model
+            , Effect.batch
+                [ Effect.fromCmd (Request.replaceRoute (Gen.Route.User__Id_ { id = Uuid.toString newUuid }) req)
+                , Effect.fromShared (Shared.GenerateNewUuid newSeed)
+                ]
+            )
 
 
 subscriptions : Model -> Sub Msg
@@ -294,76 +238,11 @@ usersTable model =
         }
 
 
-addUserForm : Model -> Element Msg
-addUserForm model =
-    let
-        form =
-            model.form
-    in
-    column
-        [ width (px 400)
-        , height shrink
-        , spacing 36
-        , padding 10
-        , Border.rounded 5
-        , Border.shadow { offset = ( 1, 1 ), size = 0.5, blur = 10, color = color.black }
-        , Background.color color.white
-        ]
-        [ el
-            [ Region.heading 1
-            , alignLeft
-            , Font.size 24
-            ]
-            (text "Add a new user")
-        , Input.email
-            [ width <| maximum 400 fill ]
-            { text = form.email
-            , placeholder = Nothing
-            , onChange = \new -> Update { form | email = new }
-            , label = Input.labelLeft [ width (px 150), centerY ] (text "Email:")
-            }
-        , Input.username
-            [ width <| maximum 400 fill ]
-            { text = form.userName
-            , placeholder = Nothing
-            , onChange = \new -> Update { form | userName = new }
-            , label = Input.labelLeft [ width (px 150), centerY ] (text "User name:")
-            }
-        , Input.text
-            [ width <| maximum 400 fill ]
-            { text = form.phoneNumber
-            , placeholder = Nothing
-            , onChange = \new -> Update { form | phoneNumber = new }
-            , label = Input.labelLeft [ width (px 150), centerY ] (text "Phone number:")
-            }
-        , Input.checkbox
-            [ centerX ]
-            { checked = form.twoFactorEnabled
-            , onChange = \new -> Update { form | twoFactorEnabled = new }
-            , label = Input.labelRight [ centerY ] (text "Use two factor authentication")
-            , icon = Input.defaultCheckbox
-            }
-        , row [ width fill, spaceEvenly ]
-            [ cancelButton { msg = CancelAddUser, label = "Cancel", enabled = True }
-            , confirmButton { msg = Add form, label = "Add user", enabled = model.formValid }
-            ]
-        ]
-
-
 usersView : Model -> List (Html Msg)
 usersView model =
-    let
-        displayForm =
-            if model.displayNewUserForm then
-                el [ centerX ] <| addUserForm model
-
-            else
-                none
-    in
     [ layout [ width fill, height fill, padding 50 ] <|
         column [ width fill, spacing 40 ]
-            [ el [ centerX ] <| confirmButton { msg = CreateNew, label = "Create new user", enabled = not model.displayNewUserForm }
-            , el [ centerX, Element.inFront displayForm ]
-                (usersTable model)
+            [ el [ centerX ] <| confirmButton { msg = OnAddNewUser, label = "Create new user", enabled = not model.displayNewUserForm }
+            , usersTable model
             ]
     ]

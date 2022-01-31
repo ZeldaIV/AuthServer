@@ -18,7 +18,7 @@ namespace AuthServer.GraphQL.Client
             CancellationToken cancellationToken)
         {
             var client = input.Adapt<ApplicationClient>();
-            client.Id = input.ClientId;
+            client.Id = Guid.TryParse(input.ClientId, out var guid) ? guid : Guid.NewGuid();
 
             await service.CreateAsync(client, cancellationToken);
 
@@ -32,7 +32,6 @@ namespace AuthServer.GraphQL.Client
             CancellationToken cancellationToken)
         {
             var client = input.Adapt<ApplicationClient>();
-            client.Id = input.ClientId;
 
             await service.UpdateAsync(client, cancellationToken);
 

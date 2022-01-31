@@ -2,7 +2,6 @@
     "type": "application",
     "source-directories": [
         "src",
-        "src/GraphQl",
         ".elm-spa/defaults",
         ".elm-spa/generated"
     ],
@@ -11,7 +10,7 @@
         "direct": {
             "NoRedInk/elm-json-decode-pipeline": "1.0.0",
             "danyx23/elm-uuid": "2.1.2",
-            "dillonkearns/elm-graphql": "5.0.6",
+            "dillonkearns/elm-graphql": "5.0.8",
             "elm/browser": "1.0.2",
             "elm/core": "1.0.5",
             "elm/html": "1.0.0",
@@ -34,6 +33,7 @@
             "elm/regex": "1.0.0",
             "elm/virtual-dom": "1.0.2",
             "elm-community/list-extra": "8.4.0",
+            "j-maas/elm-ordered-containers": "1.0.0",
             "lukewestby/elm-string-interpolate": "1.0.4"
         }
     },

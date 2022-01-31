@@ -41,13 +41,6 @@ confirmButton { msg, label, enabled } =
 
             else
                 color.lightGrey
-
-        borderColor =
-            if enabled then
-                color.blue
-
-            else
-                color.white
     in
     Input.button
         [ height <| minimum 40 fill
@@ -56,13 +49,14 @@ confirmButton { msg, label, enabled } =
         , Background.color backgroundColor
         , Font.color color.white
         , Font.center
+        , Font.size 14
         , Element.height Element.shrink
         , Element.width Element.shrink
         , Element.paddingXY 16 8
         , Border.rounded 2
         , Border.solid
         , Border.widthXY 1 1
-        , Border.color color.blue
+        , Border.color backgroundColor
         , mouseDown mouseDownAttrs
         , mouseOver mouseOverAttrs
         ]
@@ -104,14 +98,7 @@ cancelButton { msg, label, enabled } =
                 color.red
 
             else
-                color.black
-
-        borderColor =
-            if enabled then
-                color.red
-
-            else
-                color.black
+                color.lightGrey
     in
     Input.button
         [ height <| minimum 40 fill
@@ -124,7 +111,7 @@ cancelButton { msg, label, enabled } =
         , Element.width Element.shrink
         , Element.paddingXY 16 8
         , Border.rounded 2
-        , Border.color color.darkRed
+        , Border.color backgroundColor
         , Border.solid
         , Border.widthXY 1 1
         , mouseDown mouseDownAttrs

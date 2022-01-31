@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using AuthServer.Constants;
 using AuthServer.DbServices.Interfaces;
 using AuthServer.Dtos;
 using HotChocolate;
@@ -13,6 +15,8 @@ namespace AuthServer.GraphQL.Scope
         {
             return context.GetAll().Adapt<List<ScopeDto>>();
         }
+        
+        
 
         public ScopeDto GetScopeById(Guid id, [Service] IScopeService context)
         {

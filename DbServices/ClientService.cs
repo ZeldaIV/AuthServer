@@ -12,7 +12,7 @@ using Serilog;
 
 namespace AuthServer.DbServices
 {
-    public class ClientService : IClientService, IAsyncDisposable
+    public class ClientService : IClientService, IAsyncDisposable, IDisposable
     {
         private readonly IOpenIddictApplicationManager _applicationManager;
         private readonly ApplicationDbContext _context;
@@ -26,12 +26,18 @@ namespace AuthServer.DbServices
 
         public ValueTask DisposeAsync()
         {
-            return _context.DisposeAsync();
+            if (_context is IAsyncDisposable ad)
+            {
+                return ad.DisposeAsync();
+            }
+            _context.Dispose();
+            return ValueTask.CompletedTask;
         }
 
         public IEnumerable<ApplicationClient> GetAll()
         {
-            return _context.ApplicationClients.ToList();
+            var applicationClients = _context.ApplicationClients.ToList();
+            return applicationClients;
         }
 
         public ApplicationClient GetById(Guid id)
@@ -67,13 +73,16 @@ namespace AuthServer.DbServices
         public async Task<bool> DeleteByIdAsync(Guid id, CancellationToken cancellationToken)
         {
             var entity = await _applicationManager.FindByIdAsync(id.ToString(), cancellationToken);
-            if (entity != null)
-            {
-                await _applicationManager.DeleteAsync(entity, cancellationToken);
-                return true;
-            }
+            if (entity == null) 
+                return false;
+            await _applicationManager.DeleteAsync(entity, cancellationToken);
+            return true;
 
-            return false;
+        }
+
+        public void Dispose()
+        {
+            _context?.Dispose();
         }
     }
 }

@@ -93,8 +93,7 @@ init req flags =
         Request.replaceRoute Gen.Route.Login req
 
       else
-        Debug.log "Batching"
-            Cmd.batch
+        Cmd.batch
             [ navbarCmd, Random.generate GenerateNewUuid Random.independentSeed ]
     )
 

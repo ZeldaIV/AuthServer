@@ -1,5 +1,5 @@
 {
-  "name": "Authserver",
+  "name": "authserver",
   "version": "1.0.0",
   "author": "Trond Bordewich",
   "description": "Authorization server",
@@ -21,16 +21,16 @@
     "genSwagger": "ASPNETCORE_ENVIRONMENT=SwaggerGen dotnet build ../",
     "genElmCode": "openapi-generator-cli generate -i ./swagger.yaml -g elm -o ./",
     "publish": "cp -r ./public/ ../wwwroot",
-    "api": "elm-graphql http://localhost/graphql --output src/GraphQl"
+    "api": "elm-graphql http://localhost/graphql --base Api --output src --scalar-codecs ScalarCodecs"
   },
   "keywords": [],
   "license": "ISC",
   "devDependencies": {
-    "@dillonkearns/elm-graphql": "^4.2.2",
-    "@openapitools/openapi-generator-cli": "^2.3.10",
-    "chokidar-cli": "^3.0.0",
-    "elm-live": "^4.0.2",
-    "elm-spa": "^6.0.4",
+    "@dillonkearns/elm-graphql": "~4.2.3",
+    "@openapitools/openapi-generator-cli": "~2.4.23",
+    "chokidar-cli": "~3.0.0",
+    "elm-live": "~4.0.2",
+    "elm-spa": "~6.0.4",
     "elm-test": "^0.19.1-revision7",
     "npm-run-all": "^4.1.5"
   }

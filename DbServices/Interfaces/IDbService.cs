@@ -12,5 +12,6 @@ namespace AuthServer.DbServices.Interfaces
         Task CreateAsync(TEntity applicationClient, CancellationToken cancellationToken);
         Task UpdateAsync(TEntity update, CancellationToken cancellationToken);
         Task<bool> DeleteByIdAsync(Guid id, CancellationToken cancellationToken);
+        ValueTask DisposeAsync();
     }
 }

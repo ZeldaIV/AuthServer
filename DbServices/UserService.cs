@@ -15,7 +15,7 @@ using Serilog;
 
 namespace AuthServer.DbServices
 {
-    public sealed class UserService : IUserService, IAsyncDisposable
+    public sealed class UserService : IUserService, IAsyncDisposable, IDisposable
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
@@ -28,7 +28,13 @@ namespace AuthServer.DbServices
 
         public ValueTask DisposeAsync()
         {
-            return _context.DisposeAsync();
+            _userManager.Dispose();
+            if (_context is IAsyncDisposable ad)
+            {
+                return ad.DisposeAsync();
+            }
+            _context.Dispose();
+            return ValueTask.CompletedTask;
         }
 
         public async Task CreateAsync(UserDto user, CancellationToken cancellationToken)
@@ -85,7 +91,7 @@ namespace AuthServer.DbServices
         public async Task<bool> AddUserClaims(Guid userId, List<Guid> claimIds)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
-            var userClaims = _context.UserClaims.Where(c => claimIds.Contains(c.UserId)).Select(c => c.ToClaim());
+            var userClaims = _context.ClaimTypes.Where(c => claimIds.Contains(c.Id)).Select(c => new Claim(c.Name, c.Value));
             
             if (user == null || !userClaims.Any()) return false;
             
@@ -93,10 +99,10 @@ namespace AuthServer.DbServices
             return result.Succeeded;
         }
 
-        public async Task<bool> RemoveClaimFromUser(Guid userId, Guid claimId, CancellationToken cancellationToken)
+        public async Task<bool> RemoveClaimFromUser(Guid userId, string claimType, CancellationToken cancellationToken)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
-            var userClaim = await _context.UserClaims.SingleOrDefaultAsync(c => c.UserId == userId, cancellationToken);
+            var userClaim = await _context.UserClaims.SingleOrDefaultAsync(c => c.UserId == userId && c.ClaimType == claimType, cancellationToken);
             if (user == null || userClaim == null) return false;
 
             var result = await _userManager.RemoveClaimAsync(user, userClaim.ToClaim());
@@ -113,6 +119,12 @@ namespace AuthServer.DbServices
             var result = await _userManager.GetClaimsAsync(user);
             return result.ToList();
 
+        }
+
+        public void Dispose()
+        {
+            _userManager?.Dispose();
+            _context?.Dispose();
         }
     }
 }

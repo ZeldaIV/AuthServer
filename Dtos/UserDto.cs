@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace AuthServer.Dtos
 {
@@ -11,5 +12,6 @@ namespace AuthServer.Dtos
         public string PhoneNumber { get; set; }
         public bool PhoneNumberConfirmed { get; set; }
         public bool TwoFactorEnabled { get; set; }
+        public List<UserClaimDto> Claims { get; set; }
     }
 }

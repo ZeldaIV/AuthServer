@@ -128,14 +128,14 @@ selectScope added =
 selectClient : SelectionSet Client ClientDto
 selectClient =
     SelectionSet.succeed Client
-        |> with (SelectionSet.map Utility.uuidToString ClientDto.clientId)
+        |> with ClientDto.clientId
         |> with ClientDto.clientSecret
         |> with ClientDto.displayName
-        |> with ClientDto.permissions
-        |> with ClientDto.postLogoutRedirectUris
-        |> with ClientDto.redirectUris
+        |> with (SelectionSet.withDefault [] ClientDto.permissions)
+        |> with (SelectionSet.withDefault [] ClientDto.postLogoutRedirectUris)
+        |> with (SelectionSet.withDefault [] ClientDto.redirectUris)
         |> with ClientDto.requirePkce
-        |> with ClientDto.type_
+        |> with (SelectionSet.withDefault "" ClientDto.type_)
         |> with ClientDto.requireConsent
 
 
@@ -172,60 +172,25 @@ makeQuery query =
     (Graphql.Http.withSimpleHttpError >> RemoteData.fromResult >> clientCreateResult) |> makeGraphQLQuery query
 
 
-sanetizeList : List String -> List String
-sanetizeList strings =
+sanitizeList : List String -> List String
+sanitizeList strings =
     List.filter (\n -> n /= "") strings
 
 
 clientMutationObject : Client -> ClientInput
 clientMutationObject r =
-    let
-        permissions =
-            sanetizeList r.permissions
-
-        postLogoutRedirectUris =
-            sanetizeList r.postLogoutRedirectUris
-
-        redirectUris =
-            sanetizeList r.redirectUris
-    in
     buildClientInput
-        { clientId = Scalar.Uuid r.clientId
+        { clientId = r.clientId
         , displayName = r.displayName
         , requirePkce = r.requirePkce
         , requireConsent = r.requireConsent
+        , clientSecret = r.clientSecret
         }
         (\_ ->
-            { clientSecret =
-                if r.clientSecret /= "" then
-                    Present r.clientSecret
-
-                else
-                    Absent
-            , permissions =
-                if (permissions |> List.length) > 0 then
-                    Present permissions
-
-                else
-                    Absent
-            , postLogoutRedirectUris =
-                if (postLogoutRedirectUris |> List.length) > 0 then
-                    Present postLogoutRedirectUris
-
-                else
-                    Absent
-            , redirectUris =
-                if (redirectUris |> List.length) > 0 then
-                    Present redirectUris
-
-                else
-                    Absent
-            , type_ =
-                if r.clientType /= "" then
-                    Present r.clientType
-
-                else
-                    Absent
+            { permissions = Utility.optionalList (sanitizeList r.permissions)
+            , postLogoutRedirectUris = Utility.optionalList (sanitizeList r.postLogoutRedirectUris)
+            , redirectUris = Utility.optionalList (sanitizeList r.redirectUris)
+            , type_ = Utility.optionalString r.clientType
             }
         )
 
@@ -303,16 +268,23 @@ setScopeRemoved s =
 
 updateArray : Array String -> Int -> String -> List String
 updateArray lst idx val =
-    if idx + 1 == Array.length lst && String.length val > 0 then
+    let
+        arrLength =
+            Array.length lst
+
+        stringLength =
+            String.length val
+    in
+    if idx + 1 == arrLength && stringLength > 0 then
         Array.push "" lst |> Array.set idx val |> Array.toList
 
-    else if String.length val == 0 && idx + 1 < Array.length lst then
+    else if stringLength == 0 && idx + 1 < arrLength then
         let
             a1 =
                 Array.slice 0 idx lst
 
             a2 =
-                Array.slice (idx + 1) (Array.length lst) lst
+                Array.slice (idx + 1) arrLength lst
         in
         Array.append a1 a2 |> Array.toList
 

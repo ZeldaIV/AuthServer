@@ -22,13 +22,9 @@ type alias User =
 
 
 beforeProtectedInit : Shared.Model -> Request -> ElmSpa.Protected User Route
-beforeProtectedInit { storage } req =
+beforeProtectedInit { storage } _ =
     case storage.user of
         Just user ->
-            let
-                r =
-                    Debug.log "user" user.name
-            in
             ElmSpa.Provide user
 
         Nothing ->

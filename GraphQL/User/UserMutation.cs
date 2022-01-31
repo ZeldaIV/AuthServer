@@ -26,19 +26,18 @@ namespace AuthServer.GraphQL.User
             };
         }
 
-        public async Task<AddClaimsPayload> AddClaimsToUser([Service] IUserService context, UserClaimsInput input,
-            CancellationToken cancellationToken)
+        public async Task<AddRemoveClaimsPayload> AddClaimsToUser([Service] IUserService context, UserClaimsInput input)
         {
-            return new AddClaimsPayload
+            return new AddRemoveClaimsPayload
             {
                 Success = await context.AddUserClaims(input.UserId, input.ClaimIds)
             };
         }
         
-        public async Task<bool> RemoveClaimFromUser([Service] IUserService context, Guid userId, Guid claimId,
+        public async Task<bool> RemoveClaimFromUser([Service] IUserService context, Guid userId, [GraphQLNonNullType] string claimType,
             CancellationToken cancellationToken)
         {
-            return await context.RemoveClaimFromUser(userId, claimId, cancellationToken);
+            return await context.RemoveClaimFromUser(userId, claimType, cancellationToken);
         }
 
         public async Task<DeleteEntityByIdPayload> DeleteUserAsync([Service] IUserService service, Guid id,

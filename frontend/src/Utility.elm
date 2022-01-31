@@ -4,9 +4,11 @@ import Api.Scalar exposing (DateTime, Uuid(..))
 import Graphql.Http
 import Graphql.Http.GraphqlError exposing (GraphqlError)
 import Graphql.Operation exposing (RootMutation, RootQuery)
+import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet exposing (SelectionSet)
 import Http exposing (Error(..))
 import RemoteData exposing (RemoteData(..))
+import Uuid
 
 
 graphqlErrorToString : GraphqlError -> String
@@ -56,10 +58,28 @@ response result =
 
 
 uuidToString : Uuid -> String
-uuidToString u =
-    case u of
-        Uuid string ->
-            string
+uuidToString (Uuid u) =
+    u
+
+
+optionalList : List a -> OptionalArgument (List a)
+optionalList resources =
+    case resources of
+        [] ->
+            Absent
+
+        _ ->
+            Present resources
+
+
+optionalString : String -> OptionalArgument String
+optionalString s =
+    case s of
+        "" ->
+            Absent
+
+        _ ->
+            Present s
 
 
 graphQLUrl : String

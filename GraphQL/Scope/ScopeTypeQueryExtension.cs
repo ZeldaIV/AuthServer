@@ -10,7 +10,7 @@ namespace AuthServer.GraphQL.Scope
             descriptor.Name("Query");
 
             descriptor.Field(q => q.GetScopeById(default!, default!))
-                .Argument("id", x => x.Type<NonNullType<IntType>>())
+                .Argument("id", x => x.Type<NonNullType<UuidType>>())
                 .Type<ScopeType>();
 
             descriptor.Field(q => q.GetScopes(default!))

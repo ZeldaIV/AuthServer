@@ -1,10 +1,12 @@
 using System;
 using System.Security.Cryptography.X509Certificates;
 using AuthServer.Configuration;
+using AuthServer.Constants;
 using AuthServer.Data;
 using AuthServer.Data.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace AuthServer.Extensions.Services
 {
@@ -65,8 +67,14 @@ namespace AuthServer.Extensions.Services
                             .AddEphemeralSigningKey()
                             .DisableAccessTokenEncryption();
                     }
-
-                    options.RegisterScopes("api");
+                    
+                    options.RegisterScopes(
+                        Scopes.Address,
+                        Scopes.Email,
+                        Scopes.Phone,
+                        Scopes.Profile,
+                        Scopes.Roles,
+                        "api");
                 })
 
                 // Register the OpenIddict validation components.

@@ -1,6 +1,6 @@
 module Pages.Scopes exposing (Model, Msg, page)
 
-import Api.InputObject exposing (ScopeInput, ScopeInputRequiredFields, buildScopeInput)
+import Api.InputObject exposing (ScopeInput, ScopeInputOptionalFields, ScopeInputRequiredFields, buildScopeInput)
 import Api.Mutation exposing (CreateScopeRequiredArguments, DeleteScopeRequiredArguments, createScope, deleteScope)
 import Api.Object exposing (CreateScopePayload, DeleteEntityByIdPayload(..), ScopeDto)
 import Api.Object.CreateScopePayload as CreateScopePayload
@@ -24,6 +24,7 @@ import RemoteData exposing (RemoteData)
 import Request exposing (Request)
 import Shared
 import UI.Button exposing (confirmButton)
+import UI.Color exposing (color)
 import Utility exposing (RequestState(..), makeGraphQLMutation, makeGraphQLQuery, response)
 import Uuid
 import View exposing (View)
@@ -45,15 +46,19 @@ type alias Scope =
     { id : String
     , name : String
     , displayName : String
+    , description : String
+    , resources : List String
     }
 
 
 selectScope : SelectionSet Scope ScopeDto
 selectScope =
-    SelectionSet.map3 Scope
+    SelectionSet.map5 Scope
         (SelectionSet.map Utility.uuidToString ScopeDto.id)
         ScopeDto.name
         ScopeDto.displayName
+        ScopeDto.description
+        ScopeDto.resources
 
 
 type alias Model =
@@ -69,7 +74,17 @@ type alias Model =
 
 initialScope : Scope
 initialScope =
-    Scope "" "" ""
+    { id = ""
+    , name = ""
+    , displayName = ""
+    , description = ""
+    , resources = []
+    }
+
+
+predefinedScopes : List String
+predefinedScopes =
+    [ "profile", "address", "roles", "phone", "email" ]
 
 
 init : Shared.Model -> ( Model, Effect Msg )
@@ -106,7 +121,13 @@ gotScopes result =
 
 insertScopeObject : Scope -> ScopeInput
 insertScopeObject scope =
-    buildScopeInput (ScopeInput (Scalar.Uuid scope.id) scope.name scope.displayName)
+    buildScopeInput
+        (ScopeInputRequiredFields (Scalar.Uuid scope.id) scope.name scope.displayName)
+        (\_ ->
+            { description = Utility.optionalString scope.description
+            , resources = Utility.optionalList scope.resources
+            }
+        )
 
 
 insertArgs : Scope -> CreateScopeRequiredArguments
@@ -254,11 +275,20 @@ subscriptions _ =
 
 scopeValid : Scope -> Bool
 scopeValid scope =
-    String.length scope.name > 3
+    String.length scope.name > 3 && not (List.member scope.name predefinedScopes)
 
 
 
 -- VIEW
+
+
+scopeAlreadyAdded : Scope -> List Scope -> Bool
+scopeAlreadyAdded scp scopes =
+    let
+        scps =
+            List.map (\s -> String.toLower s.name) scopes
+    in
+    List.member (String.toLower scp.name) scps
 
 
 scopesInputView : Model -> Element Msg
@@ -266,61 +296,118 @@ scopesInputView model =
     let
         scope =
             model.scope
+
+        inputAttrs =
+            [ height shrink
+            , paddingXY 4 4
+            ]
+
+        scopeExists =
+            if scopeAlreadyAdded scope model.scopes then
+                text "The scope already exists"
+
+            else
+                none
     in
-    row [ spacing 30, centerX ]
-        [ Input.text [ width <| maximum 300 fill ]
+    column [ spacing 20, centerX, width <| maximum 300 fill ]
+        [ Input.text inputAttrs
             { onChange = \new -> Update { scope | name = new }
             , text = scope.name
-            , placeholder = Just <| Input.placeholder [] <| text "Scope name"
-            , label = Input.labelHidden "Scope name"
+            , placeholder = Nothing
+            , label = Input.labelAbove [] <| text "Scope name"
             }
-        , Input.text [ width <| maximum 300 fill ]
+        , Input.text inputAttrs
             { onChange = \new -> Update { scope | displayName = new }
             , text = scope.displayName
-            , placeholder = Just <| Input.placeholder [] <| text "Scope display name"
-            , label = Input.labelHidden "Scope display name"
+            , placeholder = Nothing
+            , label = Input.labelAbove [] <| text "Scope display name"
             }
-        , confirmButton { msg = AddScope scope, label = "Add", enabled = scopeValid scope }
+        , Input.multiline
+            [ Element.height (Element.shrink |> Element.minimum 50)
+            , paddingXY 2 2
+            ]
+            { onChange = \new -> Update { scope | description = new }
+            , text = scope.description
+            , placeholder = Nothing
+            , label = Input.labelAbove [] <| text "Description"
+            , spellcheck = True
+            }
+        , row []
+            [ confirmButton { msg = AddScope scope, label = "Add", enabled = scopeValid scope }
+            , scopeExists
+            ]
         ]
 
 
-scopesTable : Model -> Element msg
+scopesTable : Model -> Element Msg
 scopesTable model =
     let
         headerAttrs =
             [ Font.bold
-            , Font.color (rgb255 0x72 0x9F 0xCF)
-            , Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
+            , Font.color color.black
+            , Border.widthEach { bottom = 2, top = 0, left = 0, right = 0 }
             ]
     in
-    table [ width <| maximum 1200 <| minimum 1000 fill, spacingXY 0 10 ]
-        { data = model.scopes
-        , columns =
-            [ { header = el headerAttrs <| Element.text "Id"
-              , width = fill
-              , view =
-                    \scope ->
-                        Element.text scope.id
-              }
-            , { header = el headerAttrs <| Element.text "Scope name"
-              , width = fill
-              , view =
-                    \scope ->
-                        Element.text scope.name
-              }
-            , { header = el headerAttrs <| Element.text "Display name"
-              , width = fill
-              , view =
-                    \scope ->
-                        Element.text scope.displayName
-              }
+    column
+        [ width <| maximum 1000 fill
+        , height <| px 300
+        , spacing 10
+        , padding 1
+        , Border.width 2
+        , Border.rounded 3
+        , Border.color color.black
+        ]
+        [ row [ width fill ]
+            [ el ((width <| fillPortion 2) :: headerAttrs) <| text "Name"
+            , el ((width <| fillPortion 3) :: headerAttrs) <| text "Display name"
+            , el ((width <| fillPortion 4) :: headerAttrs) <| text "Description"
+            , el ((width <| fillPortion 1) :: headerAttrs) <| text " "
             ]
-        }
+        , el [ width fill ] <|
+            table
+                [ width fill
+                , height <| px 250
+                , scrollbarY
+                , spacing 10
+                ]
+                { data = model.scopes
+                , columns =
+                    [ { header = none
+                      , width = fillPortion 2
+                      , view =
+                            \scope ->
+                                Element.text scope.name
+                      }
+                    , { header = none
+                      , width = fillPortion 3
+                      , view =
+                            \scope ->
+                                Element.text scope.displayName
+                      }
+                    , { header = none
+                      , width = fillPortion 4
+                      , view =
+                            \scope ->
+                                Element.paragraph [] [ Element.text scope.description ]
+                      }
+                    , { header = none
+                      , width = fillPortion 1
+                      , view =
+                            \scope ->
+                                UI.Button.cancelButton
+                                    { msg = DeleteScope scope
+                                    , label = "Delete"
+                                    , enabled = not (List.member scope.name predefinedScopes)
+                                    }
+                      }
+                    ]
+                }
+        ]
 
 
 scopesView : Model -> List (Html Msg)
 scopesView model =
-    [ layout [ width fill, height fill ] <|
+    [ layout [ Font.size 14 ] <|
         column [ width fill, spacing 40 ]
             [ scopesInputView model
             , el [ centerX ] (scopesTable model)

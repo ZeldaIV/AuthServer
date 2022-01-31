@@ -12,7 +12,7 @@ using Serilog;
 
 namespace AuthServer.DbServices
 {
-    public class ApplicationAuthorizationService : IApplicationAuthorizationService, IAsyncDisposable
+    public class ApplicationAuthorizationService : IApplicationAuthorizationService, IAsyncDisposable, IDisposable
     {
         private readonly ApplicationDbContext _context;
 
@@ -101,6 +101,11 @@ namespace AuthServer.DbServices
         public ValueTask DisposeAsync()
         {
             return _context.DisposeAsync();
+        }
+
+        public void Dispose()
+        {
+            _context?.Dispose();
         }
     }
 }

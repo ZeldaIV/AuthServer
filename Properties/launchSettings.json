@@ -19,7 +19,7 @@
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Local",
-        "ASPNETCORE_URLS": "https://+",
+        "ASPNETCORE_URLS": "http://+;https://+",
         "AuthServerAdministrator": "Admin",
         "AuthServerSigningCertificatePath": "./Certificates/SigningCertificate.pfx"
       }

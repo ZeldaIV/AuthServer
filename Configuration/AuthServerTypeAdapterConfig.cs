@@ -1,10 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
 using System.Text.Json;
+using AuthServer.Constants;
 using AuthServer.Data.Models;
 using AuthServer.Dtos;
 using AuthServer.GraphQL.Client.Types.Inputs;
 using AuthServer.GraphQL.Scope.Types.Inputs;
+using AuthServer.GraphQL.User.Types;
 using JetBrains.Annotations;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
@@ -20,24 +24,26 @@ namespace AuthServer.Configuration
             var cfg = TypeAdapterConfig.GlobalSettings;
 
             cfg.NewConfig<ApplicationUser, UserDto>()
-                .AddDestinationTransform((string x) => x ?? "");
+                .AddDestinationTransform((string x) => x ?? "")
+                .TwoWays();
 
             cfg.NewConfig<ApplicationClient, ClientDto>()
-                .Map(d => d.Authorizations,
-                    s => s.Authorizations != null ? s.Authorizations.Adapt<AuthorizationDto>() : null)
-                .Map(d => d.ClientId, s => s.ClientId != null ? Guid.Parse(s.ClientId) : Guid.Empty)
+                .Map(d => d.Id, s => s.Id)
+                .Map(d => d.ClientId, s => s.ClientId ?? "")
                 .Map(d => d.ClientSecret, s => s.ClientSecret ?? "")
                 .Map(d => d.DisplayName, s => s.DisplayName ?? "")
                 .Map(d => d.RequireConsent, s => s.ConsentType == OpenIddictConstants.ConsentTypes.Explicit)
                 .Map(d => d.Type, s => s.Type ?? "")
                 .Map(d => d.DisplayNames, s => MapFromJsonToListOfStrings(s.DisplayNames))
-                .Map(d => d.Permissions, s => MapFromJsonToListOfStrings(s.Permissions))
+                .Map(d => d.Permissions, s => MapFromJsonToListOfStrings(s.Permissions).TakeWhile(p => p.StartsWith("scp:") || Predefined.Scopes.Contains(p)))
                 .Map(d => d.RedirectUris, s => MapFromJsonToListOfStrings(s.RedirectUris))
                 .Map(d => d.PostLogoutRedirectUris, s => MapFromJsonToListOfStrings(s.PostLogoutRedirectUris))
-                .Map(d => d.RequireConsent, s => s.ConsentType == OpenIddictConstants.ConsentTypes.Explicit);
+                .Map(d => d.RequireConsent, s => s.ConsentType == OpenIddictConstants.ConsentTypes.Explicit)
+                .Map(d => d.RequirePkce, s => MapFromJsonToListOfStrings(s.Requirements).Contains(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange));
 
             cfg.NewConfig<ClientInput, ApplicationClient>()
-                .Map(d => d.Id, s => s.ClientId)
+                .Map(d => d.Id, s => s.Id)
+                .Map(d => d.ClientId, s => s.ClientId)
                 .Map(d => d.DisplayNames, s => MapToJson(s.DisplayNames))
                 .Map(d => d.Permissions, s => MapToJson(s.Permissions))
                 .Map(d => d.RedirectUris, s => MapToJson(s.RedirectUris))
@@ -56,12 +62,14 @@ namespace AuthServer.Configuration
 
 
             cfg.NewConfig<ApplicationScope, ScopeDto>()
-                .Map(s => s.Resources, s => MapFromJsonToListOfStrings(s.Resources))
+                .Map(d => d.Resources, s => MapFromJsonToListOfStrings(s.Resources))
+                .Map(d => d.Name, s => s.Name.TrimStart(OpenIddictConstants.Permissions.Prefixes.Scope.ToCharArray()))
                 .AddDestinationTransform((string x) => x ?? "")
-                .AddDestinationTransform((Guid x) => x != null ? x : Guid.Empty)
+                .AddDestinationTransform((Guid x) => x != default ? x : Guid.Empty)
                 .TwoWays();
 
             cfg.NewConfig<ScopeInput, ApplicationScope>()
+                .Map(d => d.Name, s => $"{OpenIddictConstants.Permissions.Prefixes.Scope}{s.Name}")
                 .Map(d => d.Resources, s => MapToJson(s.Resources));
 
             cfg.NewConfig<ApplicationAuthorization, AuthorizationDto>()
@@ -72,27 +80,21 @@ namespace AuthServer.Configuration
                 .Map(d => d.CreationDate, s => s.CreationDate)
                 .Map(d => d.Type, s => s.Type ?? "")
                 .Map(d => d.Scopes, s => MapFromJsonToListOfStrings(s.Scopes));
-
-            // cfg.NewConfig<Client, ClientDto>()
-            //     .AddDestinationTransform((string x) => x ?? "")
-            //     .AddDestinationTransform((List<string> c) => c ?? new List<string>())
-            //     .AddDestinationTransform((List<ScopeDto> c) => c ?? new List<ScopeDto>());
         }
 
         private static List<string> MapFromJsonToListOfStrings([CanBeNull] string jsonValue)
         {
-            if (!string.IsNullOrEmpty(jsonValue))
-                try
-                {
-                    var mapFromJsonToListOfStrings = JsonSerializer.Deserialize<List<string>>(jsonValue);
-                    return mapFromJsonToListOfStrings ?? new List<string>();
-                }
-                catch (JsonException e)
-                {
-                    Log.Error(e, $"Unable to deserialize json: {jsonValue}");
-                }
-
-            Log.Error("We are not supposed to end up here");
+            if (string.IsNullOrEmpty(jsonValue)) 
+                return new List<string>();
+            try
+            {
+                var mapFromJsonToListOfStrings = JsonSerializer.Deserialize<List<string>>(jsonValue);
+                return mapFromJsonToListOfStrings ?? new List<string>();
+            }
+            catch (JsonException e)
+            {
+                Log.Error(e, $"Unable to deserialize json: {jsonValue}");
+            }
             return new List<string>();
         }
 

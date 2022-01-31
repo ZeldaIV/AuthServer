@@ -13,7 +13,7 @@ using Serilog;
 
 namespace AuthServer.DbServices
 {
-    public sealed class ScopeService : IScopeService, IAsyncDisposable
+    public sealed class ScopeService : IScopeService, IAsyncDisposable, IDisposable
     {
         private readonly ApplicationDbContext _context;
         private readonly IOpenIddictScopeManager _scopeManager;
@@ -26,7 +26,12 @@ namespace AuthServer.DbServices
 
         public ValueTask DisposeAsync()
         {
-            return _context.DisposeAsync();
+            if (_context is IAsyncDisposable ad)
+            {
+                return ad.DisposeAsync();
+            }
+            _context.Dispose();
+            return ValueTask.CompletedTask;
         }
 
         public IEnumerable<ApplicationScope> GetAll()
@@ -72,6 +77,11 @@ namespace AuthServer.DbServices
 
             await _scopeManager.DeleteAsync(entity, cancellationToken);
             return true;
+        }
+
+        public void Dispose()
+        {
+            _context?.Dispose();
         }
     }
 }

@@ -9,6 +9,7 @@ namespace AuthServer.GraphQL.Scope.Types.Inputs
         public Guid Id { get; set; }
         public string Name { get; set; }
         public string DisplayName { get; set; }
+        public string Description { get; set; }
         public List<string> Resources { get; set; }
     }
 
@@ -23,7 +24,8 @@ namespace AuthServer.GraphQL.Scope.Types.Inputs
             descriptor.Field(o => o.Id).Type<NonNullType<UuidType>>();
             descriptor.Field(o => o.Name).Type<NonNullType<StringType>>();
             descriptor.Field(o => o.DisplayName).Type<NonNullType<StringType>>();
-            descriptor.Field(o => o.Resources).Type<NonNullType<NonNullType<StringType>>>();
+            descriptor.Field(o => o.Description).Type<StringType>();
+            descriptor.Field(o => o.Resources).Type<ListType<NonNullType<StringType>>>();
         }
     }
 }
