@@ -25,6 +25,7 @@ import Request exposing (Request)
 import Shared
 import UI.Button exposing (confirmButton)
 import UI.Color exposing (color)
+import UI.Table as UITable
 import Utility exposing (RequestState(..), makeGraphQLMutation, makeGraphQLQuery, response)
 import Uuid
 import View exposing (View)
@@ -348,15 +349,7 @@ scopesTable model =
             , Border.widthEach { bottom = 2, top = 0, left = 0, right = 0 }
             ]
     in
-    column
-        [ width <| maximum 1000 fill
-        , height <| px 300
-        , spacing 10
-        , padding 1
-        , Border.width 2
-        , Border.rounded 3
-        , Border.color color.black
-        ]
+    column UITable.columnAttributes
         [ row [ width fill ]
             [ el ((width <| fillPortion 2) :: headerAttrs) <| text "Name"
             , el ((width <| fillPortion 3) :: headerAttrs) <| text "Display name"

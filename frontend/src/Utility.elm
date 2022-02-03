@@ -1,6 +1,6 @@
 module Utility exposing (..)
 
-import Api.Scalar exposing (DateTime, Uuid(..))
+import Api.Scalar
 import Graphql.Http
 import Graphql.Http.GraphqlError exposing (GraphqlError)
 import Graphql.Operation exposing (RootMutation, RootQuery)
@@ -8,7 +8,8 @@ import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet exposing (SelectionSet)
 import Http exposing (Error(..))
 import RemoteData exposing (RemoteData(..))
-import Uuid
+import ScalarCodecs exposing (DateTime)
+import Uuid exposing (Uuid)
 
 
 graphqlErrorToString : GraphqlError -> String
@@ -57,9 +58,14 @@ response result =
             RequestSuccess a
 
 
-uuidToString : Uuid -> String
-uuidToString (Uuid u) =
+uuidToString : ScalarCodecs.Uuid -> String
+uuidToString (Api.Scalar.Uuid u) =
     u
+
+
+uuidToApiUuid : Uuid -> ScalarCodecs.Uuid
+uuidToApiUuid uuid =
+    Api.Scalar.Uuid (Uuid.toString uuid)
 
 
 optionalList : List a -> OptionalArgument (List a)
