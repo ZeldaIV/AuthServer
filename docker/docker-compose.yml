@@ -33,7 +33,7 @@ services:
       - seq.env
     restart: unless-stopped
 
-  db:
+  authdb:
     image: mariadb:10.6.4
     expose:
       - 3306
@@ -48,7 +48,7 @@ services:
       context: ../
       dockerfile: docker/Dockerfile
     depends_on:
-      - db
+      - authdb
     expose:
       - 5001
     volumes:
