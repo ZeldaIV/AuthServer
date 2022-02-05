@@ -11,7 +11,7 @@ type alias DateTime =
 
 
 type alias Uuid =
-    Api.Scalar.Uuid
+    String
 
 
 codecs : Api.Scalar.Codecs DateTime Uuid
@@ -22,7 +22,7 @@ codecs =
             , decoder = Object.scalarDecoder |> Decode.map DateTime
             }
         , codecUuid =
-            { encoder = \(Uuid raw) -> Encode.string raw
-            , decoder = Decode.string |> Decode.map Uuid
+            { encoder = \uuid -> uuid |> Encode.string
+            , decoder = Decode.string
             }
         }

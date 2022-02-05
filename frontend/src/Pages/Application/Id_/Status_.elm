@@ -7,7 +7,6 @@ import Api.Object.ClientDto as ClientDto
 import Api.Object.CreateClientPayload as CreateClientPayload
 import Api.Object.ScopeDto as ScopeDto
 import Api.Query as Query
-import Api.Scalar as Scalar exposing (Uuid)
 import Array exposing (Array)
 import Effect exposing (Effect)
 import Element exposing (Element, alignBottom, alignTop, centerX, centerY, column, el, fill, height, inFront, layout, maximum, none, padding, paddingEach, px, row, scrollbarX, shrink, spacing, text, width, wrappedRow)
@@ -17,7 +16,6 @@ import Element.Input as Input
 import Gen.Params.Application.Id_.Status_ exposing (Params)
 import Graphql.Http
 import Graphql.Operation exposing (RootMutation, RootQuery)
-import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet, hardcoded, with)
 import Http exposing (Error)
 import Page
@@ -105,7 +103,7 @@ init _ params =
         ( model, Effect.fromCmd (makeScopesQuery getScopes) )
 
     else
-        ( model, Effect.batch [ Effect.fromCmd <| makeQuery (getClient (Scalar.Uuid params.id)), Effect.fromCmd <| makeScopesQuery getScopes ] )
+        ( model, Effect.batch [ Effect.fromCmd <| makeQuery (getClient params.id), Effect.fromCmd <| makeScopesQuery getScopes ] )
 
 
 initialResource =
@@ -119,7 +117,7 @@ initialForm =
 selectScope : Bool -> SelectionSet Scope ScopeDto
 selectScope added =
     SelectionSet.succeed Scope
-        |> with (SelectionSet.map Utility.uuidToString ScopeDto.id)
+        |> with ScopeDto.id
         |> with ScopeDto.name
         |> with ScopeDto.displayName
         |> hardcoded added
@@ -139,7 +137,7 @@ selectClient =
         |> with ClientDto.requireConsent
 
 
-getClient : Uuid -> SelectionSet (Maybe Client) RootQuery
+getClient : String -> SelectionSet (Maybe Client) RootQuery
 getClient id =
     Query.clientById (Query.ClientByIdRequiredArguments id) selectClient
 

@@ -68,6 +68,7 @@ namespace AuthServer.Configuration
                 .Map(d => d.Name, s => s.Name.TrimStart(OpenIddictConstants.Permissions.Prefixes.Scope.ToCharArray()))
                 .AddDestinationTransform((string x) => x ?? "")
                 .AddDestinationTransform((Guid x) => x != default ? x : Guid.Empty)
+                .AddDestinationTransform((List<string> l) => l ?? new List<string>())
                 .TwoWays();
 
             cfg.NewConfig<ScopeInput, ApplicationScope>()

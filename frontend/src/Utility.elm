@@ -58,14 +58,9 @@ response result =
             RequestSuccess a
 
 
-uuidToString : ScalarCodecs.Uuid -> String
-uuidToString (Api.Scalar.Uuid u) =
-    u
-
-
 uuidToApiUuid : Uuid -> ScalarCodecs.Uuid
 uuidToApiUuid uuid =
-    Api.Scalar.Uuid (Uuid.toString uuid)
+    Uuid.toString uuid
 
 
 optionalList : List a -> OptionalArgument (List a)

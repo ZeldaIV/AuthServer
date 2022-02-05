@@ -54,7 +54,7 @@ type alias Client =
 mapToApiResource : SelectionSet Client ClientDto
 mapToApiResource =
     SelectionSet.map3 Client
-        (SelectionSet.map Utility.uuidToString ClientDto.id)
+        ClientDto.id
         ClientDto.displayName
         (SelectionSet.withDefault "" ClientDto.type_)
 

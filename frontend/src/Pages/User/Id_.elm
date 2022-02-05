@@ -7,8 +7,6 @@ import Api.Object.CreateUserPayload as CreateUserPayload
 import Api.Object.UserClaimDto as UserClaimDto
 import Api.Object.UserDto as UserDto
 import Api.Query as Query
-import Api.Scalar as Scalar
-import Api.ScalarCodecs exposing (Uuid)
 import Effect exposing (Effect)
 import Element exposing (Element, alignLeft, centerX, centerY, column, el, fill, height, layout, maximum, minimum, padding, px, rgb255, row, shrink, spaceEvenly, spacing, spacingXY, table, text, width)
 import Element.Background as Background
@@ -19,7 +17,6 @@ import Element.Region as Region
 import Gen.Params.User.Id_ exposing (Params)
 import Graphql.Http
 import Graphql.Operation exposing (RootMutation, RootQuery)
-import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
 import Html exposing (Html)
 import Http
@@ -56,7 +53,7 @@ type alias Claim =
 
 
 type alias User =
-    { id : Uuid
+    { id : String
     , email : String
     , phoneNumber : String
     , twoFactorEnabled : Bool
@@ -72,7 +69,7 @@ type alias Model =
     }
 
 
-initialUser : Uuid -> User
+initialUser : String -> User
 initialUser id =
     { id = id
     , email = ""
@@ -109,8 +106,8 @@ init sharedModel req =
                     )
     in
     ( { userClaims = []
-      , form = initialUser (Scalar.Uuid userId)
-      , user = initialUser (Scalar.Uuid userId)
+      , form = initialUser userId
+      , user = initialUser userId
       , formValid = False
       }
     , effect

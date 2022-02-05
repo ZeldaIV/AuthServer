@@ -7,7 +7,6 @@ import Api.Object.CreateScopePayload as CreateScopePayload
 import Api.Object.DeleteEntityByIdPayload as DeleteEntityByIdPayload
 import Api.Object.ScopeDto as ScopeDto
 import Api.Query as Query
-import Api.Scalar as Scalar
 import Effect exposing (Effect)
 import Element exposing (..)
 import Element.Border as Border
@@ -55,7 +54,7 @@ type alias Scope =
 selectScope : SelectionSet Scope ScopeDto
 selectScope =
     SelectionSet.map5 Scope
-        (SelectionSet.map Utility.uuidToString ScopeDto.id)
+        ScopeDto.id
         ScopeDto.name
         ScopeDto.displayName
         ScopeDto.description
@@ -124,7 +123,7 @@ gotScopes result =
 insertScopeObject : Scope -> ScopeInput
 insertScopeObject scope =
     buildScopeInput
-        (ScopeInputRequiredFields (Scalar.Uuid scope.id) scope.name scope.displayName)
+        (ScopeInputRequiredFields scope.id scope.name scope.displayName)
         (\_ ->
             { description = Utility.optionalString scope.description
             , resources = Utility.optionalList scope.resources
@@ -147,7 +146,7 @@ mutationResponse =
     CreateScopePayload.scope selectScope
 
 
-deleteArgs : Scalar.Uuid -> DeleteScopeRequiredArguments
+deleteArgs : String -> DeleteScopeRequiredArguments
 deleteArgs id =
     DeleteScopeRequiredArguments id
 
@@ -157,7 +156,7 @@ deletionResponse =
     DeleteEntityByIdPayload.success
 
 
-getDeletionObject : Scalar.Uuid -> SelectionSet Bool RootMutation
+getDeletionObject : String -> SelectionSet Bool RootMutation
 getDeletionObject id =
     deleteScope (deleteArgs id) deletionResponse
 
@@ -253,14 +252,10 @@ update msg model =
             ( model, Effect.none )
 
         DeleteScope scope ->
-            let
-                delete =
-                    getDeletionObject (Scalar.Uuid scope.id)
-            in
-            ( model, Effect.fromCmd (makeDeletion delete) )
+            ( model, Effect.fromCmd (getDeletionObject scope.id |> makeDeletion) )
 
         DeleteSuccess _ ->
-            ( model, Effect.none )
+            ( model, Effect.fromCmd makeRequest )
 
 
 

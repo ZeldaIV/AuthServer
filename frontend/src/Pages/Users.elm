@@ -1,9 +1,10 @@
 module Pages.Users exposing (Model, Msg, page)
 
 import Api.InputObject exposing (UserInput, buildUserInput)
-import Api.Mutation exposing (CreateUserRequiredArguments, createUser)
+import Api.Mutation exposing (CreateUserRequiredArguments, DeleteUserRequiredArguments, createUser, deleteUser)
 import Api.Object exposing (CreateUserPayload, UserDto)
 import Api.Object.CreateUserPayload as CreateUserPayload
+import Api.Object.DeleteEntityByIdPayload as DeleteEntityByIdPayload
 import Api.Object.UserDto as UserDto
 import Api.Query as Query
 import Effect exposing (Effect)
@@ -22,7 +23,7 @@ import Request exposing (Request)
 import Shared
 import UI.Button exposing (cancelButton, confirmButton)
 import UI.Table as UITable
-import Utility exposing (RequestState(..), makeGraphQLQuery)
+import Utility exposing (RequestState(..), makeGraphQLMutation, makeGraphQLQuery)
 import Uuid exposing (Uuid)
 import View exposing (View)
 
@@ -54,7 +55,8 @@ type alias Model =
 
 
 type alias User =
-    { userName : String
+    { id : String
+    , userName : String
     , email : String
     , emailConfirmed : Bool
     , phoneNumber : String
@@ -72,9 +74,10 @@ type alias MutationResponse =
 -- INIT
 
 
-initialForm : User
-initialForm =
-    { userName = ""
+initialForm : String -> User
+initialForm id =
+    { id = id
+    , userName = ""
     , email = ""
     , emailConfirmed = False
     , phoneNumber = ""
@@ -86,7 +89,7 @@ initialForm =
 init : Shared.Model -> ( Model, Effect Msg )
 init sharedModel =
     ( { displayNewUserForm = False
-      , form = initialForm
+      , form = initialForm (Uuid.toString sharedModel.uuid)
       , formValid = False
       , userList = []
       , seed = sharedModel.seed
@@ -102,7 +105,8 @@ init sharedModel =
 
 selectUser : SelectionSet User UserDto
 selectUser =
-    SelectionSet.map6 User
+    SelectionSet.map7 User
+        UserDto.id
         UserDto.userName
         UserDto.email
         UserDto.emailConfirmed
@@ -188,6 +192,43 @@ newUserResponse result =
 
 
 
+--deletion
+
+
+deleteArgs : String -> DeleteUserRequiredArguments
+deleteArgs id =
+    DeleteUserRequiredArguments id
+
+
+deletionResponse : SelectionSet Bool Api.Object.DeleteEntityByIdPayload
+deletionResponse =
+    DeleteEntityByIdPayload.success
+
+
+getDeletionObject : String -> SelectionSet Bool RootMutation
+getDeletionObject id =
+    deleteUser (deleteArgs id) deletionResponse
+
+
+makeDeletion : SelectionSet Bool RootMutation -> Cmd Msg
+makeDeletion mutation =
+    (Graphql.Http.withSimpleHttpError >> RemoteData.fromResult >> deleted) |> makeGraphQLMutation mutation
+
+
+deleted : RemoteData (Graphql.Http.RawError Bool Http.Error) Bool -> Msg
+deleted result =
+    case Utility.response result of
+        RequestSuccess a ->
+            DeleteSuccess a
+
+        State state ->
+            RequestState state
+
+        RequestError err ->
+            RequestFailed err
+
+
+
 -- UPDATE
 
 
@@ -198,20 +239,16 @@ type Msg
     | CancelAddUser
     | RequestState String
     | RequestFailed String
-    | DeleteUser User
+    | DeleteUser String
     | AddUser User
     | Update User
-    | ToggleTwoFactor Bool
     | OnResetForm
     | CouldNotAddUser
+    | DeleteSuccess Bool
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
-    let
-        form =
-            model.form
-    in
     case msg of
         UsersLoaded users ->
             ( { model | userList = users }, Effect.none )
@@ -231,9 +268,8 @@ update msg model =
         Success user ->
             ( { model | userList = user :: model.userList }, Effect.none )
 
-        DeleteUser _ ->
-            -- TODO: Add deletion
-            ( model, Effect.none )
+        DeleteUser id ->
+            ( model, Effect.fromCmd (getDeletionObject id |> makeDeletion) )
 
         AddUser user ->
             ( model
@@ -249,11 +285,11 @@ update msg model =
         Update user ->
             ( { model | form = user }, Effect.none )
 
-        ToggleTwoFactor bool ->
-            ( { model | form = { form | twoFactorEnabled = bool } }, Effect.none )
-
         OnResetForm ->
-            ( { model | form = initialForm }, Effect.none )
+            ( { model | form = initialForm model.form.id }, Effect.none )
+
+        DeleteSuccess _ ->
+            ( model, Effect.fromCmd makeRequest )
 
 
 subscriptions : Model -> Sub Msg
@@ -326,9 +362,9 @@ usersTable model =
                             \user ->
                                 el [ centerX, centerY ]
                                     (UI.Button.cancelButton
-                                        { msg = DeleteUser user
+                                        { msg = DeleteUser user.id
                                         , label = "Delete"
-                                        , enabled = False
+                                        , enabled = String.toLower user.userName /= "admin"
                                         }
                                     )
                       }
@@ -375,12 +411,12 @@ userInputView model =
         , Input.checkbox
             [ centerX ]
             { checked = user.twoFactorEnabled
-            , onChange = ToggleTwoFactor
+            , onChange = \new -> Update { user | twoFactorEnabled = new }
             , label = Input.labelRight [ centerY ] (text "Use two factor authentication")
             , icon = Input.defaultCheckbox
             }
         , row [ width fill, spaceEvenly ]
-            [ cancelButton { msg = OnResetForm, label = "Reset", enabled = initialForm /= user }
+            [ cancelButton { msg = OnResetForm, label = "Reset", enabled = initialForm user.id /= user }
             , confirmButton { msg = AddUser user, label = "Add user", enabled = userValid user }
             ]
         ]

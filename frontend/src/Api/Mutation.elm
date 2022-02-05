@@ -56,7 +56,7 @@ createUser requiredArgs____ object____ =
 
 
 type alias DeleteUserRequiredArguments =
-    { id : String }
+    { id : ScalarCodecs.Uuid }
 
 
 deleteUser :
@@ -64,7 +64,7 @@ deleteUser :
     -> SelectionSet decodesTo Api.Object.DeleteEntityByIdPayload
     -> SelectionSet decodesTo RootMutation
 deleteUser requiredArgs____ object____ =
-    Object.selectionForCompositeField "deleteUser" [ Argument.required "id" requiredArgs____.id Encode.string ] object____ Basics.identity
+    Object.selectionForCompositeField "deleteUser" [ Argument.required "id" requiredArgs____.id (ScalarCodecs.codecs |> Api.Scalar.unwrapEncoder .codecUuid) ] object____ Basics.identity
 
 
 type alias AddClaimsToUserOptionalArguments =

@@ -18,7 +18,7 @@ namespace AuthServer.GraphQL.User
                 .Type<NonNullType<CreateUserPayloadType>>();
 
             descriptor.Field(o => o.DeleteUserAsync(default!, default!, new CancellationToken()))
-                .Argument("id", x => x.Type<NonNullType<StringType>>())
+                .Argument("id", x => x.Type<NonNullType<UuidType>>())
                 .Type<NonNullType<DeleteEntityPayloadType>>();
 
             descriptor.Field(o => o.AddClaimsToUser(default!, default!))
