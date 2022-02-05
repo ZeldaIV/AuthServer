@@ -9,9 +9,10 @@ import Api.Object.ScopeDto as ScopeDto
 import Api.Query as Query
 import Array exposing (Array)
 import Effect exposing (Effect)
-import Element exposing (Element, alignBottom, alignTop, centerX, centerY, column, el, fill, height, inFront, layout, maximum, none, padding, paddingEach, px, row, scrollbarX, shrink, spacing, text, width, wrappedRow)
+import Element exposing (Element, alignBottom, alignTop, centerX, centerY, column, el, fill, height, inFront, layout, maximum, none, padding, paddingEach, paddingXY, px, row, scrollbarX, shrink, spacing, text, width, wrappedRow)
 import Element.Background as Background
 import Element.Border as Border
+import Element.Font as Font
 import Element.Input as Input
 import Gen.Params.Application.Id_.Status_ exposing (Params)
 import Graphql.Http
@@ -464,60 +465,39 @@ type alias IndexedValue =
 -- VIEW
 
 
-stringIndexToInput : IndexedValue -> String -> (Int -> String -> toMsg) -> Element toMsg
-stringIndexToInput indexedValue label toMsg =
+stringIndexToInput : IndexedValue -> (Int -> String -> toMsg) -> Element toMsg
+stringIndexToInput indexedValue toMsg =
     Input.text
-        [ Element.height Element.shrink
-        , Element.width (Element.fill |> Element.maximum 300)
-        , Element.paddingXY 8 8
-        , Border.rounded 2
-        , Border.color color.blue
-        , Border.solid
-        , Border.widthXY 1 1
+        [ height shrink
+        , paddingXY 4 4
         ]
         { onChange = toMsg indexedValue.index
         , text = indexedValue.value
         , placeholder = Nothing
-        , label = Input.labelHidden label
+        , label = Input.labelHidden ""
         }
 
 
-permissionsView : List String -> List (Element Msg)
-permissionsView permissions =
-    List.indexedMap Tuple.pair permissions |> List.map (\( i, v ) -> stringIndexToInput { index = i, value = v } "Scope" <| ScopesEntered)
-
-
-redirectUrisView : List String -> List (Element Msg)
-redirectUrisView redirectUris =
-    List.indexedMap Tuple.pair redirectUris |> List.map (\( i, v ) -> stringIndexToInput { index = i, value = v } "RedirectUri" <| RedirectUrisEntered)
-
-
-postLogoutUrisView : List String -> List (Element Msg)
-postLogoutUrisView logoutUris =
-    List.indexedMap Tuple.pair logoutUris |> List.map (\( i, v ) -> stringIndexToInput { index = i, value = v } "RedirectUri" <| PostLogoutUrisEntered)
-
-
-fontSize : Int
-fontSize =
-    14
+stringListView : List String -> (Int -> String -> msg) -> List (Element msg)
+stringListView logoutUris msg =
+    List.indexedMap Tuple.pair logoutUris |> List.map (\( i, v ) -> stringIndexToInput { index = i, value = v } <| msg)
 
 
 formView : ClientForm -> Element Msg
 formView model =
     let
         textBoxWidth =
-            width (px 300)
-    in
-    column [ spacing 20, width fill ]
-        [ Input.text
-            [ Element.height Element.shrink
-            , Element.width (Element.fill |> Element.maximum 300)
-            , Element.paddingXY 8 8
-            , Border.rounded 2
-            , Border.color color.blue
-            , Border.solid
-            , Border.widthXY 1 1
+            width (px 150)
+
+        inputAttrs =
+            [ height shrink
+            , paddingXY 4 4
+            , textBoxWidth
             ]
+    in
+    column [ spacing 10, width fill ]
+        [ Input.text
+            inputAttrs
             { text = model.displayName
             , onChange = DisplayNameEntered
             , placeholder = Nothing
@@ -538,14 +518,14 @@ formView model =
         , text "Permissions:"
         , row [ alignTop ]
             [ column
-                [ textBoxWidth, spacing 10 ]
-                (permissionsView model.permissions)
-            , el [ alignTop, paddingEach { edges | left = 10 } ] addScopesButton
+                [ textBoxWidth ]
+                (stringListView model.permissions ScopesEntered)
+            , el [ alignBottom, paddingEach { edges | left = 10 } ] addScopesButton
             ]
         , text "RedirectUris:"
-        , column [ spacing 10, width fill, textBoxWidth ] (redirectUrisView model.redirectUris)
+        , column [ textBoxWidth ] (stringListView model.redirectUris RedirectUrisEntered)
         , text "Post logout redirects:"
-        , column [ spacing 10, width fill, textBoxWidth ] (postLogoutUrisView model.postLogoutRedirectUris)
+        , column [ textBoxWidth ] (stringListView model.postLogoutRedirectUris PostLogoutUrisEntered)
         ]
 
 
@@ -678,7 +658,7 @@ view model =
             model.form.displayName
     , body =
         [ layout [ inFront dialog ] <|
-            column [ width fill, paddingEach { edges | right = 300, left = 300, top = 0 } ]
+            column [ Font.size 14, width fill, paddingEach { edges | right = 300, left = 300, top = 0 } ]
                 [ formView form
                 , cancelConfirmView
                 ]
