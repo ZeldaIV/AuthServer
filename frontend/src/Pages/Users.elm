@@ -49,6 +49,7 @@ type alias Model =
     , formValid : Bool
     , userList : List User
     , seed : Random.Seed
+    , uuidFromShared : Uuid
     }
 
 
@@ -89,6 +90,7 @@ init sharedModel =
       , formValid = False
       , userList = []
       , seed = sharedModel.seed
+      , uuidFromShared = sharedModel.uuid
       }
     , Effect.fromCmd makeRequest
     )
@@ -144,10 +146,11 @@ createUserPayload =
 insertUserObject : User -> Uuid -> UserInput
 insertUserObject user id =
     buildUserInput
-        { userId = Utility.uuidToApiUuid id
+        { id = Utility.uuidToApiUuid id
         , email = user.email
         , phoneNumber = user.phoneNumber
         , twoFactorEnabled = user.twoFactorEnabled
+        , userName = user.userName
         }
 
 
@@ -225,25 +228,18 @@ update msg model =
         RequestFailed _ ->
             ( model, Effect.none )
 
-        Success _ ->
-            ( model, Effect.none )
+        Success user ->
+            ( { model | userList = user :: model.userList }, Effect.none )
 
         DeleteUser _ ->
             -- TODO: Add deletion
             ( model, Effect.none )
 
         AddUser user ->
-            let
-                ( newUuid, newSeed ) =
-                    Random.step Uuid.uuidGenerator model.seed
-
-                mutate =
-                    getUserInsertObject user newUuid |> performUserMutation
-            in
             ( model
             , Effect.batch
-                [ Effect.fromCmd mutate
-                , Effect.fromShared (Shared.GenerateNewUuid newSeed)
+                [ Effect.fromCmd (getUserInsertObject user model.uuidFromShared |> performUserMutation)
+                , Effect.fromShared (Shared.GenerateNewUuid model.seed)
                 ]
             )
 
@@ -277,8 +273,8 @@ usersTable model =
     in
     column UITable.columnAttributes
         [ row [ width fill ]
-            [ el ((width <| fillPortion 5) :: headerAttrs) <| text "User name"
-            , el ((width <| fillPortion 4) :: headerAttrs) <| text "Email"
+            [ el ((width <| fillPortion 3) :: headerAttrs) <| text "User name"
+            , el ((width <| fillPortion 3) :: headerAttrs) <| text "Email"
             , el ((width <| fillPortion 3) :: headerAttrs) <| text "Phone"
             , el ((width <| fillPortion 2) :: headerAttrs) <| text "Two factor"
             , el ((width <| fillPortion 1) :: headerAttrs) <| text " "
@@ -288,49 +284,53 @@ usersTable model =
                 [ width fill
                 , height <| px 250
                 , scrollbarY
-                , spacing 10
+                , spacing 3
                 ]
                 { data = model.userList
                 , columns =
                     [ { header = none
-                      , width = fillPortion 2
+                      , width = fillPortion 3
                       , view =
                             \user ->
-                                Element.text user.userName
+                                el [ centerX, centerY ] (Element.text user.userName)
                       }
                     , { header = none
                       , width = fillPortion 3
                       , view =
                             \user ->
-                                Element.text user.email
+                                el [ centerX, centerY ] (Element.text user.email)
                       }
                     , { header = none
-                      , width = fillPortion 4
+                      , width = fillPortion 3
                       , view =
                             \user ->
-                                Element.text user.phoneNumber
+                                el [ centerX, centerY ] (Element.text user.phoneNumber)
                       }
                     , { header = none
-                      , width = fillPortion 1
+                      , width = fillPortion 2
                       , view =
                             \user ->
-                                Element.text
-                                    (if user.twoFactorEnabled then
-                                        "Yes"
+                                el [ centerX, centerY ]
+                                    (Element.text
+                                        (if user.twoFactorEnabled then
+                                            "Yes"
 
-                                     else
-                                        "No"
+                                         else
+                                            "No"
+                                        )
                                     )
                       }
                     , { header = none
                       , width = fillPortion 1
                       , view =
                             \user ->
-                                UI.Button.cancelButton
-                                    { msg = DeleteUser user
-                                    , label = "Delete"
-                                    , enabled = False
-                                    }
+                                el [ centerX, centerY ]
+                                    (UI.Button.cancelButton
+                                        { msg = DeleteUser user
+                                        , label = "Delete"
+                                        , enabled = False
+                                        }
+                                    )
                       }
                     ]
                 }

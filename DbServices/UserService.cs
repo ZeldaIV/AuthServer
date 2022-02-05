@@ -44,7 +44,7 @@ namespace AuthServer.DbServices
             var entity = await _userManager.FindByIdAsync(user.Id.ToString());
             if (entity == null)
             {
-                await _userManager.CreateAsync(userModel);
+                var result = await _userManager.CreateAsync(userModel);
             }
         }
 

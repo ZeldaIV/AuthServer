@@ -145,10 +145,11 @@ selectUser =
 insertUserObject : User -> UserInput
 insertUserObject user =
     buildUserInput
-        { userId = user.id
+        { id = user.id
         , email = user.email
         , phoneNumber = user.phoneNumber
         , twoFactorEnabled = user.twoFactorEnabled
+        , userName = user.email
         }
 
 

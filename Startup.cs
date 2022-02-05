@@ -87,6 +87,8 @@ namespace AuthServer
                 options.ClaimsIdentity.UserNameClaimType = OpenIddictConstants.Claims.Name;
                 options.ClaimsIdentity.UserIdClaimType = OpenIddictConstants.Claims.Subject;
                 options.ClaimsIdentity.RoleClaimType = OpenIddictConstants.Claims.Role;
+                options.User.AllowedUserNameCharacters =
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789- ";
             });
 
             // services.ConfigureApplicationCookie(o => { o.LoginPath = "/login"; });

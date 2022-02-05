@@ -80,7 +80,11 @@ optionalList resources =
 
 optionalString : String -> OptionalArgument String
 optionalString s =
-    case s of
+    let
+        str =
+            String.trim s
+    in
+    case str of
         "" ->
             Absent
 

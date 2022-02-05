@@ -25,7 +25,9 @@ namespace AuthServer.Configuration
 
             cfg.NewConfig<ApplicationUser, UserDto>()
                 .AddDestinationTransform((string x) => x ?? "")
-                .TwoWays();
+                .AddDestinationTransform((List<Claim> x) => x ?? new List<Claim>())
+                .TwoWays()
+                .MapToConstructor(true);
 
             cfg.NewConfig<ApplicationClient, ClientDto>()
                 .Map(d => d.Id, s => s.Id)

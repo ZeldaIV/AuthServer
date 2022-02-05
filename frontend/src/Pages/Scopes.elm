@@ -27,7 +27,7 @@ import UI.Button exposing (confirmButton)
 import UI.Color exposing (color)
 import UI.Table as UITable
 import Utility exposing (RequestState(..), makeGraphQLMutation, makeGraphQLQuery, response)
-import Uuid
+import Uuid exposing (Uuid)
 import View exposing (View)
 
 
@@ -66,6 +66,7 @@ type alias Model =
     { scope : Scope
     , scopes : List Scope
     , seed : Random.Seed
+    , uuidFromShared : Uuid
     }
 
 
@@ -90,7 +91,7 @@ predefinedScopes =
 
 init : Shared.Model -> ( Model, Effect Msg )
 init sharedModel =
-    ( { scope = initialScope, scopes = [], seed = sharedModel.seed }, Effect.fromCmd makeRequest )
+    ( { scope = initialScope, scopes = [], seed = sharedModel.seed, uuidFromShared = sharedModel.uuid }, Effect.fromCmd makeRequest )
 
 
 query : SelectionSet (List Scope) RootQuery
@@ -223,16 +224,13 @@ update msg model =
 
         AddScope scope ->
             let
-                ( newUuid, newSeed ) =
-                    Random.step Uuid.uuidGenerator model.seed
-
                 mutation =
-                    getScopeInsertObject { scope | id = Uuid.toString newUuid }
+                    getScopeInsertObject { scope | id = Uuid.toString model.uuidFromShared }
             in
             ( { model | scope = initialScope }
             , Effect.batch
                 [ Effect.fromCmd (makeMutation mutation)
-                , Effect.fromShared (Shared.GenerateNewUuid newSeed)
+                , Effect.fromShared (Shared.GenerateNewUuid model.seed)
                 ]
             )
 

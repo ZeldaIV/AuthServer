@@ -1,4 +1,3 @@
-
 const https = require('https');
 const fs = require('fs');
 const responses = require('./api_responses');
@@ -7,7 +6,6 @@ const options = {
     key: fs.readFileSync('../Certificates/nginx-selfsigned.key'),
     cert: fs.readFileSync('../Certificates/nginx-selfsigned.crt')
 };
-
 
 
 https.createServer(options, (req, res) => {
@@ -26,17 +24,17 @@ https.createServer(options, (req, res) => {
     responses.maybeGetApiResourceRequest(req, res);
 
     responses.maybeIsSignedIn(req, res);
-    
+
     console.log('Rsponding with: ')
     console.log('\tstatusCode:', res.statusCode);
     console.log('\theaders:', res.headers);
     console.log('\tbody:', res.body);
-    
+
     if (req.method === 'OPTIONS') {
         console.log('Responding with OK to Options')
         res.writeHead(200);
         res.end();
     }
-    
+
 }).listen(5001);
 

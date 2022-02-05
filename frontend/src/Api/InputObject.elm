@@ -230,11 +230,12 @@ buildUserInput :
     UserInputRequiredFields
     -> UserInput
 buildUserInput required____ =
-    { userId = required____.userId, email = required____.email, phoneNumber = required____.phoneNumber, twoFactorEnabled = required____.twoFactorEnabled }
+    { id = required____.id, userName = required____.userName, email = required____.email, phoneNumber = required____.phoneNumber, twoFactorEnabled = required____.twoFactorEnabled }
 
 
 type alias UserInputRequiredFields =
-    { userId : ScalarCodecs.Uuid
+    { id : ScalarCodecs.Uuid
+    , userName : String
     , email : String
     , phoneNumber : String
     , twoFactorEnabled : Bool
@@ -244,7 +245,8 @@ type alias UserInputRequiredFields =
 {-| Type for the UserInput input object.
 -}
 type alias UserInput =
-    { userId : ScalarCodecs.Uuid
+    { id : ScalarCodecs.Uuid
+    , userName : String
     , email : String
     , phoneNumber : String
     , twoFactorEnabled : Bool
@@ -256,4 +258,4 @@ type alias UserInput =
 encodeUserInput : UserInput -> Value
 encodeUserInput input____ =
     Encode.maybeObject
-        [ ( "userId", (ScalarCodecs.codecs |> Api.Scalar.unwrapEncoder .codecUuid) input____.userId |> Just ), ( "email", Encode.string input____.email |> Just ), ( "phoneNumber", Encode.string input____.phoneNumber |> Just ), ( "twoFactorEnabled", Encode.bool input____.twoFactorEnabled |> Just ) ]
+        [ ( "id", (ScalarCodecs.codecs |> Api.Scalar.unwrapEncoder .codecUuid) input____.id |> Just ), ( "userName", Encode.string input____.userName |> Just ), ( "email", Encode.string input____.email |> Just ), ( "phoneNumber", Encode.string input____.phoneNumber |> Just ), ( "twoFactorEnabled", Encode.bool input____.twoFactorEnabled |> Just ) ]

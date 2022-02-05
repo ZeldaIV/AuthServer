@@ -29,7 +29,7 @@ fromJson value =
 decoder : Json.Decoder Storage
 decoder =
     Json.map Storage
-        (Json.field "user" (Json.maybe User.decoder))
+        (Json.field "storage" (Json.field "user" (Json.maybe User.decoder)))
 
 
 init : Storage

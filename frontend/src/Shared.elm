@@ -10,18 +10,17 @@ module Shared exposing
 
 import Bootstrap.Button as Button
 import Bootstrap.Navbar as Navbar
-import Dict
 import Gen.Route
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, href)
-import Json.Decode as Decode exposing (Decoder)
+import Json.Decode as Decode exposing (Decoder, Value, decodeValue, field, int)
 import Random
 import Request exposing (Request)
 import Storage exposing (Storage)
 import Url exposing (Protocol(..), Url)
 import Url.Parser as Parser
 import Url.Parser.Query exposing (Parser, map, string)
-import Uuid
+import Uuid exposing (Uuid)
 import View exposing (View)
 
 
@@ -37,7 +36,7 @@ type alias Model =
     { navBarState : Navbar.State
     , storage : Storage
     , seed : Random.Seed
-    , uuid : String
+    , uuid : Uuid
     , returnUrl : String
     }
 
@@ -63,6 +62,18 @@ toUrl s =
     }
 
 
+seedDecoder : Decoder Int
+seedDecoder =
+    field "time_now" int
+
+
+seedFromFlags : Value -> Int
+seedFromFlags value =
+    value
+        |> decodeValue seedDecoder
+        |> Result.withDefault 431234234
+
+
 init : Request -> Flags -> ( Model, Cmd Msg )
 init req flags =
     let
@@ -77,14 +88,17 @@ init req flags =
                 Nothing ->
                     "/applications"
 
-        c =
-            Debug.log "==>" returnUrl
+        startSeed =
+            Random.initialSeed <| seedFromFlags flags
+
+        ( uuid, seed ) =
+            generateUUuiAndSeed startSeed
 
         model =
             { navBarState = navbarState
             , storage = Storage.fromJson flags
-            , seed = Random.initialSeed 431234234 -- so we dont have to deal with Maybe
-            , uuid = ""
+            , seed = seed
+            , uuid = uuid
             , returnUrl = returnUrl
             }
     in
@@ -94,8 +108,13 @@ init req flags =
 
       else
         Cmd.batch
-            [ navbarCmd, Random.generate GenerateNewUuid Random.independentSeed ]
+            [ navbarCmd ]
     )
+
+
+generateUUuiAndSeed : Random.Seed -> ( Uuid, Random.Seed )
+generateUUuiAndSeed seed =
+    Random.step Uuid.uuidGenerator seed
 
 
 
@@ -124,9 +143,9 @@ update _ msg model =
         GenerateNewUuid seed ->
             let
                 ( newId, newSeed ) =
-                    Random.step Uuid.uuidGenerator seed
+                    generateUUuiAndSeed seed
             in
-            ( { model | seed = newSeed, uuid = Uuid.toString newId }, Cmd.none )
+            ( { model | seed = newSeed, uuid = newId }, Cmd.none )
 
 
 
