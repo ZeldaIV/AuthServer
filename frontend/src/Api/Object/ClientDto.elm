@@ -50,27 +50,27 @@ displayNames =
 
 
 {-| -}
-permissions : SelectionSet (Maybe (List String)) Api.Object.ClientDto
+permissions : SelectionSet (List String) Api.Object.ClientDto
 permissions =
-    Object.selectionForField "(Maybe (List String))" "permissions" [] (Decode.string |> Decode.list |> Decode.nullable)
+    Object.selectionForField "(List String)" "permissions" [] (Decode.string |> Decode.list)
 
 
 {-| -}
-postLogoutRedirectUris : SelectionSet (Maybe (List String)) Api.Object.ClientDto
+postLogoutRedirectUris : SelectionSet (List String) Api.Object.ClientDto
 postLogoutRedirectUris =
-    Object.selectionForField "(Maybe (List String))" "postLogoutRedirectUris" [] (Decode.string |> Decode.list |> Decode.nullable)
+    Object.selectionForField "(List String)" "postLogoutRedirectUris" [] (Decode.string |> Decode.list)
 
 
 {-| -}
-redirectUris : SelectionSet (Maybe (List String)) Api.Object.ClientDto
+redirectUris : SelectionSet (List String) Api.Object.ClientDto
 redirectUris =
-    Object.selectionForField "(Maybe (List String))" "redirectUris" [] (Decode.string |> Decode.list |> Decode.nullable)
+    Object.selectionForField "(List String)" "redirectUris" [] (Decode.string |> Decode.list)
 
 
 {-| -}
-type_ : SelectionSet (Maybe String) Api.Object.ClientDto
+type_ : SelectionSet String Api.Object.ClientDto
 type_ =
-    Object.selectionForField "(Maybe String)" "type" [] (Decode.string |> Decode.nullable)
+    Object.selectionForField "String" "type" [] Decode.string
 
 
 {-| -}

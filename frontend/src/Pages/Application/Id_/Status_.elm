@@ -52,6 +52,7 @@ type alias Model =
     , displayScopeDialog : Bool
     , availableScopes : List Scope
     , newClient : Bool
+    , clientTypes : List ClientType
     }
 
 
@@ -71,7 +72,7 @@ type alias Client =
     , postLogoutRedirectUris : List String
     , redirectUris : List String
     , requirePkce : Bool
-    , clientType : String
+    , clientType : ClientType
     , requireConsent : Bool
     }
 
@@ -84,9 +85,14 @@ type alias ClientForm =
     , postLogoutRedirectUris : List String
     , redirectUris : List String
     , requirePkce : Bool
-    , clientType : String
+    , clientType : ClientType
     , requireConsent : Bool
     }
+
+
+type ClientType
+    = Confidential
+    | Public
 
 
 init : Shared.Model -> Params -> ( Model, Effect Msg )
@@ -98,21 +104,68 @@ init _ params =
             , displayScopeDialog = False
             , availableScopes = []
             , newClient = params.status == "new"
+            , clientTypes = []
             }
     in
     if params.id == "new" then
         ( model, Effect.fromCmd (makeScopesQuery getScopes) )
 
     else
-        ( model, Effect.batch [ Effect.fromCmd <| makeQuery (getClient params.id), Effect.fromCmd <| makeScopesQuery getScopes ] )
+        ( model, Effect.batch [ Effect.fromCmd <| makeQuery (getClient params.id), Effect.fromCmd <| makeScopesQuery getScopes, Effect.fromCmd <| makeClientTypesQuery clientTypeQuery ] )
 
 
 initialResource =
-    Client "" "" "" [] [] [] False "" False
+    Client "" "" "" [] [] [] False Public False
 
 
 initialForm =
-    ClientForm "" "" "" [ "" ] [ "" ] [ "" ] False "" False
+    ClientForm "" "" "" [ "" ] [ "" ] [ "" ] False Public False
+
+
+toClientType : String -> ClientType
+toClientType s =
+    case String.toLower s of
+        "confidential" ->
+            Confidential
+
+        "public" ->
+            Public
+
+        _ ->
+            Public
+
+
+fromClientType : ClientType -> String
+fromClientType s =
+    case s of
+        Confidential ->
+            "confidential"
+
+        Public ->
+            "public"
+
+
+clientTypeQuery : SelectionSet (List ClientType) RootQuery
+clientTypeQuery =
+    Query.applicationTypes |> SelectionSet.map (List.map toClientType)
+
+
+makeClientTypesQuery : SelectionSet (List ClientType) RootQuery -> Cmd Msg
+makeClientTypesQuery query =
+    (Graphql.Http.withSimpleHttpError >> RemoteData.fromResult >> gotClientTypes) |> makeGraphQLQuery query
+
+
+gotClientTypes : RemoteData (Graphql.Http.RawError (List ClientType) Http.Error) (List ClientType) -> Msg
+gotClientTypes result =
+    case Utility.response result of
+        RequestSuccess a ->
+            GotClientTypes a
+
+        State state ->
+            RequestState state
+
+        RequestError err ->
+            RequestFailed err
 
 
 selectScope : Bool -> SelectionSet Scope ScopeDto
@@ -130,11 +183,11 @@ selectClient =
         |> with ClientDto.clientId
         |> with ClientDto.clientSecret
         |> with ClientDto.displayName
-        |> with (SelectionSet.withDefault [] ClientDto.permissions)
-        |> with (SelectionSet.withDefault [] ClientDto.postLogoutRedirectUris)
-        |> with (SelectionSet.withDefault [] ClientDto.redirectUris)
+        |> with ClientDto.permissions
+        |> with ClientDto.postLogoutRedirectUris
+        |> with ClientDto.redirectUris
         |> with ClientDto.requirePkce
-        |> with (SelectionSet.withDefault "" ClientDto.type_)
+        |> with (SelectionSet.map toClientType ClientDto.type_)
         |> with ClientDto.requireConsent
 
 
@@ -184,12 +237,12 @@ clientMutationObject r =
         , requirePkce = r.requirePkce
         , requireConsent = r.requireConsent
         , clientSecret = r.clientSecret
+        , type_ = fromClientType r.clientType
         }
         (\_ ->
             { permissions = Utility.optionalList (sanitizeList r.permissions)
             , postLogoutRedirectUris = Utility.optionalList (sanitizeList r.postLogoutRedirectUris)
             , redirectUris = Utility.optionalList (sanitizeList r.redirectUris)
-            , type_ = Utility.optionalString r.clientType
             }
         )
 
@@ -234,8 +287,8 @@ clientCreateResult result =
     case Utility.response result of
         RequestSuccess a ->
             case a of
-                Just resource ->
-                    ClientChanged resource
+                Just client ->
+                    GotClient client
 
                 Nothing ->
                     CouldNotAddClient
@@ -291,11 +344,20 @@ updateArray lst idx val =
         Array.set idx val lst |> Array.toList
 
 
+appendEmptyFields : Client -> Client
+appendEmptyFields c =
+    { c
+        | permissions = c.permissions ++ [ "" ]
+        , postLogoutRedirectUris = c.postLogoutRedirectUris ++ [ "" ]
+        , redirectUris = c.redirectUris ++ [ "" ]
+    }
+
+
 type Msg
     = ResetForm
     | SaveChanges
     | GotError Error
-    | ClientChanged Client
+    | GotClient Client
     | CouldNotAddClient
     | RequestState String
     | RequestFailed String
@@ -310,6 +372,8 @@ type Msg
     | ToggleRequireConsent Bool
     | ToggleRequirePkce Bool
     | ClientSecretEntered String
+    | GotClientTypes (List ClientType)
+    | ToggleClientType ClientType
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
@@ -332,8 +396,8 @@ update msg model =
         GotError _ ->
             ( model, Effect.none )
 
-        ClientChanged client ->
-            ( { model | client = client, form = client }, Effect.none )
+        GotClient client ->
+            ( { model | client = client, form = appendEmptyFields client }, Effect.none )
 
         CouldNotAddClient ->
             ( model, Effect.none )
@@ -447,6 +511,16 @@ update msg model =
             in
             ( { model | form = { form | clientSecret = clientSecret } }, Effect.none )
 
+        GotClientTypes types ->
+            ( { model | clientTypes = types }, Effect.none )
+
+        ToggleClientType clientType ->
+            let
+                form =
+                    model.form
+            in
+            ( { model | form = { form | clientType = clientType } }, Effect.none )
+
 
 
 -- SUBSCRIPTIONS
@@ -483,8 +557,18 @@ stringListView logoutUris msg =
     List.indexedMap Tuple.pair logoutUris |> List.map (\( i, v ) -> stringIndexToInput { index = i, value = v } <| msg)
 
 
-formView : ClientForm -> Element Msg
-formView model =
+capitalizeString : String -> String
+capitalizeString s =
+    (String.left 1 >> String.toUpper) s ++ String.dropLeft 1 s
+
+
+clientTypeToOption : ClientType -> Input.Option ClientType Msg
+clientTypeToOption t =
+    fromClientType t |> capitalizeString |> text |> Input.option t
+
+
+formView : List ClientType -> ClientForm -> Element Msg
+formView clientTypes model =
     let
         textBoxWidth =
             width (px 150)
@@ -494,6 +578,18 @@ formView model =
             , paddingXY 4 4
             , textBoxWidth
             ]
+
+        clientSecretInput =
+            if model.clientType == Confidential then
+                Input.text inputAttrs
+                    { text = model.clientSecret
+                    , onChange = ClientSecretEntered
+                    , placeholder = Nothing
+                    , label = Input.labelAbove [] <| Element.text "Client secret (temporary input):"
+                    }
+
+            else
+                none
     in
     column [ spacing 10, width fill ]
         [ Input.text
@@ -515,6 +611,16 @@ formView model =
             , checked = model.requirePkce
             , label = Input.labelRight [] <| Element.text "Require Pkce"
             }
+        , Input.radioRow
+            [ paddingXY 0 10
+            , spacing 20
+            ]
+            { onChange = ToggleClientType
+            , selected = Just model.clientType
+            , label = Input.labelAbove [] (text "Select client type")
+            , options = List.map clientTypeToOption clientTypes
+            }
+        , clientSecretInput
         , text "Permissions:"
         , row [ alignTop ]
             [ column
@@ -659,7 +765,7 @@ view model =
     , body =
         [ layout [ inFront dialog ] <|
             column [ Font.size 14, width fill, paddingEach { edges | right = 300, left = 300, top = 0 } ]
-                [ formView form
+                [ formView model.clientTypes form
                 , cancelConfirmView
                 ]
         ]

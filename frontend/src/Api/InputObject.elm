@@ -107,15 +107,16 @@ buildClientInput required____ fillOptionals____ =
     let
         optionals____ =
             fillOptionals____
-                { permissions = Absent, postLogoutRedirectUris = Absent, redirectUris = Absent, type_ = Absent }
+                { permissions = Absent, postLogoutRedirectUris = Absent, redirectUris = Absent }
     in
-    { clientId = required____.clientId, clientSecret = required____.clientSecret, displayName = required____.displayName, permissions = optionals____.permissions, postLogoutRedirectUris = optionals____.postLogoutRedirectUris, redirectUris = optionals____.redirectUris, type_ = optionals____.type_, requirePkce = required____.requirePkce, requireConsent = required____.requireConsent }
+    { clientId = required____.clientId, clientSecret = required____.clientSecret, displayName = required____.displayName, permissions = optionals____.permissions, postLogoutRedirectUris = optionals____.postLogoutRedirectUris, redirectUris = optionals____.redirectUris, type_ = required____.type_, requirePkce = required____.requirePkce, requireConsent = required____.requireConsent }
 
 
 type alias ClientInputRequiredFields =
     { clientId : String
     , clientSecret : String
     , displayName : String
+    , type_ : String
     , requirePkce : Bool
     , requireConsent : Bool
     }
@@ -125,7 +126,6 @@ type alias ClientInputOptionalFields =
     { permissions : OptionalArgument (List String)
     , postLogoutRedirectUris : OptionalArgument (List String)
     , redirectUris : OptionalArgument (List String)
-    , type_ : OptionalArgument String
     }
 
 
@@ -138,7 +138,7 @@ type alias ClientInput =
     , permissions : OptionalArgument (List String)
     , postLogoutRedirectUris : OptionalArgument (List String)
     , redirectUris : OptionalArgument (List String)
-    , type_ : OptionalArgument String
+    , type_ : String
     , requirePkce : Bool
     , requireConsent : Bool
     }
@@ -149,7 +149,7 @@ type alias ClientInput =
 encodeClientInput : ClientInput -> Value
 encodeClientInput input____ =
     Encode.maybeObject
-        [ ( "clientId", Encode.string input____.clientId |> Just ), ( "clientSecret", Encode.string input____.clientSecret |> Just ), ( "displayName", Encode.string input____.displayName |> Just ), ( "permissions", (Encode.string |> Encode.list) |> Encode.optional input____.permissions ), ( "postLogoutRedirectUris", (Encode.string |> Encode.list) |> Encode.optional input____.postLogoutRedirectUris ), ( "redirectUris", (Encode.string |> Encode.list) |> Encode.optional input____.redirectUris ), ( "type", Encode.string |> Encode.optional input____.type_ ), ( "requirePkce", Encode.bool input____.requirePkce |> Just ), ( "requireConsent", Encode.bool input____.requireConsent |> Just ) ]
+        [ ( "clientId", Encode.string input____.clientId |> Just ), ( "clientSecret", Encode.string input____.clientSecret |> Just ), ( "displayName", Encode.string input____.displayName |> Just ), ( "permissions", (Encode.string |> Encode.list) |> Encode.optional input____.permissions ), ( "postLogoutRedirectUris", (Encode.string |> Encode.list) |> Encode.optional input____.postLogoutRedirectUris ), ( "redirectUris", (Encode.string |> Encode.list) |> Encode.optional input____.redirectUris ), ( "type", Encode.string input____.type_ |> Just ), ( "requirePkce", Encode.bool input____.requirePkce |> Just ), ( "requireConsent", Encode.bool input____.requireConsent |> Just ) ]
 
 
 buildScopeInput :

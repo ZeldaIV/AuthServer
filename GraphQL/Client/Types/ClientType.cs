@@ -18,12 +18,12 @@ namespace AuthServer.GraphQL.Client.Types
             descriptor.Field(o => o.DisplayName).Type<NonNullType<StringType>>().Description("");
             descriptor.Field(o => o.DisplayNames).Type<ListType<NonNullType<StringType>>>()
                 .Description("");
-            descriptor.Field(o => o.Permissions).Type<ListType<NonNullType<StringType>>>().Description("");
-            descriptor.Field(o => o.PostLogoutRedirectUris).Type<ListType<NonNullType<StringType>>>()
+            descriptor.Field(o => o.Permissions).Type<NonNullType<ListType<NonNullType<StringType>>>>().Description("");
+            descriptor.Field(o => o.PostLogoutRedirectUris).Type<NonNullType<ListType<NonNullType<StringType>>>>()
                 .Description("");
-            descriptor.Field(o => o.RedirectUris).Type<ListType<NonNullType<StringType>>>()
+            descriptor.Field(o => o.RedirectUris).Type<NonNullType<ListType<NonNullType<StringType>>>>()
                 .Description("");
-            descriptor.Field(o => o.Type).Type<StringType>().Description("");
+            descriptor.Field(o => o.Type).Type<NonNullType<StringType>>().Description("");
             descriptor.Field(o => o.RequirePkce).Type<NonNullType<BooleanType>>().Description("");
             descriptor.Field(o => o.RequireConsent).Type<NonNullType<BooleanType>>().Description("");
         }

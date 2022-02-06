@@ -35,7 +35,7 @@ namespace AuthServer.Configuration
                 .Map(d => d.ClientSecret, s => s.ClientSecret ?? "")
                 .Map(d => d.DisplayName, s => s.DisplayName ?? "")
                 .Map(d => d.RequireConsent, s => s.ConsentType == OpenIddictConstants.ConsentTypes.Explicit)
-                .Map(d => d.Type, s => s.Type ?? "")
+                .Map(d => d.Type, s => s.Type ?? OpenIddictConstants.ClientTypes.Public)
                 .Map(d => d.DisplayNames, s => MapFromJsonToListOfStrings(s.DisplayNames))
                 .Map(d => d.Permissions, s => MapFromJsonToListOfStrings(s.Permissions).TakeWhile(p => p.StartsWith("scp:") || Predefined.Scopes.Contains(p)))
                 .Map(d => d.RedirectUris, s => MapFromJsonToListOfStrings(s.RedirectUris))

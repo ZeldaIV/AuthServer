@@ -56,7 +56,7 @@ mapToApiResource =
     SelectionSet.map3 Client
         ClientDto.id
         ClientDto.displayName
-        (SelectionSet.withDefault "" ClientDto.type_)
+        ClientDto.type_
 
 
 
