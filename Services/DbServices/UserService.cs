@@ -6,14 +6,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using AuthServer.Data;
 using AuthServer.Data.Models;
-using AuthServer.DbServices.Interfaces;
 using AuthServer.Dtos;
+using AuthServer.Services.DbServices.Interfaces;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
-namespace AuthServer.DbServices
+namespace AuthServer.Services.DbServices
 {
     public sealed class UserService : IUserService, IAsyncDisposable, IDisposable
     {

@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Api.Scalar exposing (Codecs, DateTime(..), Uuid(..), defaultCodecs, defineCodecs, unwrapCodecs, unwrapEncoder)
+module Api.Scalar exposing (Codecs, DateTime(..), EmailAddress(..), Port(..), Uuid(..), defaultCodecs, defineCodecs, unwrapCodecs, unwrapEncoder)
 
 import Graphql.Codec exposing (Codec)
 import Graphql.Internal.Builder.Object as Object
@@ -15,23 +15,35 @@ type DateTime
     = DateTime String
 
 
+type EmailAddress
+    = EmailAddress String
+
+
+type Port
+    = Port String
+
+
 type Uuid
     = Uuid String
 
 
 defineCodecs :
     { codecDateTime : Codec valueDateTime
+    , codecEmailAddress : Codec valueEmailAddress
+    , codecPort : Codec valuePort
     , codecUuid : Codec valueUuid
     }
-    -> Codecs valueDateTime valueUuid
+    -> Codecs valueDateTime valueEmailAddress valuePort valueUuid
 defineCodecs definitions =
     Codecs definitions
 
 
 unwrapCodecs :
-    Codecs valueDateTime valueUuid
+    Codecs valueDateTime valueEmailAddress valuePort valueUuid
     ->
         { codecDateTime : Codec valueDateTime
+        , codecEmailAddress : Codec valueEmailAddress
+        , codecPort : Codec valuePort
         , codecUuid : Codec valueUuid
         }
 unwrapCodecs (Codecs unwrappedCodecs) =
@@ -39,29 +51,39 @@ unwrapCodecs (Codecs unwrappedCodecs) =
 
 
 unwrapEncoder :
-    (RawCodecs valueDateTime valueUuid -> Codec getterValue)
-    -> Codecs valueDateTime valueUuid
+    (RawCodecs valueDateTime valueEmailAddress valuePort valueUuid -> Codec getterValue)
+    -> Codecs valueDateTime valueEmailAddress valuePort valueUuid
     -> getterValue
     -> Graphql.Internal.Encode.Value
 unwrapEncoder getter (Codecs unwrappedCodecs) =
     (unwrappedCodecs |> getter |> .encoder) >> Graphql.Internal.Encode.fromJson
 
 
-type Codecs valueDateTime valueUuid
-    = Codecs (RawCodecs valueDateTime valueUuid)
+type Codecs valueDateTime valueEmailAddress valuePort valueUuid
+    = Codecs (RawCodecs valueDateTime valueEmailAddress valuePort valueUuid)
 
 
-type alias RawCodecs valueDateTime valueUuid =
+type alias RawCodecs valueDateTime valueEmailAddress valuePort valueUuid =
     { codecDateTime : Codec valueDateTime
+    , codecEmailAddress : Codec valueEmailAddress
+    , codecPort : Codec valuePort
     , codecUuid : Codec valueUuid
     }
 
 
-defaultCodecs : RawCodecs DateTime Uuid
+defaultCodecs : RawCodecs DateTime EmailAddress Port Uuid
 defaultCodecs =
     { codecDateTime =
         { encoder = \(DateTime raw) -> Encode.string raw
         , decoder = Object.scalarDecoder |> Decode.map DateTime
+        }
+    , codecEmailAddress =
+        { encoder = \(EmailAddress raw) -> Encode.string raw
+        , decoder = Object.scalarDecoder |> Decode.map EmailAddress
+        }
+    , codecPort =
+        { encoder = \(Port raw) -> Encode.string raw
+        , decoder = Object.scalarDecoder |> Decode.map Port
         }
     , codecUuid =
         { encoder = \(Uuid raw) -> Encode.string raw

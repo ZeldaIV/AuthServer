@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using AuthServer.DbServices.Interfaces;
 using AuthServer.Dtos;
+using AuthServer.Services.DbServices.Interfaces;
 using HotChocolate;
 using Mapster;
 

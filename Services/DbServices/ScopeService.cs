@@ -5,13 +5,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using AuthServer.Data;
 using AuthServer.Data.Models;
-using AuthServer.DbServices.Interfaces;
+using AuthServer.Services.DbServices.Interfaces;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
 using Serilog;
 
-namespace AuthServer.DbServices
+namespace AuthServer.Services.DbServices
 {
     public sealed class ScopeService : IScopeService, IAsyncDisposable, IDisposable
     {

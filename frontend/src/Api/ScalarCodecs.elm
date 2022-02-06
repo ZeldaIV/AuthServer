@@ -12,13 +12,23 @@ type alias DateTime =
     Api.Scalar.DateTime
 
 
+type alias EmailAddress =
+    Api.Scalar.EmailAddress
+
+
+type alias Port =
+    Api.Scalar.Port
+
+
 type alias Uuid =
     Api.Scalar.Uuid
 
 
-codecs : Api.Scalar.Codecs DateTime Uuid
+codecs : Api.Scalar.Codecs DateTime EmailAddress Port Uuid
 codecs =
     Api.Scalar.defineCodecs
         { codecDateTime = defaultCodecs.codecDateTime
+        , codecEmailAddress = defaultCodecs.codecEmailAddress
+        , codecPort = defaultCodecs.codecPort
         , codecUuid = defaultCodecs.codecUuid
         }

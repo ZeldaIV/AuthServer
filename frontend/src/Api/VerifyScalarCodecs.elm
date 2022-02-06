@@ -13,6 +13,6 @@ import Api.Scalar
 import ScalarCodecs
 
 
-verify : Api.Scalar.Codecs ScalarCodecs.DateTime ScalarCodecs.Uuid
+verify : Api.Scalar.Codecs ScalarCodecs.DateTime ScalarCodecs.EmailAddress ScalarCodecs.Port ScalarCodecs.Uuid
 verify =
     ScalarCodecs.codecs

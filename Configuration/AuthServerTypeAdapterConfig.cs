@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Text.Json;
-using AuthServer.Constants;
+using AuthServer.Configuration.Constants;
 using AuthServer.Data.Models;
 using AuthServer.Dtos;
 using AuthServer.GraphQL.Client.Types.Inputs;

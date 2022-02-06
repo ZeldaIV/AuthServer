@@ -1,6 +1,6 @@
 using AuthServer.Data.Models;
 
-namespace AuthServer.DbServices.Interfaces
+namespace AuthServer.Services.DbServices.Interfaces
 {
     public interface IClientService : IDbService<ApplicationClient>
     {

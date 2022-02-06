@@ -152,6 +152,48 @@ encodeClientInput input____ =
         [ ( "clientId", Encode.string input____.clientId |> Just ), ( "clientSecret", Encode.string input____.clientSecret |> Just ), ( "displayName", Encode.string input____.displayName |> Just ), ( "permissions", (Encode.string |> Encode.list) |> Encode.optional input____.permissions ), ( "postLogoutRedirectUris", (Encode.string |> Encode.list) |> Encode.optional input____.postLogoutRedirectUris ), ( "redirectUris", (Encode.string |> Encode.list) |> Encode.optional input____.redirectUris ), ( "type", Encode.string input____.type_ |> Just ), ( "requirePkce", Encode.bool input____.requirePkce |> Just ), ( "requireConsent", Encode.bool input____.requireConsent |> Just ) ]
 
 
+buildCreateEmailServerInput :
+    (CreateEmailServerInputOptionalFields -> CreateEmailServerInputOptionalFields)
+    -> CreateEmailServerInput
+buildCreateEmailServerInput fillOptionals____ =
+    let
+        optionals____ =
+            fillOptionals____
+                { host = Absent, port_ = Absent, userName = Absent, password = Absent, fromAddress = Absent, fromDisplayName = Absent }
+    in
+    { host = optionals____.host, port_ = optionals____.port_, userName = optionals____.userName, password = optionals____.password, fromAddress = optionals____.fromAddress, fromDisplayName = optionals____.fromDisplayName }
+
+
+type alias CreateEmailServerInputOptionalFields =
+    { host : OptionalArgument String
+    , port_ : OptionalArgument ScalarCodecs.Port
+    , userName : OptionalArgument String
+    , password : OptionalArgument String
+    , fromAddress : OptionalArgument ScalarCodecs.EmailAddress
+    , fromDisplayName : OptionalArgument String
+    }
+
+
+{-| Type for the CreateEmailServerInput input object.
+-}
+type alias CreateEmailServerInput =
+    { host : OptionalArgument String
+    , port_ : OptionalArgument ScalarCodecs.Port
+    , userName : OptionalArgument String
+    , password : OptionalArgument String
+    , fromAddress : OptionalArgument ScalarCodecs.EmailAddress
+    , fromDisplayName : OptionalArgument String
+    }
+
+
+{-| Encode a CreateEmailServerInput into a value that can be used as an argument.
+-}
+encodeCreateEmailServerInput : CreateEmailServerInput -> Value
+encodeCreateEmailServerInput input____ =
+    Encode.maybeObject
+        [ ( "host", Encode.string |> Encode.optional input____.host ), ( "port", (ScalarCodecs.codecs |> Api.Scalar.unwrapEncoder .codecPort) |> Encode.optional input____.port_ ), ( "userName", Encode.string |> Encode.optional input____.userName ), ( "password", Encode.string |> Encode.optional input____.password ), ( "fromAddress", (ScalarCodecs.codecs |> Api.Scalar.unwrapEncoder .codecEmailAddress) |> Encode.optional input____.fromAddress ), ( "fromDisplayName", Encode.string |> Encode.optional input____.fromDisplayName ) ]
+
+
 buildScopeInput :
     ScopeInputRequiredFields
     -> (ScopeInputOptionalFields -> ScopeInputOptionalFields)
@@ -195,6 +237,46 @@ encodeScopeInput : ScopeInput -> Value
 encodeScopeInput input____ =
     Encode.maybeObject
         [ ( "id", (ScalarCodecs.codecs |> Api.Scalar.unwrapEncoder .codecUuid) input____.id |> Just ), ( "name", Encode.string input____.name |> Just ), ( "displayName", Encode.string input____.displayName |> Just ), ( "description", Encode.string |> Encode.optional input____.description ), ( "resources", (Encode.string |> Encode.list) |> Encode.optional input____.resources ) ]
+
+
+buildUpdateEmailServerInput :
+    (UpdateEmailServerInputOptionalFields -> UpdateEmailServerInputOptionalFields)
+    -> UpdateEmailServerInput
+buildUpdateEmailServerInput fillOptionals____ =
+    let
+        optionals____ =
+            fillOptionals____
+                { host = Absent, port_ = Absent, userName = Absent, fromAddress = Absent, fromDisplayName = Absent }
+    in
+    { host = optionals____.host, port_ = optionals____.port_, userName = optionals____.userName, fromAddress = optionals____.fromAddress, fromDisplayName = optionals____.fromDisplayName }
+
+
+type alias UpdateEmailServerInputOptionalFields =
+    { host : OptionalArgument String
+    , port_ : OptionalArgument ScalarCodecs.Port
+    , userName : OptionalArgument String
+    , fromAddress : OptionalArgument ScalarCodecs.EmailAddress
+    , fromDisplayName : OptionalArgument String
+    }
+
+
+{-| Type for the UpdateEmailServerInput input object.
+-}
+type alias UpdateEmailServerInput =
+    { host : OptionalArgument String
+    , port_ : OptionalArgument ScalarCodecs.Port
+    , userName : OptionalArgument String
+    , fromAddress : OptionalArgument ScalarCodecs.EmailAddress
+    , fromDisplayName : OptionalArgument String
+    }
+
+
+{-| Encode a UpdateEmailServerInput into a value that can be used as an argument.
+-}
+encodeUpdateEmailServerInput : UpdateEmailServerInput -> Value
+encodeUpdateEmailServerInput input____ =
+    Encode.maybeObject
+        [ ( "host", Encode.string |> Encode.optional input____.host ), ( "port", (ScalarCodecs.codecs |> Api.Scalar.unwrapEncoder .codecPort) |> Encode.optional input____.port_ ), ( "userName", Encode.string |> Encode.optional input____.userName ), ( "fromAddress", (ScalarCodecs.codecs |> Api.Scalar.unwrapEncoder .codecEmailAddress) |> Encode.optional input____.fromAddress ), ( "fromDisplayName", Encode.string |> Encode.optional input____.fromDisplayName ) ]
 
 
 buildUserClaimsInput :

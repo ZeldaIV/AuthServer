@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AuthServer.DbServices.Interfaces
+namespace AuthServer.Services.DbServices.Interfaces
 {
     public interface IDbService<TEntity> where TEntity : class
     {

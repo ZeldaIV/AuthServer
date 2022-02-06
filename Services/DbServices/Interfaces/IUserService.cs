@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AuthServer.Dtos;
 
-namespace AuthServer.DbServices.Interfaces
+namespace AuthServer.Services.DbServices.Interfaces
 {
     public interface IUserService: IDbService<UserDto>
     {

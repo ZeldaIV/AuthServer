@@ -45,6 +45,14 @@ type DeleteEntityByIdPayload
     = DeleteEntityByIdPayload
 
 
+type EmailServerDto
+    = EmailServerDto
+
+
+type EmailServerPayload
+    = EmailServerPayload
+
+
 type ScopeDto
     = ScopeDto
 

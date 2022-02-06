@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using AuthServer.Data.Models;
 using OpenIddict.Abstractions;
 
-namespace AuthServer.Constants;
+namespace AuthServer.Configuration.Constants;
 
 public static class Predefined
 {

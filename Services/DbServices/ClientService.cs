@@ -5,15 +5,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using AuthServer.Data;
 using AuthServer.Data.Models;
-using AuthServer.DbServices.Interfaces;
+using AuthServer.Services.DbServices.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using NuGet.Protocol;
-using OpenIddict.Abstractions;
 using OpenIddict.Core;
-using OpenIddict.EntityFrameworkCore.Models;
 using Serilog;
 
-namespace AuthServer.DbServices
+namespace AuthServer.Services.DbServices
 {
     public class ClientService : IClientService, IAsyncDisposable, IDisposable
     {

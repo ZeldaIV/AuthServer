@@ -1,6 +1,7 @@
 using AuthServer.GraphQL.ApiResource;
 using AuthServer.GraphQL.Claim;
 using AuthServer.GraphQL.Client;
+using AuthServer.GraphQL.EmailServer;
 using AuthServer.GraphQL.Options;
 using AuthServer.GraphQL.Scope;
 using AuthServer.GraphQL.User;
@@ -10,7 +11,7 @@ using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace AuthServer.Extensions.Services
+namespace AuthServer.Services.Extensions
 {
     public static class AddGraphQlExtensions
     {
@@ -31,6 +32,7 @@ namespace AuthServer.Extensions.Services
                 .AddTypeExtension<ScopeTypeQueryExtension>()
                 .AddTypeExtension<ClaimTypeQueryExtension>()
                 .AddTypeExtension<OptionsQueryExtensions>()
+                .AddTypeExtension<EmailServerTypeQueryExtension>()
 
                 // Mutations
                 .AddMutationType(d => d.Name("Mutation"))
@@ -38,7 +40,8 @@ namespace AuthServer.Extensions.Services
                 .AddTypeExtension<UserMutationTypeExtension>()
                 .AddTypeExtension<ScopeMutationTypeExtension>()
                 .AddTypeExtension<ClientMutationTypeExtension>()
-                .AddTypeExtension<ClaimMutationTypeExtension>();
+                .AddTypeExtension<ClaimMutationTypeExtension>()
+                .AddTypeExtension<EmailServerMutationTypeExtension>();
         }
     }
 }

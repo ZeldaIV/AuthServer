@@ -8,13 +8,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="HotChocolate.Abstractions" Version="12.3.0" />
-        <PackageReference Include="HotChocolate.AspNetCore" Version="12.2.1" />
-        <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="12.2.1" />
-        <PackageReference Include="HotChocolate.Data" Version="12.2.1" />
-        <PackageReference Include="HotChocolate.Data.EntityFramework" Version="12.2.1" />
-        <PackageReference Include="HotChocolate.Types" Version="12.2.1" />
-        <PackageReference Include="HotChocolate.Types.Scalars" Version="12.2.1" />
+        <PackageReference Include="HotChocolate.Abstractions" Version="12.6.0" />
+        <PackageReference Include="HotChocolate.AspNetCore" Version="12.6.0" />
+        <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="12.6.0" />
+        <PackageReference Include="HotChocolate.Data" Version="12.6.0" />
+        <PackageReference Include="HotChocolate.Data.EntityFramework" Version="12.6.0" />
+        <PackageReference Include="HotChocolate.Types" Version="12.6.0" />
+        <PackageReference Include="HotChocolate.Types.Scalars" Version="12.6.0" />
         <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
         <PackageReference Include="Mapster" Version="7.2.0" />
         <PackageReference Include="Mapster.DependencyInjection" Version="1.0.0" />

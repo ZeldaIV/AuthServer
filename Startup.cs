@@ -7,7 +7,7 @@ using AuthServer.Authorization;
 using AuthServer.Configuration;
 using AuthServer.Data;
 using AuthServer.Data.Models;
-using AuthServer.Extensions.Services;
+using AuthServer.Services.Extensions;
 using AuthServer.Utilities;
 using AuthServer.Utilities.Swagger;
 using HotChocolate.AspNetCore;

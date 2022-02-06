@@ -1,8 +1,8 @@
-using AuthServer.DbServices;
-using AuthServer.DbServices.Interfaces;
+using AuthServer.Services.DbServices;
+using AuthServer.Services.DbServices.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AuthServer.Extensions.Services
+namespace AuthServer.Services.Extensions
 {
     public static class DbServiceExtension
     {
@@ -12,7 +12,8 @@ namespace AuthServer.Extensions.Services
                 .AddTransient<IScopeService, ScopeService>()
                 .AddTransient<IUserService, UserService>()
                 .AddTransient<IClientService, ClientService>()
-                .AddTransient<IApplicationAuthorizationService, ApplicationAuthorizationService>();
+                .AddTransient<IApplicationAuthorizationService, ApplicationAuthorizationService>()
+                .AddTransient<IEmailService, EmailService>();
         }
     }
 }

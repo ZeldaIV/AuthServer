@@ -20,6 +20,7 @@ namespace AuthServer.Data
         public DbSet<ApplicationAuthorization> ApplicationAuthorizations { get; set; }
         public DbSet<ApplicationScope> ApplicationScopes { get; set; }
         public DbSet<ApplicationClaimType> ClaimTypes { get; set; }
+        public DbSet<EmailServer> EmailServers { get; set; }
     }
 
     public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>

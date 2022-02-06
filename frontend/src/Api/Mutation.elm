@@ -188,3 +188,27 @@ deleteClaim :
     -> SelectionSet decodesTo RootMutation
 deleteClaim requiredArgs____ object____ =
     Object.selectionForCompositeField "deleteClaim" [ Argument.required "id" requiredArgs____.id (ScalarCodecs.codecs |> Api.Scalar.unwrapEncoder .codecUuid) ] object____ Basics.identity
+
+
+type alias CreateEmailServerRequiredArguments =
+    { input : Api.InputObject.CreateEmailServerInput }
+
+
+createEmailServer :
+    CreateEmailServerRequiredArguments
+    -> SelectionSet decodesTo Api.Object.EmailServerPayload
+    -> SelectionSet decodesTo RootMutation
+createEmailServer requiredArgs____ object____ =
+    Object.selectionForCompositeField "createEmailServer" [ Argument.required "input" requiredArgs____.input Api.InputObject.encodeCreateEmailServerInput ] object____ Basics.identity
+
+
+type alias UpdateEmailServerRequiredArguments =
+    { input : Api.InputObject.UpdateEmailServerInput }
+
+
+updateEmailServer :
+    UpdateEmailServerRequiredArguments
+    -> SelectionSet decodesTo Api.Object.EmailServerPayload
+    -> SelectionSet decodesTo RootMutation
+updateEmailServer requiredArgs____ object____ =
+    Object.selectionForCompositeField "updateEmailServer" [ Argument.required "input" requiredArgs____.input Api.InputObject.encodeUpdateEmailServerInput ] object____ Basics.identity

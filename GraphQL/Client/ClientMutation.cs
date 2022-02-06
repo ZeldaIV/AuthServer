@@ -2,11 +2,11 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AuthServer.Data.Models;
-using AuthServer.DbServices.Interfaces;
 using AuthServer.Dtos;
 using AuthServer.GraphQL.Client.Types.Inputs;
 using AuthServer.GraphQL.Client.Types.Payloads;
 using AuthServer.GraphQL.Common.Payloads;
+using AuthServer.Services.DbServices.Interfaces;
 using HotChocolate;
 using Mapster;
 

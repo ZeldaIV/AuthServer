@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenIddict.Abstractions;
 
-namespace AuthServer.Extensions.Services
+namespace AuthServer.Services.Extensions
 {
     public class TestData : IHostedService
     {

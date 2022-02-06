@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using AuthServer.Data.Models;
-using AuthServer.DbServices.Interfaces;
 using AuthServer.Dtos;
 using AuthServer.GraphQL.Claim.Types;
+using AuthServer.Services.DbServices.Interfaces;
 using HotChocolate.Types;
 using Mapster;
 

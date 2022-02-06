@@ -129,3 +129,10 @@ claims object____ =
 applicationTypes : SelectionSet (List String) RootQuery
 applicationTypes =
     Object.selectionForField "(List String)" "applicationTypes" [] (Decode.string |> Decode.list)
+
+
+emailServer :
+    SelectionSet decodesTo Api.Object.EmailServerDto
+    -> SelectionSet (Maybe decodesTo) RootQuery
+emailServer object____ =
+    Object.selectionForCompositeField "emailServer" [] object____ (Basics.identity >> Decode.nullable)
