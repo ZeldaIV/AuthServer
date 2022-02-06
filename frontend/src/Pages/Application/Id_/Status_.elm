@@ -302,19 +302,15 @@ clientCreateResult result =
 
 setScopeAdded : Scope -> Scope
 setScopeAdded s =
-    { id = s.id
-    , displayName = s.displayName
-    , name = s.name
-    , addedToResource = True
+    { s
+        | addedToResource = True
     }
 
 
 setScopeRemoved : Scope -> Scope
 setScopeRemoved s =
-    { id = s.id
-    , displayName = s.displayName
-    , name = s.name
-    , addedToResource = False
+    { s
+        | addedToResource = False
     }
 
 
@@ -417,7 +413,7 @@ update msg model =
             ( { model | displayScopeDialog = False }, Effect.none )
 
         GotScopes scopes ->
-            ( { model | availableScopes = scopes }, Effect.none )
+            ( { model | availableScopes = List.map (\s -> { s | addedToResource = List.member s.name model.client.permissions }) scopes }, Effect.none )
 
         ToggleScopeAdded scope add ->
             let
@@ -439,15 +435,15 @@ update msg model =
                         )
                         model.availableScopes
 
-                resourceScopes =
+                permissions =
                     if add then
-                        [ scope.displayName ] ++ resource.permissions
+                        [ scope.name ] ++ resource.permissions
 
                     else
-                        List.filter (\s -> s /= scope.displayName) resource.permissions
+                        List.filter (\s -> s /= scope.name) resource.permissions
             in
             ( { model
-                | form = { resource | permissions = resourceScopes }
+                | form = { resource | permissions = permissions }
                 , availableScopes = availableScopes
               }
             , Effect.none
@@ -466,7 +462,7 @@ update msg model =
                     model.form
 
                 result =
-                    updateArray (Array.fromList model.form.permissions) index value
+                    List.map String.trim (updateArray (Array.fromList model.form.permissions) index value)
             in
             ( { model | form = { form | permissions = result } }, Effect.none )
 
@@ -567,9 +563,26 @@ clientTypeToOption t =
     fromClientType t |> capitalizeString |> text |> Input.option t
 
 
-formView : List ClientType -> ClientForm -> Element Msg
-formView clientTypes model =
+scopeNameToDisplayName : List Scope -> String -> String
+scopeNameToDisplayName availableScopes scp =
     let
+        scopes =
+            List.filter (\s -> s.name == scp) availableScopes
+    in
+    case scopes of
+        x :: _ ->
+            x.displayName
+
+        _ ->
+            scp
+
+
+formView : Model -> Element Msg
+formView model =
+    let
+        form =
+            model.form
+
         textBoxWidth =
             width (px 150)
 
@@ -580,9 +593,9 @@ formView clientTypes model =
             ]
 
         clientSecretInput =
-            if model.clientType == Confidential then
+            if form.clientType == Confidential then
                 Input.text inputAttrs
-                    { text = model.clientSecret
+                    { text = form.clientSecret
                     , onChange = ClientSecretEntered
                     , placeholder = Nothing
                     , label = Input.labelAbove [] <| Element.text "Client secret (temporary input):"
@@ -594,7 +607,7 @@ formView clientTypes model =
     column [ spacing 10, width fill ]
         [ Input.text
             inputAttrs
-            { text = model.displayName
+            { text = form.displayName
             , onChange = DisplayNameEntered
             , placeholder = Nothing
             , label = Input.labelAbove [] <| Element.text "Display name:"
@@ -602,13 +615,13 @@ formView clientTypes model =
         , Input.checkbox []
             { onChange = ToggleRequireConsent
             , icon = Input.defaultCheckbox
-            , checked = model.requireConsent
+            , checked = form.requireConsent
             , label = Input.labelRight [] <| Element.text "Require consent"
             }
         , Input.checkbox []
             { onChange = ToggleRequirePkce
             , icon = Input.defaultCheckbox
-            , checked = model.requirePkce
+            , checked = form.requirePkce
             , label = Input.labelRight [] <| Element.text "Require Pkce"
             }
         , Input.radioRow
@@ -616,22 +629,22 @@ formView clientTypes model =
             , spacing 20
             ]
             { onChange = ToggleClientType
-            , selected = Just model.clientType
+            , selected = Just form.clientType
             , label = Input.labelAbove [] (text "Select client type")
-            , options = List.map clientTypeToOption clientTypes
+            , options = List.map clientTypeToOption model.clientTypes
             }
         , clientSecretInput
         , text "Permissions:"
         , row [ alignTop ]
             [ column
                 [ textBoxWidth ]
-                (stringListView model.permissions ScopesEntered)
+                (stringListView (List.map (scopeNameToDisplayName model.availableScopes) form.permissions) ScopesEntered)
             , el [ alignBottom, paddingEach { edges | left = 10 } ] addScopesButton
             ]
         , text "RedirectUris:"
-        , column [ textBoxWidth ] (stringListView model.redirectUris RedirectUrisEntered)
+        , column [ textBoxWidth ] (stringListView form.redirectUris RedirectUrisEntered)
         , text "Post logout redirects:"
-        , column [ textBoxWidth ] (stringListView model.postLogoutRedirectUris PostLogoutUrisEntered)
+        , column [ textBoxWidth ] (stringListView form.postLogoutRedirectUris PostLogoutUrisEntered)
         ]
 
 
@@ -682,7 +695,7 @@ checkBoxIcon scope checked =
               else
                 Background.color color.white
             ]
-            (el [ centerX, centerY ] (text scope.name))
+            (el [ centerX, centerY ] (text (String.replace "scp:" "" scope.name)))
         ]
 
 
@@ -743,9 +756,6 @@ edges =
 view : Model -> View Msg
 view model =
     let
-        form =
-            model.form
-
         displayScopeDialog =
             model.displayScopeDialog
 
@@ -765,7 +775,7 @@ view model =
     , body =
         [ layout [ inFront dialog ] <|
             column [ Font.size 14, width fill, paddingEach { edges | right = 300, left = 300, top = 0 } ]
-                [ formView model.clientTypes form
+                [ formView model
                 , cancelConfirmView
                 ]
         ]

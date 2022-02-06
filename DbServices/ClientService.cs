@@ -7,18 +7,21 @@ using AuthServer.Data;
 using AuthServer.Data.Models;
 using AuthServer.DbServices.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Protocol;
 using OpenIddict.Abstractions;
+using OpenIddict.Core;
+using OpenIddict.EntityFrameworkCore.Models;
 using Serilog;
 
 namespace AuthServer.DbServices
 {
     public class ClientService : IClientService, IAsyncDisposable, IDisposable
     {
-        private readonly IOpenIddictApplicationManager _applicationManager;
+        private readonly OpenIddictApplicationManager<ApplicationClient> _applicationManager;
         private readonly ApplicationDbContext _context;
 
         public ClientService(IDbContextFactory<ApplicationDbContext> context,
-            IOpenIddictApplicationManager applicationManager)
+            OpenIddictApplicationManager<ApplicationClient> applicationManager)
         {
             _applicationManager = applicationManager;
             _context = context.CreateDbContext();
@@ -65,9 +68,24 @@ namespace AuthServer.DbServices
 
         public async Task UpdateAsync(ApplicationClient update, CancellationToken cancellationToken)
         {
-            var entity = await _applicationManager.FindByIdAsync(update.Id.ToString(), cancellationToken);
+            var entity = await _applicationManager.FindByIdAsync(update.ClientId ?? update.Id.ToString(), cancellationToken);
             if (entity != null)
-                await _applicationManager.UpdateAsync(update, update.ClientSecret ?? "", cancellationToken);
+            {
+                UpdateProperties(update, entity);
+                await _applicationManager.UpdateAsync(entity, update.ClientSecret ?? "", cancellationToken);
+            }
+                
+        }
+        private static void UpdateProperties(
+            ApplicationClient model,
+            ApplicationClient entity
+        )
+        {
+            entity.ConsentType = model.ConsentType; 
+            entity.Permissions = model.Permissions; 
+            entity.RedirectUris =  model.RedirectUris;
+            entity.PostLogoutRedirectUris = model.PostLogoutRedirectUris; 
+            entity.Requirements =  model.Requirements;
         }
 
         public async Task<bool> DeleteByIdAsync(Guid id, CancellationToken cancellationToken)

@@ -56,4 +56,14 @@ public static class Predefined
                 DisplayName = OpenIddictConstants.Scopes.Roles
             }
         };
+
+    public static List<string> ClientDefaults() =>
+        new()
+        {
+            OpenIddictConstants.Permissions.Endpoints.Authorization,
+            OpenIddictConstants.Permissions.Endpoints.Token,
+            OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
+            OpenIddictConstants.Permissions.Endpoints.Introspection,
+            OpenIddictConstants.Permissions.Endpoints.Logout
+        };
 }

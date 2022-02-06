@@ -47,7 +47,7 @@ namespace AuthServer.Configuration
                 .Map(d => d.Id, s => s.Id)
                 .Map(d => d.ClientId, s => s.ClientId)
                 .Map(d => d.DisplayNames, s => MapToJson(s.DisplayNames))
-                .Map(d => d.Permissions, s => MapToJson(s.Permissions))
+                .Map(d => d.Permissions, s => MapToJson(HandlePermissions(s).Permissions))
                 .Map(d => d.RedirectUris, s => MapToJson(s.RedirectUris))
                 .Map(d => d.PostLogoutRedirectUris, s => MapToJson(s.PostLogoutRedirectUris))
                 .Map(d => d.ConsentType,
@@ -65,14 +65,13 @@ namespace AuthServer.Configuration
 
             cfg.NewConfig<ApplicationScope, ScopeDto>()
                 .Map(d => d.Resources, s => MapFromJsonToListOfStrings(s.Resources))
-                .Map(d => d.Name, s => s.Name.TrimStart(OpenIddictConstants.Permissions.Prefixes.Scope.ToCharArray()))
                 .AddDestinationTransform((string x) => x ?? "")
                 .AddDestinationTransform((Guid x) => x != default ? x : Guid.Empty)
                 .AddDestinationTransform((List<string> l) => l ?? new List<string>())
                 .TwoWays();
 
             cfg.NewConfig<ScopeInput, ApplicationScope>()
-                .Map(d => d.Name, s => $"{OpenIddictConstants.Permissions.Prefixes.Scope}{s.Name}")
+                .Map(d => d.Name, s => s.Name.StartsWith("scp:") ? s.Name : $"{OpenIddictConstants.Permissions.Prefixes.Scope}{s.Name}")
                 .Map(d => d.Resources, s => MapToJson(s.Resources));
 
             cfg.NewConfig<ApplicationAuthorization, AuthorizationDto>()
@@ -83,6 +82,56 @@ namespace AuthServer.Configuration
                 .Map(d => d.CreationDate, s => s.CreationDate)
                 .Map(d => d.Type, s => s.Type ?? "")
                 .Map(d => d.Scopes, s => MapFromJsonToListOfStrings(s.Scopes));
+        }
+
+        private static ClientInput HandlePermissions(ClientInput c)
+        {
+            return ConvertSettingsToPermissions(AddDefaultPermissions(PrepareCustomScopes(c)));
+        }
+        
+        private static ClientInput PrepareCustomScopes(ClientInput s)
+        {
+            s.Permissions = s.Permissions.Select(scp => Predefined.Scopes.Contains(scp) ? scp : scp.StartsWith("scp:") ? scp : $"scp:{scp}").ToList();
+            return s;
+        }
+        
+        private static ClientInput AddDefaultPermissions(ClientInput c)
+        {
+            c.Permissions = c.Permissions.Concat(Predefined.ClientDefaults()).Distinct().ToList();
+            return c;
+        }
+
+        private static ClientInput ConvertSettingsToPermissions(ClientInput c)
+        {
+            if (c.Type == OpenIddictConstants.ClientTypes.Confidential)
+            {
+                c.Permissions.Remove(OpenIddictConstants.GrantTypes.AuthorizationCode);
+                c.Permissions.Remove(OpenIddictConstants.ResponseTypes.Code);
+                c.Permissions.Remove(OpenIddictConstants.GrantTypes.Implicit);
+                c.Permissions.Add(OpenIddictConstants.GrantTypes.ClientCredentials);
+                c.Permissions.Add(OpenIddictConstants.ResponseTypes.Token);
+            }
+
+            if (c.Type == OpenIddictConstants.ClientTypes.Public)
+            {
+                c.Permissions.Remove(OpenIddictConstants.GrantTypes.ClientCredentials);
+                c.Permissions.Remove(OpenIddictConstants.ResponseTypes.Token);
+            }
+
+            if (c.RequirePkce)
+            {
+                c.Permissions.Add(OpenIddictConstants.GrantTypes.AuthorizationCode);
+                c.Permissions.Add(OpenIddictConstants.ResponseTypes.Code);
+                c.Permissions.Remove(OpenIddictConstants.GrantTypes.Implicit);
+            }
+            else
+            {
+                c.Permissions.Remove(OpenIddictConstants.GrantTypes.AuthorizationCode);
+                c.Permissions.Remove(OpenIddictConstants.ResponseTypes.Code);
+                c.Permissions.Add(OpenIddictConstants.GrantTypes.Implicit);
+            }
+
+            return c;
         }
 
         private static List<string> MapFromJsonToListOfStrings([CanBeNull] string jsonValue)
